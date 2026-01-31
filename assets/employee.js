@@ -2,11 +2,26 @@ import { db, isFirebaseConfigured } from "./firebase.js";
 import { onAuth } from "./auth.js";
 import { uiSetText, uiToast, escapeHtml } from "./ui.js";
 
-import {
-  doc, getDoc, updateDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+/**
+ * Firestore lazy loader (NO crashea si Firebase no está listo)
+ */
+let __fs = null;
+async function getFirestoreFns() {
+  if (__fs) return __fs;
+  // Solo intenta cargar Firestore si Firebase está configurado
+  if (!isFirebaseConfigured()) return null;
 
-// UI-only fallback data (when Firebase not configured or user not signed in)
+  const m = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
+  __fs = {
+    doc: m.doc,
+    getDoc: m.getDoc,
+    updateDoc: m.updateDoc,
+    serverTimestamp: m.serverTimestamp,
+  };
+  return __fs;
+}
+
+// UI-only fallback data (cuando Firebase no está configurado o no hay sesión)
 function demoUser() {
   return {
     fullName: "Employee (Preview)",
@@ -14,7 +29,12 @@ function demoUser() {
     phone: "",
     status: "active",
     stage: "shift_selection",
-    appointment: { date: "2026-02-03", time: "10:30", address: "4299 ... Louisville, KY", notes: "Bring ID" },
+    appointment: {
+      date: "2026-02-03",
+      time: "10:30",
+      address: "4299 ... Louisville, KY",
+      notes: "Bring ID"
+    },
     steps: [
       { id: "application", label: "Application", done: true },
       { id: "shift_selection", label: "Shift Selection", done: false },
@@ -49,6 +69,8 @@ function stageIndex(stage) {
 
 function renderStagebar(user) {
   const el = document.getElementById("stagebar");
+  if (!el) return;
+
   const idx = stageIndex(user.stage);
   el.innerHTML = "";
 
@@ -58,21 +80,38 @@ function renderStagebar(user) {
 
     const node = document.createElement("div");
     node.className = "stage";
-    node.innerHTML = `
-      <div class="stage-top">
-        <div class="stage-dot ${done ? "done" : active ? "active" : ""}"></div>
-        ${i < STAGES.length - 1 ? <div class="stage-line ${done ? "done" : ""}"></div> : ""}
-      </div>
-      <div class="stage-label ${active ? "active" : ""}">${escapeHtml(s.label)}</div>
-    `;
+
+    const top = document.createElement("div");
+    top.className = "stage-top";
+
+    const dot = document.createElement("div");
+    dot.className = "stage-dot " + (done ? "done" : active ? "active" : "");
+    top.appendChild(dot);
+
+    if (i < STAGES.length - 1) {
+      const line = document.createElement("div");
+      line.className = "stage-line " + (done ? "done" : "");
+      top.appendChild(line);
+    }
+
+    const label = document.createElement("div");
+    label.className = "stage-label " + (active ? "active" : "");
+    label.textContent = s.label;
+
+    node.appendChild(top);
+    node.appendChild(label);
     el.appendChild(node);
   });
 }
 
 async function loadUserDoc(uid) {
   if (!isFirebaseConfigured()) return demoUser();
-  const ref = doc(db, "users", uid);
-  const snap = await getDoc(ref);
+
+  const fs = await getFirestoreFns();
+  if (!fs) return demoUser();
+
+  const ref = fs.doc(db, "users", uid);
+  const snap = await fs.getDoc(ref);
   return snap.exists() ? snap.data() : demoUser();
 }
 
@@ -81,8 +120,15 @@ async function saveUserDoc(uid, patch) {
     uiToast("Preview mode: not saving (Firebase later).");
     return;
   }
-  const ref = doc(db, "users", uid);
-  await updateDoc(ref, { ...patch, updatedAt: serverTimestamp() });
+
+  const fs = await getFirestoreFns();
+  if (!fs) {
+    uiToast("Firebase not ready yet.");
+    return;
+  }
+
+  const ref = fs.doc(db, "users", uid);
+  await fs.updateDoc(ref, { ...patch, updatedAt: fs.serverTimestamp() });
 }
 
 function setPageMeta(title, sub) {
@@ -97,9 +143,6 @@ function routeName() {
 function renderProgress(user) {
   setPageMeta("Progress", "Track your progress and complete pending steps.");
 
-  const pending = (user.steps || []).filter(s => !s.done);
-  const done = (user.steps || []).filter(s => s.done);
-
   const appt = user.appointment || {};
   const apptBox = `
     <div class="card">
@@ -108,7 +151,7 @@ function renderProgress(user) {
         <div class="k">Date</div><div class="v">${escapeHtml(appt.date || "Pending")}</div>
         <div class="k">Time</div><div class="v">${escapeHtml(appt.time || "Pending")}</div>
         <div class="k">Address</div><div class="v">${escapeHtml(appt.address || "Pending")}</div>
-<div class="k">Notes</div><div class="v">${escapeHtml(appt.notes || "—")}</div>
+        <div class="k">Notes</div><div class="v">${escapeHtml(appt.notes || "—")}</div>
       </div>
     </div>
   `;
@@ -140,10 +183,11 @@ function renderProgress(user) {
     const stepMap = new Map(boxes.map(b => [b.getAttribute("data-step"), b.checked]));
     const nextSteps = (user.steps || []).map(s => ({ ...s, done: !!stepMap.get(s.id) }));
 
-    // auto-stage (simple)
-    const stage = nextSteps.find(s => !s.done)?.id || "start_working";
-    await window.__EMP_save({ steps: nextSteps, stage });
+    // auto-stage simple (si falta algo, pone stage al primer pendiente)
+    const nextPending = nextSteps.find(s => !s.done);
+    const stage = nextPending ? nextPending.id : "start_working";
 
+    await window.__EMP_save({ steps: nextSteps, stage });
     uiToast("Saved.");
     await window.__EMP_reload();
   });
@@ -154,8 +198,8 @@ function renderRoles(user) {
 
   const shift = user.shift || {};
   const shiftText = shift.confirmed
-    ? Confirmed: ${escapeHtml(shift.choice || "—")}
-    : Not confirmed;
+    ? `Confirmed: ${escapeHtml(shift.choice || "—")}`
+    : "Not confirmed";
 
   document.getElementById("pageBody").innerHTML = `
     <div class="grid2">
@@ -186,7 +230,7 @@ function renderDocuments(user) {
   document.getElementById("pageBody").innerHTML = `
     <div class="card">
       <h3 class="h3">Document Checklist</h3>
-      <div class="muted small">This UI is ready. Later we will connect real uploads (Storage) if you want.</div>
+      <div class="muted small">UI is ready. Later we can connect uploads (Storage) if you want.</div>
 
       <div style="height:10px"></div>
 
@@ -224,7 +268,7 @@ function renderI9(user) {
     <div class="grid2">
       <div class="card">
         <h3 class="h3">What to bring</h3>
-<div class="muted small">Examples (not legal advice):</div>
+        <div class="muted small">Examples (not legal advice):</div>
         <ul class="ul">
           <li>Passport (List A)</li>
           <li>OR Driver’s License + Social Security card (Lists B + C)</li>
@@ -246,7 +290,13 @@ function renderI9(user) {
 
   document.getElementById("btnSaveI9").addEventListener("click", async () => {
     const ready = document.getElementById("i9Ready").checked;
-    // store as a step completion convenience
+    const chip = document.getElementById("i9Chip");
+    if (chip) {
+      chip.textContent = ready ? "Done" : "Pending";
+      chip.className = "chip " + (ready ? "ok" : "warn");
+    }
+
+    // Opcional: marcar docs como done si ready
     const steps = (user.steps || []).map(s => (s.id === "docs" ? { ...s, done: ready } : s));
     await window.__EMP_save({ steps });
     uiToast("Saved.");
@@ -268,7 +318,7 @@ function renderShift(user) {
 
         <div class="radio">
           <label class="radio-row">
-            <input type="radio" name="shift" value="early" ${selected==="early"?"checked":""}/>
+            <input type="radio" name="shift" value="early" ${selected==="early" ? "checked" : ""}/>
             <div>
               <div class="li-title">Early Shift</div>
               <div class="li-sub muted">Example: 6:00 AM – 2:30 PM</div>
@@ -276,7 +326,7 @@ function renderShift(user) {
           </label>
 
           <label class="radio-row">
-            <input type="radio" name="shift" value="mid" ${selected==="mid"?"checked":""}/>
+            <input type="radio" name="shift" value="mid" ${selected==="mid" ? "checked" : ""}/>
             <div>
               <div class="li-title">Mid Shift</div>
               <div class="li-sub muted">Example: 2:00 PM – 10:30 PM</div>
@@ -284,7 +334,7 @@ function renderShift(user) {
           </label>
 
           <label class="radio-row">
-            <input type="radio" name="shift" value="late" ${selected==="late"?"checked":""}/>
+            <input type="radio" name="shift" value="late" ${selected==="late" ? "checked" : ""}/>
             <div>
               <div class="li-title">Late Shift</div>
               <div class="li-sub muted">Example: 10:00 PM – 6:30 AM</div>
@@ -298,7 +348,7 @@ function renderShift(user) {
         <button class="btn ghost" id="btnConfirmShift" ${!selected ? "disabled" : ""}>Confirm Shift</button>
 
         <div class="alert ${confirmed ? "ok" : "warn"}" style="margin-top:12px;">
-          ${confirmed ? Shift confirmed: <b>${escapeHtml(selected)}</b> : `Shift not confirmed.`}
+          ${confirmed ? `Shift confirmed: <b>${escapeHtml(selected)}</b>` : "Shift not confirmed."}
         </div>
       </div>
 
@@ -320,7 +370,7 @@ function renderShift(user) {
   document.getElementById("btnConfirmShift").addEventListener("click", async () => {
     const choice = document.querySelector("input[name=shift]:checked")?.value || "";
     if (!choice) return;
-    // mark the step as done too
+
     const steps = (user.steps || []).map(s => (s.id === "shift_selection" ? { ...s, done: true } : s));
     await window.__EMP_save({ shift: { choice, confirmed: true }, steps, stage: "onboarding" });
     uiToast("Shift confirmed.");
@@ -333,8 +383,8 @@ function renderFootwear(user) {
 
   document.getElementById("pageBody").innerHTML = `
     <div class="card">
-<h3 class="h3">Safety footwear requirement</h3>
-      <div class="muted small">Steel-toe or composite-toe may be required depending on the site policy.</div>
+      <h3 class="h3">Safety footwear requirement</h3>
+      <div class="muted small">Steel-toe or composite-toe may be required depending on site policy.</div>
 
       <div class="alert info">Bring appropriate footwear on your first day.</div>
 
@@ -395,7 +445,7 @@ function renderTeam(user) {
     <div class="list-item">
       <div>
         <div class="li-title">${escapeHtml(x.name || "—")}</div>
-        <div class="li-sub muted">${escapeHtml(x.email || "")} ${x.phone ? "• " + escapeHtml(x.phone) : ""}</div>
+        <div class="li-sub muted">${escapeHtml(x.email || "")}${x.phone ? " • " + escapeHtml(x.phone) : ""}</div>
       </div>
       <button class="btn sm ghost" disabled>Message</button>
     </div>
@@ -414,10 +464,10 @@ function renderNotifications(user) {
 
   const list = (user.notifications || []).map(n => `
     <div class="note">
-      <div class="note-title">${escapeHtml(n.title)}</div>
-      <div class="note-body muted">${escapeHtml(n.body)}</div>
+      <div class="note-title">${escapeHtml(n.title || "")}</div>
+      <div class="note-body muted">${escapeHtml(n.body || "")}</div>
       <div class="note-actions">
-        <button class="btn sm ghost" data-goto="${escapeHtml(n.route  "progress")}">${escapeHtml(n.action  "Open")}</button>
+        <button class="btn sm ghost" data-goto="${escapeHtml(n.route || "progress")}">${escapeHtml(n.action || "Open")}</button>
       </div>
     </div>
   `).join("");
@@ -431,7 +481,7 @@ function renderNotifications(user) {
 
   document.querySelectorAll("[data-goto]").forEach(btn => {
     btn.addEventListener("click", () => {
-      const r = btn.getAttribute("data-goto");
+      const r = btn.getAttribute("data-goto") || "progress";
       location.hash = "#" + r;
     });
   });
@@ -452,7 +502,7 @@ function renderHelp(user) {
       <div class="card">
         <h3 class="h3">Common topics</h3>
         <ul class="ul">
-<li>Reset password</li>
+          <li>Reset password</li>
           <li>Updating personal information</li>
           <li>First day instructions</li>
         </ul>
@@ -463,8 +513,8 @@ function renderHelp(user) {
 
 function renderRoute(user) {
   renderStagebar(user);
-
   const r = routeName();
+
   switch (r) {
     case "progress": return renderProgress(user);
     case "roles": return renderRoles(user);
@@ -501,6 +551,7 @@ export async function initEmployeeApp() {
     await saveUserDoc(uid, patch);
   }
 
+  // Expose helpers
   window.__EMP_reload = reload;
   window.__EMP_save = save;
 
@@ -509,12 +560,16 @@ export async function initEmployeeApp() {
     onAuth(async (user) => {
       if (user && isFirebaseConfigured()) {
         uid = user.uid;
-        statusChip?.classList?.add("ok");
-        statusChip.textContent = "online";
+        if (statusChip) {
+          statusChip.classList.add("ok");
+          statusChip.textContent = "online";
+        }
       } else {
         uid = null;
-        statusChip?.classList?.remove("ok");
-        statusChip.textContent = "offline";
+        if (statusChip) {
+          statusChip.classList.remove("ok");
+          statusChip.textContent = "offline";
+        }
       }
       await reload();
       resolve();
@@ -525,4 +580,7 @@ export async function initEmployeeApp() {
   window.addEventListener("hashchange", async () => {
     await reload();
   });
+
+  // First paint
+  await reload();
 }
