@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Employee Portal | Sign in</title>
+  <link rel="stylesheet" href="./assets/app.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+</head>
+<body class="app-bg">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="brand">
+        <div class="brand-dot"></div>
+        <div>
+          <div class="brand-title">Employee Portal</div>
+          <div class="brand-sub">Sign in to continue</div>
+        </div>
+      </div>
+
+      <div class="alert warn" id="firebaseNotice" style="display:none;">
+        Firebase is not configured yet. UI works, login will work after you paste config.
+      </div>
+
+      <label class="lbl">Email</label>
+      <input id="email" class="inp" placeholder="name@email.com" autocomplete="username"/>
+
+      <label class="lbl">Password</label>
+      <input id="pass" class="inp" type="password" placeholder="••••••••" autocomplete="current-password"/>
+
+      <button id="btnLogin" class="btn primary">Sign in</button>
+
+      <div class="row">
+        <button id="btnGoogle" class="btn ghost">Sign in with Google</button>
+        <button id="btnReset" class="btn ghost">Forgot password</button>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="small">
+        New here?
+        <button id="btnRegister" class="linkbtn">Create account</button>
+      </div>
+
+      <div id="msg" class="msg"></div>
+    </div>
+
+    <div class="auth-foot">
+      <span class="muted">©</span> <span id="year"></span> <span class="muted">Employee Portal</span>
+    </div>
+  </div>
+
+  <script type="module">
+    import { uiSetText, uiShow, uiToast } from "./assets/ui.js";
+    import { authReady, signInEmail, signInGoogle, registerEmail, resetPassword } from "./assets/auth.js";
+
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    const msg = document.getElementById("msg");
+    const firebaseNotice = document.getElementById("firebaseNotice");
+
+    const emailEl = document.getElementById("email");
+    const passEl  = document.getElementById("pass");
+
+    // If Firebase config is placeholder, show notice
+    const ok = await authReady();
+    if (!ok) uiShow(firebaseNotice, true);
+
+    async function doLogin() {
+      uiSetText(msg, "");
+      try {
+        const email = emailEl.value.trim();
+        const pass  = passEl.value.trim();
+        await signInEmail(email, pass);
+        window.location.href = "./employee.html#progress";
+      } catch (e) {
+        uiSetText(msg, e?.message || String(e));
+      }
+    }
+
+    async function doRegister() {
+      uiSetText(msg, "");
+      try {
+        const email = emailEl.value.trim();
+        const pass  = passEl.value.trim();
+        if (pass.length < 6) throw new Error("Password must be at least 6 characters.");
+        await registerEmail(email, pass);
+        uiToast("Account created. You're signed in.");
+        window.location.href = "./employee.html#progress";
+      } catch (e) {
+        uiSetText(msg, e?.message || String(e));
+      }
+    }
+
+    async function doReset() {
+      uiSetText(msg, "");
+      try {
+        const email = emailEl.value.trim();
+        if (!email) throw new Error("Enter your email first.");
+        await resetPassword(email);
+        uiToast("Password reset email sent (after Firebase is configured).");
+      } catch (e) {
+        uiSetText(msg, e?.message || String(e));
+      }
+    }
+
+    document.getElementById("btnLogin").addEventListener("click", doLogin);
+    document.getElementById("btnRegister").addEventListener("click", doRegister);
+    document.getElementById("btnReset").addEventListener("click", doReset);
+
+    document.getElementById("btnGoogle").addEventListener("click", async () => {
+      uiSetText(msg, "");
+      try {
+        await signInGoogle();
+        window.location.href = "./employee.html#progress";
+      } catch (e) {
+        uiSetText(msg, e?.message || String(e));
+      }
+    });
+
+    // Enter key submit
+    passEl.
+  addEventListener("keydown", (e) => { if (e.key === "Enter") doLogin(); });
+  </script>
+</body>
+</html>
