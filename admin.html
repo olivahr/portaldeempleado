@@ -1,0 +1,64 @@
+</select>
+            </div>
+          </div>
+
+          <div class="grid2 tight">
+            <div class="field">
+              <label class="lbl">Shift choice</label>
+              <select id="shiftChoice" class="inp">
+                <option value="">(none)</option>
+                <option value="early">early</option>
+                <option value="mid">mid</option>
+                <option value="late">late</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="lbl">Shift confirmed</label>
+              <select id="shiftConfirmed" class="inp">
+                <option value="false">false</option>
+                <option value="true">true</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="btn primary" id="btnSaveStageShift">Save Stage/Shift</button>
+          <div class="small muted" id="stageMsg"></div>
+        </div>
+
+        <div class="card">
+          <h3 class="h3">Steps</h3>
+          <div id="stepsEditor" class="steps-edit"></div>
+          <button class="btn primary" id="btnSaveSteps">Save Steps</button>
+          <div class="small muted" id="stepsMsg"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3 class="h3">Quick List (latest)</h3>
+        <div id="quickList" class="list"></div>
+      </section>
+
+      <footer class="footer">
+        <span class="muted">Admin Panel</span> • <span class="muted">UI + Firestore ready</span>
+      </footer>
+    </main>
+  </div>
+
+  <script type="module">
+    import { uiSetText, uiShow, uiToast } from "./assets/ui.js";
+    import { onAuth, signOutNow } from "./assets/auth.js";
+    import { initAdminApp } from "./assets/admin.js";
+
+    document.getElementById("btnLogout").addEventListener("click", async () => {
+      await signOutNow();
+      window.location.href = "./index.html";
+    });
+
+    onAuth(async (user) => {
+      uiSetText(document.getElementById("adminBadge"), user ? (user.email || "Signed in") : "Preview mode");
+      uiShow(document.getElementById("adminNote"), true);
+      await initAdminApp();
+    });
+  </script>
+</body>
+</html>
