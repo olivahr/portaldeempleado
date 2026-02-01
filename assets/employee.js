@@ -4,7 +4,7 @@
 // - Require Employee ID from allowedEmployees/{id}
 // - Show Employee ID in top badge (userBadge)
 // - Hide Admin button unless user is admin
-// - Mobile hamburger opens/closes sidebar
+// - Mobile hamburger opens/closes sidebar  ✅ FIXED IDs
 // ===============================
 
 import { uiSetText, uiToast, escapeHtml } from "./ui.js";
@@ -21,39 +21,22 @@ function routeName() {
 }
 
 function setPage(title, sub, html) {
-  const t = document.getElementById("pageTitle");
-  const s = document.getElementById("pageSub");
-  const b = document.getElementById("pageBody");
-  if (t) uiSetText(t, title);
-  if (s) uiSetText(s, sub);
-  if (b) b.innerHTML = html;
+  uiSetText(document.getElementById("pageTitle"), title);
+  uiSetText(document.getElementById("pageSub"), sub);
+  document.getElementById("pageBody").innerHTML = html;
 }
 
 function safe(v, fallback = "—") {
   return (v === undefined || v === null || v === "") ? fallback : v;
 }
 
-// normalize IDs so you can accept "SP-024", "sp024", "SP 024"
-function normalizeEmpId(raw) {
-  let x = String(raw || "").trim().toUpperCase();
-  x = x.replaceAll(" ", "").replaceAll("-", "");
-  // If someone writes "SP024" keep it.
-  // If someone writes "024" we can force SP prefix (optional):
-  if (/^\d+$/.test(x)) x = "SP" + x;
-  // Keep only letters+numbers
-  x = x.replace(/[^A-Z0-9]/g, "");
-  return x;
-}
-
-// ---------- Default user doc ----------
+// ---------- Default user doc (if missing) ----------
 function defaultUserDoc(user) {
   return {
     email: user?.email || "",
     fullName: user?.displayName || "",
     role: "employee",
     status: "active",
-
-    // stage your UI expects
     stage: "shift_selection",
 
     appointment: { date: "", time: "", address: "", notes: "" },
@@ -69,19 +52,6 @@ function defaultUserDoc(user) {
 
     employeeId: "",
 
-    // optional later
-    contacts: {
-      siteManager: { name: "Site Manager", phone: "", email: "" },
-      shiftLead:   { name: "Shift Supervisor / Lead", phone: "", email: "" },
-      hr:          { name: "HR / People Operations", phone: "", email: "" },
-      safety:      { name: "Safety Officer", phone: "", email: "" }
-    },
-
-    notifications: [
-      { id:"n1", title:"Reminder: Bring your I-9 documents on your first day", body:"Make sure to bring acceptable documents for the I-9 form.", action:"View I-9 Readiness", route:"i9" },
-      { id:"n2", title:"Please Confirm Your Work Shift", body:"Select your preferred work schedule to confirm your shift.", action:"Go to Shift Selection", route:"shift" }
-    ],
-
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
     lastLoginAt: serverTimestamp()
@@ -92,7 +62,6 @@ async function ensureUserDocExists(user) {
   if (!isFirebaseConfigured()) return;
   const ref = doc(db, "users", user.uid);
   const snap = await getDoc(ref);
-
   if (!snap.exists()) {
     await setDoc(ref, defaultUserDoc(user), { merge: true });
   } else {
@@ -122,12 +91,12 @@ async function ensureEmployeeId(user) {
 
   if (data?.employeeId) return data.employeeId;
 
-  let empId = prompt("Enter your Employee ID (example: SP024):");
-  empId = normalizeEmpId(empId);
+  let empId = prompt("Enter your Employee ID (example: SP023):");
+  empId = (empId || "").trim();
 
   if (!empId) throw new Error("Employee ID required.");
 
-  // Validate whitelist: allowedEmployees/{empId} with { active:true }
+  // Validate against whitelist: allowedEmployees/{empId}
   const allowedRef = doc(db, "allowedEmployees", empId);
   const allowedSnap = await getDoc(allowedRef);
 
@@ -137,39 +106,6 @@ async function ensureEmployeeId(user) {
 
   await updateDoc(userRef, { employeeId: empId, updatedAt: serverTimestamp() });
   return empId;
-}
-
-// ---------- Mobile menu wiring (uses YOUR HTML ids) ----------
-function wireMobileMenu() {
-  const btnMenu = document.getElementById("btnMenu");       // ✅ employee.html
-  const sidebar = document.getElementById("sidebar");       // ✅ employee.html
-  const overlay = document.getElementById("drawerOverlay"); // ✅ employee.html
-
-  if (!btnMenu || !sidebar || !overlay) return;
-
-  const close = () => {
-    sidebar.classList.remove("open");
-    overlay.classList.remove("show");
-  };
-
-  btnMenu.addEventListener("click", () => {
-    sidebar.classList.toggle("open");
-    overlay.classList.toggle("show");
-  });
-
-  overlay.addEventListener("click", close);
-
-  // close after click nav on mobile
-  document.querySelectorAll(".nav-item").forEach(a => {
-    a.addEventListener("click", () => {
-      if (window.matchMedia("(max-width: 920px)").matches) close();
-    });
-  });
-
-  // if resized to desktop, close drawer
-  window.addEventListener("resize", () => {
-    if (!window.matchMedia("(max-width: 920px)").matches) close();
-  });
 }
 
 // ---------- Renderers ----------
@@ -245,7 +181,6 @@ function renderDocuments() {
       <div class="list-item"><b>Government ID</b><span class="chip warn">Pending</span></div>
       <div class="list-item"><b>Direct Deposit</b><span class="chip warn">Pending</span></div>
       <div class="list-item"><b>Policies</b><span class="chip warn">Pending</span></div>
-      <div class="small muted" style="margin-top:10px;">Uploads can be wired later (Storage).</div>
     </div>
     `
   );
@@ -380,7 +315,7 @@ function renderFirstDay(userData, saveUserPatch) {
 
 function renderTeam(userData) {
   const c = userData?.contacts || {};
-  const list = Object.values(c).map(x => `
+  const rows = Object.values(c).map(x => `
     <div class="list-item">
       <div>
         <div class="li-title">${escapeHtml(x.name || "—")}</div>
@@ -396,7 +331,7 @@ function renderTeam(userData) {
     `
     <div class="card">
       <h3 class="h3">Contacts</h3>
-      <div class="list">${list || `<div class="muted">No contacts yet</div>`}</div>
+      <div class="list">${rows || `<div class="muted">No contacts yet</div>`}</div>
     </div>
     `
   );
@@ -458,27 +393,62 @@ function renderRoute(userData, saveUserPatch) {
   }
 }
 
+// ---------- Mobile menu wiring (✅ FIXED) ----------
+function wireMobileMenu() {
+  // ✅ These MUST match your employee.html
+  const btnMenu = document.getElementById("btnMenu");
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("drawerOverlay");
+
+  if (!btnMenu || !sidebar || !overlay) return;
+
+  const open = () => {
+    sidebar.classList.add("open");
+    overlay.classList.add("show");
+  };
+
+  const close = () => {
+    sidebar.classList.remove("open");
+    overlay.classList.remove("show");
+  };
+
+  btnMenu.addEventListener("click", () => {
+    if (sidebar.classList.contains("open")) close();
+    else open();
+  });
+
+  overlay.addEventListener("click", close);
+
+  // Close drawer after navigating on mobile
+  document.querySelectorAll(".nav-item").forEach(a => {
+    a.addEventListener("click", () => {
+      if (window.matchMedia("(max-width: 920px)").matches) close();
+    });
+  });
+
+  // If user rotates / resizes bigger than mobile, close it
+  window.addEventListener("resize", () => {
+    if (!window.matchMedia("(max-width: 920px)").matches) close();
+  });
+}
+
 // ---------- Init ----------
 export async function initEmployeeApp() {
-  // Wire menu first (so it always works)
-  wireMobileMenu();
-
   const badge = document.getElementById("userBadge");
   const statusChip = document.getElementById("statusChip");
   const adminBtn = document.getElementById("btnAdminGo");
 
+  // ✅ Wire menu first
+  wireMobileMenu();
+
   // Preview mode
   if (!isFirebaseConfigured()) {
-    if (badge) uiSetText(badge, "Preview mode");
+    uiSetText(badge, "Preview mode");
     if (statusChip) uiSetText(statusChip, "offline");
-    if (adminBtn) adminBtn.style.display = "none";
-
-    const demo = {
-      appointment: { date:"Pending", time:"Pending", address:"4299 Louisville, KY", notes:"" },
-      steps: []
-    };
+    const demo = { appointment: { date:"Pending", time:"Pending", address:"4299 Louisville, KY", notes:"" }, steps: [] };
     renderRoute(demo, async () => {});
     window.addEventListener("hashchange", () => renderRoute(demo, async () => {}));
+    if (adminBtn) adminBtn.style.display = "none";
     return;
   }
 
@@ -499,14 +469,11 @@ export async function initEmployeeApp() {
       const admin = await isAdminUser(user);
       if (adminBtn) adminBtn.style.display = admin ? "" : "none";
 
-      // ensure doc exists
       await ensureUserDocExists(user);
 
-      // require employeeId (whitelist)
+      // require Employee ID
       const empId = await ensureEmployeeId(user);
-
-      // show employeeId in header
-      if (badge) uiSetText(badge, empId);
+      uiSetText(badge, empId);
 
       const userRef = doc(db, "users", user.uid);
 
