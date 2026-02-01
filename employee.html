@@ -12,8 +12,8 @@
     <div class="topbar-left">
 
       <!-- Mobile: Hamburger -->
-      <button class="menu-btn" id="btnMenu" aria-label="Open menu">
-        <div class="menu-ico">
+      <button class="menu-btn" id="btnMenu" aria-label="Open menu" type="button">
+        <div class="menu-ico" aria-hidden="true">
           <span></span><span></span><span></span>
         </div>
       </button>
@@ -28,8 +28,9 @@
     </div>
 
     <div class="topbar-right">
-      <button class="btn sm ghost" id="btnAdminGo">Admin</button>
-      <button class="btn sm ghost" id="btnLogout">Log out</button>
+      <!-- employee.js will hide this if NOT admin -->
+      <button class="btn sm ghost" id="btnAdminGo" type="button">Admin</button>
+      <button class="btn sm ghost" id="btnLogout" type="button">Log out</button>
     </div>
   </header>
 
@@ -38,7 +39,7 @@
 
   <div class="shell">
     <aside class="sidebar" id="sidebar">
-      <nav class="nav">
+      <nav class="nav" id="nav">
         <a class="nav-item" href="#progress" data-route="progress">Progress</a>
         <a class="nav-item" href="#roles" data-route="roles">Roles & Scheduling</a>
         <a class="nav-item" href="#documents" data-route="documents">Documents</a>
@@ -91,18 +92,22 @@
       overlay.classList.remove("show");
     }
 
-    btnMenu?.addEventListener("click", () => {
-      if (sidebar.classList.contains("open")) closeDrawer();
-      else openDrawer();
+    btnMenu.addEventListener("click", () => {
+      sidebar.classList.contains("open") ? closeDrawer() : openDrawer();
     });
 
-    overlay?.addEventListener("click", closeDrawer);
+    overlay.addEventListener("click", closeDrawer);
 
-    // Close drawer on nav click (phone)
+    // Close drawer on nav click (mobile)
     document.querySelectorAll(".nav-item").forEach(a => {
       a.addEventListener("click", () => {
-        if (window.innerWidth <= 920) closeDrawer();
+        if (window.matchMedia("(max-width: 920px)").matches) closeDrawer();
       });
+    });
+
+    // Close drawer if resizing back to desktop
+    window.addEventListener("resize", () => {
+      if (!window.matchMedia("(max-width: 920px)").matches) closeDrawer();
     });
 
     // ========== Buttons ==========
