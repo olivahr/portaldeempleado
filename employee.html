@@ -13,7 +13,8 @@
         <div class="brand-dot"></div>
         <div class="brand-title">Employee Portal</div>
       </div>
-      <div class="topbar-pill" id="userBadge">Not signed in</div>
+      <!-- employee.js will set this to Employee ID -->
+      <div class="topbar-pill" id="userBadge">Loading…</div>
     </div>
     <div class="topbar-right">
       <button class="btn sm ghost" id="btnAdminGo">Admin</button>
@@ -48,58 +49,32 @@
         <div class="subhead" id="pageSub">Track your progress and complete pending steps.</div>
       </section>
 
-      <!-- Progress “rayita” -->
       <section class="stagebar" id="stagebar"></section>
-
-      <!-- Page body -->
       <section id="pageBody"></section>
 
       <footer class="footer">
-        <span class="muted">Employee Portal</span> • <span class="muted" id="build">UI-only until Firebase configured</span>
+        <span class="muted">Employee Portal</span> • <span class="muted" id="build">Firebase Connected</span>
       </footer>
     </main>
   </div>
 
   <script type="module">
-    import { uiToast, uiSetText, uiActiveNav } from "./assets/ui.js";
-    import { onAuth, signOutNow, getCurrentUserEmail } from "./assets/auth.js";
+    import { uiActiveNav } from "./assets/ui.js";
+    import { signOutNow } from "./assets/auth.js";
     import { initEmployeeApp } from "./assets/employee.js";
 
-    const btnLogout = document.getElementById("btnLogout");
-    const btnAdminGo = document.getElementById("btnAdminGo");
-
-    btnLogout.addEventListener("click", async () => {
+    document.getElementById("btnLogout").addEventListener("click", async () => {
       await signOutNow();
       window.location.href = "./index.html";
     });
 
-    btnAdminGo.addEventListener("click", () => {
+    document.getElementById("btnAdminGo").addEventListener("click", () => {
       window.location.href = "./admin.html";
     });
 
-    // If user not signed in, still allow UI preview, but show offline badge
-    onAuth(async (user) => {
-      const badge = document.getElementById("userBadge");
-      const status = document.getElementById("statusChip");
-      if (user) {
-        uiSetText(badge, user.email || "Signed in");
-        uiSetText(status, "online");
-        status.classList.add("ok");
-      } else {
-        uiSetText(badge, "Preview mode (not signed in)");
-        uiSetText(status, "offline");
-        status.classList.remove("ok");
-      }
-      await initEmployeeApp();
-      uiActiveNav();
-    });
-
-    window.addEventListener("hashchange", () => {
-      uiActiveNav();
-    });
-
-    // first load
+    await initEmployeeApp();
     uiActiveNav();
+    window.addEventListener("hashchange", () => uiActiveNav());
   </script>
 </body>
 </html>
