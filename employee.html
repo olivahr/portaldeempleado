@@ -6,24 +6,38 @@
   <title>Employee Portal</title>
   <link rel="stylesheet" href="./assets/app.css"/>
 </head>
+
 <body class="portal">
   <header class="topbar">
     <div class="topbar-left">
+
+      <!-- Mobile: Hamburger -->
+      <button class="menu-btn" id="btnMenu" aria-label="Open menu">
+        <div class="menu-ico">
+          <span></span><span></span><span></span>
+        </div>
+      </button>
+
       <div class="brand-mini">
         <div class="brand-dot"></div>
         <div class="brand-title">Employee Portal</div>
       </div>
+
       <!-- employee.js will set this to Employee ID -->
       <div class="topbar-pill" id="userBadge">Loading…</div>
     </div>
+
     <div class="topbar-right">
       <button class="btn sm ghost" id="btnAdminGo">Admin</button>
       <button class="btn sm ghost" id="btnLogout">Log out</button>
     </div>
   </header>
 
+  <!-- overlay para cerrar el drawer tocando afuera -->
+  <div id="drawerOverlay" class="drawer-overlay"></div>
+
   <div class="shell">
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
       <nav class="nav">
         <a class="nav-item" href="#progress" data-route="progress">Progress</a>
         <a class="nav-item" href="#roles" data-route="roles">Roles & Scheduling</a>
@@ -63,6 +77,35 @@
     import { signOutNow } from "./assets/auth.js";
     import { initEmployeeApp } from "./assets/employee.js";
 
+    // ========== Drawer (mobile menu) ==========
+    const btnMenu = document.getElementById("btnMenu");
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("drawerOverlay");
+
+    function openDrawer(){
+      sidebar.classList.add("open");
+      overlay.classList.add("show");
+    }
+    function closeDrawer(){
+      sidebar.classList.remove("open");
+      overlay.classList.remove("show");
+    }
+
+    btnMenu?.addEventListener("click", () => {
+      if (sidebar.classList.contains("open")) closeDrawer();
+      else openDrawer();
+    });
+
+    overlay?.addEventListener("click", closeDrawer);
+
+    // Close drawer on nav click (phone)
+    document.querySelectorAll(".nav-item").forEach(a => {
+      a.addEventListener("click", () => {
+        if (window.innerWidth <= 920) closeDrawer();
+      });
+    });
+
+    // ========== Buttons ==========
     document.getElementById("btnLogout").addEventListener("click", async () => {
       await signOutNow();
       window.location.href = "./index.html";
@@ -72,6 +115,7 @@
       window.location.href = "./admin.html";
     });
 
+    // ========== App init ==========
     await initEmployeeApp();
     uiActiveNav();
     window.addEventListener("hashchange", () => uiActiveNav());
