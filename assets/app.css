@@ -13,9 +13,9 @@
   --radius:14px;
 }
 
+/* Reset / base */
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
-
 body{
   margin:0;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
@@ -23,15 +23,15 @@ body{
   background:var(--bg);
 }
 
+/* Avoid iPhone zoom on inputs */
+input, button, select, textarea{ font-size:16px; }
+
 a{ color:inherit; text-decoration:none; }
 .muted{ color:var(--muted); }
 .small{ font-size:12px; }
 .h3{ margin:0 0 10px 0; font-size:16px; }
 
-/* Evita zoom raro de iPhone en inputs */
-input, button, select, textarea{ font-size:16px; }
-
-/* Fondo auth */
+/* Auth background */
 .app-bg{
   background:
     radial-gradient(1200px 600px at 20% -10%, rgba(29,78,216,.15), transparent),
@@ -112,7 +112,6 @@ input, button, select, textarea{ font-size:16px; }
   outline:none;
   background:#fff;
 }
-
 .inp:focus{
   border-color: rgba(29,78,216,.5);
   box-shadow:0 0 0 4px rgba(29,78,216,.10);
@@ -156,6 +155,14 @@ input, button, select, textarea{ font-size:16px; }
   border-color: rgba(245,158,11,.25);
   background: rgba(245,158,11,.08);
 }
+.alert.ok{
+  border-color: rgba(22,163,74,.25);
+  background: rgba(22,163,74,.08);
+}
+.alert.info{
+  border-color: rgba(14,165,233,.25);
+  background: rgba(14,165,233,.08);
+}
 
 /* =========================
    PORTAL LAYOUT
@@ -186,9 +193,10 @@ input, button, select, textarea{ font-size:16px; }
   padding:6px 10px;
   border-radius:999px;
   font-size:12px;
-  font-weight:800;
+  font-weight:900;
 }
 
+/* Desktop shell */
 .shell{
   display:grid;
   grid-template-columns: 260px 1fr;
@@ -211,7 +219,7 @@ input, button, select, textarea{ font-size:16px; }
   border-radius:12px;
   border:1px solid transparent;
   color: var(--text);
-  font-weight:800;
+  font-weight:900;
   font-size:14px;
 }
 .nav-item:hover{ background:#f8fafc; }
@@ -235,7 +243,7 @@ input, button, select, textarea{ font-size:16px; }
   border:1px solid var(--line);
   font-size:12px;
   background:#fff;
-  font-weight:800;
+  font-weight:900;
 }
 .status-chip.ok{
   border-color: rgba(22,163,74,.25);
@@ -323,12 +331,16 @@ input, button, select, textarea{ font-size:16px; }
 .menu-ico span:nth-child(2){ top:5px; }
 .menu-ico span:nth-child(3){ top:10px; }
 
+/* Overlay above content but below sidebar */
 .drawer-overlay{
   display:none;
   position:fixed;
-  inset:56px 0 0 0;
-  background:rgba(0,0,0,.4);
-  z-index:9;
+  top:56px;
+  left:0;
+  right:0;
+  bottom:0;
+  background:rgba(0,0,0,.42);
+  z-index:90;
 }
 .drawer-overlay.show{ display:block; }
 
@@ -339,25 +351,47 @@ input, button, select, textarea{ font-size:16px; }
   .shell{ grid-template-columns: 1fr; }
   .grid2{ grid-template-columns: 1fr; }
 
-  /* Portal drawer */
-  .menu-btn{ display:flex; align-items:center; justify-content:center; }
+  .menu-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
 
+  /* IMPORTANT: iPhone safe height */
   .sidebar{
     position:fixed;
     top:56px;
-    left:-280px;
+    left:-290px;
     width:280px;
-    height:calc(100vh - 56px);
-    z-index:10;
+    /* Use modern dvh + iOS fallback */
+    height:calc(100dvh - 56px);
+    max-height:calc(100dvh - 56px);
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+
+    z-index:100;
     transition:left .25s ease;
     border-right:1px solid var(--line);
+    box-shadow: 0 14px 40px rgba(15,23,42,.18);
   }
+
+  /* iOS fallback for older Safari */
+  @supports (-webkit-touch-callout: none) {
+    .sidebar{
+      height:calc(-webkit-fill-available - 56px);
+      max-height:calc(-webkit-fill-available - 56px);
+    }
+  }
+
   .sidebar.open{ left:0; }
 }
 
-/* Auth mobile: todo en columna y full width */
+/* Auth mobile */
 @media (max-width: 520px){
   .auth-card{ padding:16px; }
   .row{ flex-direction:column; }
   .btn{ width:100%; }
 }
+
+/* ===== Optional (recommended): prevent horizontal overflow bugs ===== */
+body{ overflow-x:hidden; }
