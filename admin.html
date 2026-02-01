@@ -1,53 +1,109 @@
-</select>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Employee Portal | Admin</title>
+  <link rel="stylesheet" href="./assets/app.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+</head>
+
+<body class="app-bg">
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-dot"></div>
+        <div>
+          <div class="brand-title">Employee Portal</div>
+          <div class="brand-sub">Admin Panel</div>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <div class="badge" id="adminBadge">Loading…</div>
+        <button class="btn ghost" id="btnLogout">Log out</button>
+      </div>
+    </header>
+
+    <!-- Mensajes/errores -->
+    <div class="wrap">
+      <div class="alert warn" id="adminNote" style="display:none;">
+        Admin mode active. If you see a red error box, send me the text.
+      </div>
+
+      <main class="main">
+        <!-- ==== TU UI EXISTENTE ==== -->
+        <section class="grid2">
+          <div class="card">
+            <h3 class="h3">Stage / Shift</h3>
+
+            <div class="grid2 tight">
+              <div class="field">
+                <label class="lbl">Stage</label>
+                <select id="stageSelect" class="inp"></select>
+              </div>
+
+              <div class="field">
+                <label class="lbl">Stage confirmed</label>
+                <select id="stageConfirmed" class="inp">
+                  <option value="false">false</option>
+                  <option value="true">true</option>
+                </select>
+              </div>
             </div>
+
+            <div class="grid2 tight">
+              <div class="field">
+                <label class="lbl">Shift choice</label>
+                <select id="shiftChoice" class="inp">
+                  <option value="">(none)</option>
+                  <option value="early">early</option>
+                  <option value="mid">mid</option>
+                  <option value="late">late</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label class="lbl">Shift confirmed</label>
+                <select id="shiftConfirmed" class="inp">
+                  <option value="false">false</option>
+                  <option value="true">true</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="btn primary" id="btnSaveStageShift">Save Stage/Shift</button>
+            <div class="small muted" id="stageMsg"></div>
           </div>
 
-          <div class="grid2 tight">
-            <div class="field">
-              <label class="lbl">Shift choice</label>
-              <select id="shiftChoice" class="inp">
-                <option value="">(none)</option>
-                <option value="early">early</option>
-                <option value="mid">mid</option>
-                <option value="late">late</option>
-              </select>
-            </div>
-            <div class="field">
-              <label class="lbl">Shift confirmed</label>
-              <select id="shiftConfirmed" class="inp">
-                <option value="false">false</option>
-                <option value="true">true</option>
-              </select>
-            </div>
+          <div class="card">
+            <h3 class="h3">Steps</h3>
+            <div id="stepsEditor" class="steps-edit"></div>
+            <button class="btn primary" id="btnSaveSteps">Save Steps</button>
+            <div class="small muted" id="stepsMsg"></div>
           </div>
+        </section>
 
-          <button class="btn primary" id="btnSaveStageShift">Save Stage/Shift</button>
-          <div class="small muted" id="stageMsg"></div>
-        </div>
+        <section class="card">
+          <h3 class="h3">Quick List (latest)</h3>
+          <div id="quickList" class="list"></div>
+        </section>
 
-        <div class="card">
-          <h3 class="h3">Steps</h3>
-          <div id="stepsEditor" class="steps-edit"></div>
-          <button class="btn primary" id="btnSaveSteps">Save Steps</button>
-          <div class="small muted" id="stepsMsg"></div>
-        </div>
-      </section>
-
-      <section class="card">
-        <h3 class="h3">Quick List (latest)</h3>
-        <div id="quickList" class="list"></div>
-      </section>
-
-      <footer class="footer">
-        <span class="muted">Admin Panel</span> • <span class="muted">UI + Firestore ready</span>
-      </footer>
-    </main>
+        <footer class="footer">
+          <span class="muted">Admin Panel</span> • <span class="muted">UI + Firestore ready</span>
+        </footer>
+      </main>
+    </div>
   </div>
 
+  <!-- ==== SCRIPT ==== -->
   <script type="module">
-    import { uiSetText, uiShow, uiToast } from "./assets/ui.js";
+    import { uiSetText, uiShow } from "./assets/ui.js";
     import { onAuth, signOutNow } from "./assets/auth.js";
     import { initAdminApp } from "./assets/admin.js";
+
+    const badge = document.getElementById("adminBadge");
+    const note  = document.getElementById("adminNote");
 
     document.getElementById("btnLogout").addEventListener("click", async () => {
       await signOutNow();
@@ -55,9 +111,31 @@
     });
 
     onAuth(async (user) => {
-      uiSetText(document.getElementById("adminBadge"), user ? (user.email || "Signed in") : "Preview mode");
-      uiShow(document.getElementById("adminNote"), true);
-      await initAdminApp();
+      try {
+        // Si no hay sesión, pa fuera.
+        if (!user) {
+          window.location.href = "./index.html";
+          return;
+        }
+
+        // Badge con email
+        uiSetText(badge, user.email || "Signed in");
+        uiShow(note, true);
+
+        // Inicializa app admin (aquí haremos el check rol en admin.js)
+        await initAdminApp(user);
+
+      } catch (e) {
+        uiSetText(badge, "Admin error");
+        note.style.display = "block";
+        note.innerHTML = `
+          <div style="padding:10px;border:1px solid #f66;background:#fff3f3;border-radius:10px;">
+            <b>Admin crashed:</b><br/>
+            <pre style="white-space:pre-wrap;margin:8px 0 0;">${(e?.message || e || "").toString()}</pre>
+          </div>
+        `;
+        console.error("Admin init error:", e);
+      }
     });
   </script>
 </body>
