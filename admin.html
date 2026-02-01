@@ -1,19 +1,16 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Employee Portal | Admin</title>
-
-<link rel="stylesheet" href="./assets/app.css"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Employee Portal | Admin</title>
+  <link rel="stylesheet" href="./assets/app.css"/>
 </head>
 
 <body class="app-bg">
 
-<div class="app-shell">
-
 <header class="topbar">
-  <div class="brand">
+  <div class="brand-mini">
     <div class="brand-dot"></div>
     <div>
       <div class="brand-title">Employee Portal</div>
@@ -22,134 +19,96 @@
   </div>
 
   <div class="topbar-right">
-    <div class="badge" id="adminBadge">Admin</div>
-    <button class="btn ghost" id="btnLogout">Log out</button>
+    <div class="topbar-pill" id="adminBadge">Admin</div>
+    <button class="btn sm ghost" id="btnLogout">Log out</button>
   </div>
 </header>
 
-<main class="container">
+<main class="content">
 
 <!-- SEARCH -->
 <section class="card">
   <h3 class="h3">Search Employee</h3>
 
-  <label class="lbl">Employee Email</label>
-  <input id="searchEmail" class="inp" placeholder="employee@email.com"/>
-
+  <input id="searchEmail" class="inp" placeholder="employee@email.com">
   <button class="btn primary" id="btnSearch">Load Employee</button>
-
   <div class="small muted" id="searchMsg"></div>
 </section>
-
 
 <!-- APPOINTMENT -->
 <section class="card">
   <h3 class="h3">Appointment</h3>
 
-  <label class="lbl">Date</label>
-  <input id="aDate" class="inp" type="date"/>
+  <input id="aDate" class="inp" type="date">
+  <input id="aTime" class="inp" type="time">
+  <input id="aAddr" class="inp" placeholder="Address">
+  <input id="aNotes" class="inp" placeholder="Notes">
 
-  <label class="lbl">Time</label>
-  <input id="aTime" class="inp" type="time"/>
-
-  <label class="lbl">Address</label>
-  <input id="aAddr" class="inp" placeholder="Warehouse address"/>
-
-  <label class="lbl">Notes</label>
-  <input id="aNotes" class="inp" placeholder="Instructions for employee"/>
-
-  <button class="btn primary" id="btnSaveAppointment">
-    Save Appointment
-  </button>
-
+  <button class="btn primary" id="btnSaveAppointment">Save Appointment</button>
   <div class="small muted" id="apptMsg"></div>
 </section>
-
 
 <!-- NOTIFICATIONS -->
 <section class="card">
   <h3 class="h3">Notifications</h3>
 
-  <label class="lbl">Title</label>
-  <input id="nTitle" class="inp" placeholder="Action required"/>
+  <input id="nTitle" class="inp" placeholder="Title">
+  <input id="nBody" class="inp" placeholder="Message">
 
-  <label class="lbl">Message</label>
-  <input id="nBody" class="inp" placeholder="Complete your I-9 documents"/>
-
-  <label class="lbl">Route Page</label>
   <select id="nRoute" class="inp">
-    <option value="progress">progress</option>
-    <option value="documents">documents</option>
-    <option value="i9">i9</option>
-    <option value="shift">shift</option>
-    <option value="footwear">footwear</option>
-    <option value="firstday">firstday</option>
+    <option value="progress">Progress</option>
+    <option value="i9">I-9</option>
+    <option value="shift">Shift</option>
+    <option value="firstday">First Day</option>
   </select>
 
-  <button class="btn primary" id="btnAddNotif">
-    Add Notification
-  </button>
+  <button class="btn primary" id="btnAddNotif">Add Notification</button>
 
-  <div id="notifList" class="list"></div>
+  <div id="notifList"></div>
 </section>
-
 
 <!-- TEAM -->
 <section class="card">
-  <h3 class="h3">Team Contacts</h3>
+  <h3 class="h3">Team</h3>
 
-  <label class="lbl">Name</label>
-  <input id="tName" class="inp" placeholder="Maria HR"/>
+  <input id="tName" class="inp" placeholder="Name">
+  <input id="tRole" class="inp" placeholder="Role">
+  <input id="tEmail" class="inp" placeholder="Email">
+  <input id="tPhone" class="inp" placeholder="Phone">
 
-  <label class="lbl">Role</label>
-  <input id="tRole" class="inp" placeholder="HR Manager"/>
+  <button class="btn primary" id="btnAddTeam">Add Team Member</button>
 
-  <label class="lbl">Email</label>
-  <input id="tEmail" class="inp" placeholder="hr@company.com"/>
-
-  <label class="lbl">Phone</label>
-  <input id="tPhone" class="inp" placeholder="(502) 555-0000"/>
-
-  <button class="btn primary" id="btnAddTeam">
-    Add Team Contact
-  </button>
-
-  <div id="teamList" class="list"></div>
+  <div id="teamList"></div>
 </section>
-
 
 <!-- ALLOWED IDS -->
 <section class="card">
   <h3 class="h3">Allowed Employee IDs</h3>
 
-  <label class="lbl">Employee ID</label>
-  <input id="newEmpId" class="inp" placeholder="SP023"/>
+  <input id="newEmpId" class="inp" placeholder="SP023">
+  <input id="newEmpName" class="inp" placeholder="Name (optional)">
 
-  <label class="lbl">Name (optional)</label>
-  <input id="newEmpName" class="inp" placeholder="John Doe"/>
+  <button class="btn primary" id="btnAddAllowed">Add ID</button>
 
-  <button class="btn primary" id="btnAddAllowed">
-    Add ID
-  </button>
-
-  <div id="allowedList" class="list"></div>
+  <div id="allowedList"></div>
 </section>
 
-
-<footer class="footer">
-  Admin Panel • Live Data
-</footer>
-
 </main>
-</div>
 
 <script type="module">
-import { signOutNow } from "./assets/auth.js";
+  import { uiSetText } from "./assets/ui.js";
+  import { onAuth, signOutNow } from "./assets/auth.js";
+  import { initAdminApp } from "./assets/admin.js";
 
-document.getElementById("btnLogout").onclick = async () => {
-  await signOutNow();
-  window.location.href = "./index.html";
-};
+  document.getElementById("btnLogout").addEventListener("click", async () => {
+    await signOutNow();
+    window.location.href = "./index.html";
+  });
+
+  onAuth(async (user) => {
+    uiSetText(document.getElementById("adminBadge"), user?.email || "Admin");
+    await initAdminApp(user);
+  });
 </script>
 
 </body>
