@@ -11,12 +11,13 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.5/firebas
  * Firebase configuration (TU PROYECTO REAL)
  */
 const firebaseConfig = {
-  apiKey: "AIzaSyApT665GcwJDJYWj1peFN9DlltPIaMW9K",
+  apiKey: "AIzaSyAFWdMujLQ8dDcNhjmtMVOTE7CED8DAI10",
   authDomain: "portal-empleado-df279.firebaseapp.com",
   projectId: "portal-empleado-df279",
-  storageBucket: "portal-empleado-df279.appspot.com",
+  storageBucket: "portal-empleado-df279.firebasestorage.app",
   messagingSenderId: "641787761578",
-  appId: "1:641787761578:web:1c3668f8d49bbb00695d13"
+  appId: "1:641787761578:web:912e2437974c7cb46951d3",
+  measurementId: "G-QS8HGPTNRL"
 };
 
 // Initialize Firebase
