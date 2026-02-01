@@ -27,23 +27,23 @@
       </div>
 
       <label class="lbl">Email</label>
-      <input id="email" class="inp" placeholder="name@email.com"/>
+      <input id="email" class="inp" type="email" placeholder="name@email.com" autocomplete="username"/>
 
       <label class="lbl">Password</label>
-      <input id="pass" class="inp" type="password" placeholder="••••••••"/>
+      <input id="pass" class="inp" type="password" placeholder="••••••••" autocomplete="current-password"/>
 
-      <button id="btnLogin" class="btn primary">Sign in</button>
+      <button id="btnLogin" class="btn primary" type="button">Sign in</button>
 
       <div class="row">
-        <button id="btnGoogle" class="btn ghost">Sign in with Google</button>
-        <button id="btnReset" class="btn ghost">Forgot password</button>
+        <button id="btnGoogle" class="btn ghost" type="button">Sign in with Google</button>
+        <button id="btnReset" class="btn ghost" type="button">Forgot password</button>
       </div>
 
       <div class="sep"></div>
 
       <div class="small">
         New here?
-        <button id="btnRegister" class="linkbtn">Create account</button>
+        <button id="btnRegister" class="linkbtn" type="button">Create account</button>
       </div>
 
       <div id="msg" class="msg"></div>
@@ -56,134 +56,137 @@
 
 
 <script type="module">
+  // UI helpers
+  import { uiSetText, uiShow, uiToast } from "./assets/ui.js";
 
-// UI helpers
-import { uiSetText, uiShow, uiToast } from "./assets/ui.js";
+  // Auth helpers
+  import {
+    authReady,
+    signInEmail,
+    signInGoogle,
+    registerEmail,
+    resetPassword
+  } from "./assets/auth.js";
 
-// Auth helpers
-import { 
-  authReady, 
-  signInEmail, 
-  signInGoogle, 
-  registerEmail, 
-  resetPassword 
-} from "./assets/auth.js";
+  // Firebase
+  import { auth, db, isFirebaseConfigured } from "./assets/firebase.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-// Firebase
-import { auth, db } from "./assets/firebase.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+  // ---- DOM ----
+  const yearEl = document.getElementById("year");
+  const msg = document.getElementById("msg");
+  const firebaseNotice = document.getElementById("firebaseNotice");
+  const emailEl = document.getElementById("email");
+  const passEl  = document.getElementById("pass");
 
-document.getElementById("year").textContent = new Date().getFullYear();
+  const btnLogin = document.getElementById("btnLogin");
+  const btnRegister = document.getElementById("btnRegister");
+  const btnReset = document.getElementById("btnReset");
+  const btnGoogle = document.getElementById("btnGoogle");
 
-const msg = document.getElementById("msg");
-const firebaseNotice = document.getElementById("firebaseNotice");
+  yearEl.textContent = new Date().getFullYear();
 
-const emailEl = document.getElementById("email");
-const passEl  = document.getElementById("pass");
+  // ---- Firebase readiness ----
+  const ok = await authReady();
+  if (!ok) uiShow(firebaseNotice, true);
 
-// Check Firebase
-const ok = await authReady();
-if (!ok) uiShow(firebaseNotice, true);
-
-// 🔥 ADMIN CHECK
-async function goNextByRole() {
-
-  const user = auth.currentUser;
-
-  if (!user) {
-    window.location.href = "./employee.html";
-    return;
+  function showErr(e) {
+    uiSetText(msg, e?.message || String(e));
   }
 
-  const ref = doc(db, "admins", user.uid);
-  const snap = await getDoc(ref);
+  // ✅ ADMIN CHECK (safe)
+  async function goNextByRole() {
+    // If no firebase configured, always go employee (preview safe)
+    if (typeof isFirebaseConfigured === "function" && !isFirebaseConfigured()) {
+      window.location.href = "./employee.html";
+      return;
+    }
 
-  if (snap.exists() && snap.data()?.role === "admin") {
-    window.location.href = "./admin.html";
-  } else {
-    window.location.href = "./employee.html";
+    const user = auth?.currentUser;
+    if (!user) {
+      window.location.href = "./employee.html";
+      return;
+    }
+
+    try {
+      const ref = doc(db, "admins", user.uid);
+      const snap = await getDoc(ref);
+
+      const isAdmin = snap.exists() && snap.data()?.role === "admin";
+      window.location.href = isAdmin ? "./admin.html" : "./employee.html";
+    } catch (e) {
+      // If Firestore rules/index/etc fail → don’t block user
+      window.location.href = "./employee.html";
+    }
   }
-}
 
-// LOGIN
-async function doLogin() {
-  uiSetText(msg,"");
-
-  try {
-    await signInEmail(
-      emailEl.value.trim(),
-      passEl.value.trim()
-    );
-
-    await goNextByRole();
-
-  } catch(e) {
-    uiSetText(msg, e.message);
+  // LOGIN
+  async function doLogin() {
+    uiSetText(msg, "");
+    try {
+      const email = emailEl.value.trim();
+      const pass  = passEl.value.trim();
+      if (!email || !pass) throw new Error("Enter email and password.");
+      await signInEmail(email, pass);
+      await goNextByRole();
+    } catch (e) {
+      showErr(e);
+    }
   }
-}
 
-// REGISTER
-async function doRegister() {
-  uiSetText(msg,"");
+  // REGISTER
+  async function doRegister() {
+    uiSetText(msg, "");
+    try {
+      const email = emailEl.value.trim();
+      const pass  = passEl.value.trim();
+      if (!email) throw new Error("Enter your email.");
+      if (pass.length < 6) throw new Error("Password min 6 characters.");
 
-  try {
-    const pass = passEl.value.trim();
-
-    if(pass.length < 6)
-      throw new Error("Password min 6 characters");
-
-    await registerEmail(
-      emailEl.value.trim(),
-      pass
-    );
-
-    uiToast("Account created");
-    await goNextByRole();
-
-  } catch(e) {
-    uiSetText(msg, e.message);
+      await registerEmail(email, pass);
+      uiToast("Account created");
+      await goNextByRole();
+    } catch (e) {
+      showErr(e);
+    }
   }
-}
 
-// RESET
-async function doReset() {
-  uiSetText(msg,"");
-
-  try {
-    const email = emailEl.value.trim();
-
-    if(!email)
-      throw new Error("Enter email first");
-
-    await resetPassword(email);
-
-    uiToast("Reset email sent");
-
-  } catch(e) {
-    uiSetText(msg, e.message);
+  // RESET
+  async function doReset() {
+    uiSetText(msg, "");
+    try {
+      const email = emailEl.value.trim();
+      if (!email) throw new Error("Enter email first.");
+      await resetPassword(email);
+      uiToast("Reset email sent");
+    } catch (e) {
+      showErr(e);
+    }
   }
-}
 
-// BUTTONS
-btnLogin.onclick = doLogin;
-btnRegister.onclick = doRegister;
-btnReset.onclick = doReset;
+  // BUTTONS
+  btnLogin.addEventListener("click", doLogin);
+  btnRegister.addEventListener("click", doRegister);
+  btnReset.addEventListener("click", doReset);
 
-// GOOGLE
-btnGoogle.onclick = async () => {
-  try {
-    await signInGoogle();
-    await goNextByRole();
-  } catch(e) {
-    uiSetText(msg,e.message);
-  }
-};
+  // GOOGLE
+  btnGoogle.addEventListener("click", async () => {
+    uiSetText(msg, "");
+    try {
+      await signInGoogle();
+      await goNextByRole();
+    } catch (e) {
+      showErr(e);
+    }
+  });
 
-// ENTER KEY
-passEl.addEventListener("keydown", e=>{
-  if(e.key==="Enter") doLogin();
-});
-
+  // ENTER KEY (no weird Safari submit)
+  passEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      doLogin();
+    }
+  });
 </script>
 
 </body>
