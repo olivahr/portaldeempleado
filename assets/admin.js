@@ -1,5 +1,5 @@
 import { db, isFirebaseConfigured } from "./firebase.js";
-import { uiSetText, uiToast, escapeHtml, uiShow } from "./ui.js";
+import { uiSetText, uiToast, escapeHtml } from "./ui.js";
 
 import {
   collection, query, where, limit, getDocs,
@@ -12,160 +12,177 @@ let targetData = null;
 
 function q$(id) { return document.getElementById(id); }
 
-function demoEmployees() {
-  return [
-    { uid:"preview1", email:"alex@preview", fullName:"Alex Preview", phone:"", status:"active", stage:"shift_selection" },
-    { uid:"preview2", email:"maria@preview", fullName:"Maria Preview", phone:"", status:"in_review", stage:"application" }
-  ];
-}
-
-function renderStepsEditor(steps) {
-  const el = q$("stepsEditor");
-  el.innerHTML = "";
-
-  (steps || []).forEach((s, i) => {
-    const row = document.createElement("label");
-    row.className = "checkrow";
-    row.innerHTML = `
-      <input type="checkbox" data-i="${i}" ${s.done ? "checked" : ""}/>
-      <span>${escapeHtml(s.label || "")}</span>
-      <span class="chip ${s.done ? "ok" : "warn"}">${s.done ? "Done" : "Pending"}</span>
-    `;
-    el.appendChild(row);
-  });
-
-  if (!steps || !steps.length) {
-    el.innerHTML = `<div class="small muted">No steps found for this user.</div>`;
-  }
-}
-
-function fillSummary(uid, d) {
-  uiSetText(q$("vUid"), uid || "—");
-  uiSetText(q$("vName"), d?.fullName || "—");
-  uiSetText(q$("vEmail"), d?.email || "—");
-  uiSetText(q$("vPhone"), d?.phone || "—");
-  uiSetText(q$("vStage"), d?.stage || "—");
-  uiSetText(q$("vStatus"), d?.status || "—");
-
-  q$("stageSel").value = d?.stage || "application";
-  q$("statusSel").value = d?.status || "in_review";
-
-  q$("shiftChoice").value = d?.shift?.choice || "";
-  q$("shiftConfirmed").value = String(!!d?.shift?.confirmed);
-
-  q$("aDate").value = d?.appointment?.date || "";
-  q$("aTime").value = d?.appointment?.time || "";
-  q$("aAddr").value = d?.appointment?.address || "";
-  q$("aNotes").value = d?.appointment?.notes || "";
-
-  renderStepsEditor(d?.steps || []);
-}
-
+// ---------- Admin guard ----------
 async function ensureAdmin(user) {
-  // Admins collection: admins/{uid} -> { role:"admin" }
+  // admins/{uid} -> { role:"admin" }
   if (!isFirebaseConfigured()) return true;
   if (!user?.uid) return false;
 
   const ref = doc(db, "admins", user.uid);
   const snap = await getDoc(ref);
-  const ok = snap.exists() && (snap.data()?.role === "admin" || snap.data()?.isAdmin === true);
-
-  return ok;
+  return snap.exists() && (snap.data()?.role === "admin" || snap.data()?.isAdmin === true);
 }
 
+// ---------- Find employee by email ----------
 async function findUserByEmail(email) {
   if (!isFirebaseConfigured()) {
-    const demo = demoEmployees().find(x => x.email === email) || demoEmployees()[0];
-    return { uid: demo.uid, data: {
-      email: demo.email,
-      fullName: demo.fullName,
-      phone: demo.phone,
-      status: demo.status,
-      stage: demo.stage,
-      appointment: { date:"2026-02-03", time:"10:30", address:"4299 ... Louisville, KY", notes:"Bring ID" },
-      steps: [
-        { id:"application", label:"Application", done: true },
-        { id:"shift_selection", label:"Shift Selection", done: false },
-        { id:"docs", label:"Complete Onboarding Documents", done: false },
-        { id:"first_day", label:"First Day Preparation", done: false }
-      ],
-      shift: { choice:"", confirmed:false }
-    }};
+    // preview mode
+    return {
+      uid: "preview1",
+      data: {
+        email,
+        appointment: { date: "2026-02-03", time: "10:30", address: "4299 Louisville, KY", notes: "Bring ID" },
+        notifications: [],
+        contacts: {}
+      }
+    };
   }
 
   const usersRef = collection(db, "users");
   const q = query(usersRef, where("email", "==", email), limit(1));
   const snap = await getDocs(q);
   if (snap.empty) return null;
-  const docSnap = snap.docs[0];
-  return { uid: docSnap.id, data: docSnap.data() };
+
+  const d = snap.docs[0];
+  return { uid: d.id, data: d.data() };
 }
 
+// ---------- Save patch to target user ----------
 async function updateTarget(patch) {
-  if (!targetUid) throw new Error("No employee selected.");
+  if (!targetUid) throw new Error("No employee loaded. Search an email first.");
   if (!isFirebaseConfigured()) {
-    uiToast("Preview mode: not saving (Firebase later).");
+    uiToast("Preview mode: not saving (Firebase off).");
     return;
   }
   const ref = doc(db, "users", targetUid);
-  await updateDoc(ref, {
-    ...patch,
-    updatedAt: serverTimestamp()
-  });
+  await updateDoc(ref, { ...patch, updatedAt: serverTimestamp() });
 }
 
-async function loadQuickList() {
-  const el = q$("quickList");
+// ---------- Render helpers ----------
+function setText(id, v) {
+  const el = q$(id);
+  if (!el) return;
+  uiSetText(el, v ?? "");
+}
+
+function uidKey(prefix = "k") {
+  // safe key (no crypto requirement)
+  return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
+// ---------- Appointment ----------
+function fillAppointment(d) {
+  q$("aDate").value  = d?.appointment?.date || "";
+  q$("aTime").value  = d?.appointment?.time || "";
+  q$("aAddr").value  = d?.appointment?.address || "";
+  q$("aNotes").value = d?.appointment?.notes || "";
+}
+
+// ---------- Notifications ----------
+function normalizeNotifs(d) {
+  const arr = Array.isArray(d?.notifications) ? d.notifications : [];
+  // ensure objects
+  return arr.map(n => ({
+    id: n?.id || uidKey("n"),
+    title: n?.title || "",
+    body: n?.body || "",
+    route: n?.route || "progress",
+    action: n?.action || "Open",
+    createdAt: n?.createdAt || null
+  }));
+}
+
+function renderNotifs() {
+  const el = q$("notifList");
+  if (!el) return;
   el.innerHTML = "";
 
-  if (!isFirebaseConfigured()) {
-    demoEmployees().forEach(u => {
-      const item = document.createElement("div");
-      item.className = "list-item";
-      item.innerHTML = `
-        <div>
-          <div class="li-title">${escapeHtml(u.fullName)}</div>
-          <div class="li-sub muted">${escapeHtml(u.email)} • stage: ${escapeHtml(u.stage)}</div>
-        </div>
-        <button class="btn sm ghost" disabled>Open</button>
-      `;
-      el.appendChild(item);
-    });
+  const list = normalizeNotifs(targetData);
+
+  if (!list.length) {
+    el.innerHTML = `<div class="small muted">No notifications yet.</div>`;
     return;
   }
 
-  // Simple quick list (no indexes required)
-  const usersRef = collection(db, "users");
-  const q = query(usersRef, limit(10));
-  const snap = await getDocs(q);
-
-  if (snap.empty) {
-    el.innerHTML = `<div class="muted small">Quick list will populate after you create some users.</div>`;
-    return;
-  }
-
-  snap.forEach((d) => {
-    const u = d.data();
-    const item = document.createElement("div");
-    item.className = "list-item";
-    item.innerHTML = `
+  list.forEach((n) => {
+    const row = document.createElement("div");
+    row.className = "list-item";
+    row.innerHTML = `
       <div>
-        <div class="li-title">${escapeHtml(u.fullName || "—")}</div>
-        <div class="li-sub muted">${escapeHtml(u.email || "—")} • stage: ${escapeHtml(u.stage || "—")}</div>
+        <div class="li-title">${escapeHtml(n.title || "—")}</div>
+        <div class="li-sub muted">${escapeHtml(n.body || "")}</div>
+        <div class="small muted">Route: ${escapeHtml(n.route || "progress")}</div>
       </div>
-      <button class="btn sm ghost">Open</button>
+      <button class="btn sm ghost">Remove</button>
     `;
-    item.querySelector("button").addEventListener("click", () => {
-      targetUid = d.id;
-      targetData = u;
-      fillSummary(targetUid, targetData);
-      uiToast("Loaded from quick list.");
+
+    row.querySelector("button").addEventListener("click", async () => {
+      try {
+        const next = normalizeNotifs(targetData).filter(x => x.id !== n.id);
+        await updateTarget({ notifications: next });
+        targetData.notifications = next;
+        uiToast("Notification removed.");
+        renderNotifs();
+      } catch (e) {
+        uiToast(e?.message || String(e));
+      }
     });
-    el.appendChild(item);
+
+    el.appendChild(row);
   });
 }
 
-/** Allowed IDs (whitelist) **/
+// ---------- Team contacts ----------
+function normalizeContacts(d) {
+  const obj = (d && typeof d.contacts === "object" && d.contacts) ? d.contacts : {};
+  return obj;
+}
+
+function renderTeam() {
+  const el = q$("teamList");
+  if (!el) return;
+  el.innerHTML = "";
+
+  const contacts = normalizeContacts(targetData);
+  const keys = Object.keys(contacts);
+
+  if (!keys.length) {
+    el.innerHTML = `<div class="small muted">No team contacts yet.</div>`;
+    return;
+  }
+
+  keys.forEach((k) => {
+    const c = contacts[k] || {};
+    const row = document.createElement("div");
+    row.className = "list-item";
+    row.innerHTML = `
+      <div>
+        <div class="li-title">${escapeHtml(c.name || "—")} ${c.role ? `<span class="muted">• ${escapeHtml(c.role)}</span>` : ""}</div>
+        <div class="li-sub muted">
+          ${escapeHtml(c.email || "")}${c.phone ? ` • ${escapeHtml(c.phone)}` : ""}
+        </div>
+      </div>
+      <button class="btn sm ghost">Remove</button>
+    `;
+
+    row.querySelector("button").addEventListener("click", async () => {
+      try {
+        const next = { ...normalizeContacts(targetData) };
+        delete next[k];
+        await updateTarget({ contacts: next });
+        targetData.contacts = next;
+        uiToast("Team contact removed.");
+        renderTeam();
+      } catch (e) {
+        uiToast(e?.message || String(e));
+      }
+    });
+
+    el.appendChild(row);
+  });
+}
+
+// ---------- Allowed IDs ----------
 async function addAllowedId(empId, name) {
   if (!isFirebaseConfigured()) {
     uiToast("Preview mode: not saving.");
@@ -173,8 +190,9 @@ async function addAllowedId(empId, name) {
   }
   if (!empId) throw new Error("Employee ID required.");
 
-  // Collection: allowedEmployees/{empId} -> { active:true, name, createdAt }
-  const ref = doc(db, "allowedEmployees", empId);
+  const clean = empId.trim().toUpperCase(); // SP023
+  const ref = doc(db, "allowedEmployees", clean);
+
   await setDoc(ref, {
     active: true,
     name: name || "",
@@ -193,10 +211,11 @@ async function removeAllowedId(empId) {
 
 async function loadAllowedIds() {
   const el = q$("allowedList");
+  if (!el) return;
   el.innerHTML = "";
 
   if (!isFirebaseConfigured()) {
-    el.innerHTML = `<div class="muted small">Preview mode: Allowed IDs list not loaded.</div>`;
+    el.innerHTML = `<div class="small muted">Preview mode: Allowed IDs not loaded.</div>`;
     return;
   }
 
@@ -204,24 +223,25 @@ async function loadAllowedIds() {
   const snap = await getDocs(ref);
 
   if (snap.empty) {
-    el.innerHTML = `<div class="muted small">No allowed IDs yet.</div>`;
+    el.innerHTML = `<div class="small muted">No allowed IDs yet.</div>`;
     return;
   }
 
   snap.forEach((d) => {
-    const x = d.data();
+    const x = d.data() || {};
     const id = d.id;
 
-    const item = document.createElement("div");
-    item.className = "list-item";
-    item.innerHTML = `
+    const row = document.createElement("div");
+    row.className = "list-item";
+    row.innerHTML = `
       <div>
         <div class="li-title">${escapeHtml(id)}</div>
-        <div class="li-sub muted">${escapeHtml(x?.name || "")} ${x?.active ? "" : "• inactive"}</div>
+        <div class="li-sub muted">${escapeHtml(x.name || "")} ${x.active === false ? "• inactive" : ""}</div>
       </div>
       <button class="btn sm ghost">Remove</button>
     `;
-    item.querySelector("button").addEventListener("click", async () => {
+
+    row.querySelector("button").addEventListener("click", async () => {
       try {
         await removeAllowedId(id);
         uiToast("Removed.");
@@ -231,12 +251,12 @@ async function loadAllowedIds() {
       }
     });
 
-    el.appendChild(item);
+    el.appendChild(row);
   });
 }
 
+// ---------- Main init ----------
 export async function initAdminApp(user) {
-  // 1) Admin guard
   const ok = await ensureAdmin(user);
   if (!ok) {
     alert("Not authorized (not admin).");
@@ -244,95 +264,152 @@ export async function initAdminApp(user) {
     return;
   }
 
-  // 2) Initial loads
-  await loadQuickList();
+  // allowed IDs list always loads
   await loadAllowedIds();
 
-  // 3) Wire events
-  q$("btnSearch").addEventListener("click", async () => {
-    const email = q$("searchEmail").value.trim();
-    uiSetText(q$("searchMsg"), "");
-    if (!email) return uiSetText(q$("searchMsg"), "Enter an email.");
+  // Wire: Search employee
+  q$("btnSearch")?.addEventListener("click", async () => {
+    const email = q$("searchEmail")?.value?.trim() || "";
+    setText("searchMsg", "");
+    if (!email) return setText("searchMsg", "Enter an email.");
 
-    const found = await findUserByEmail(email);
-    if (!found) {
-      targetUid = null;
-      targetData = null;
-      uiSetText(q$("searchMsg"), "Not found.");
-      fillSummary(null, null);
-      return;
+    try {
+      const found = await findUserByEmail(email);
+      if (!found) {
+        targetUid = null;
+        targetData = null;
+        setText("searchMsg", "Not found.");
+        uiToast("Employee not found.");
+        return;
+      }
+
+      targetUid = found.uid;
+      targetData = found.data || {};
+
+      // fill UI
+      fillAppointment(targetData);
+      renderNotifs();
+      renderTeam();
+
+      setText("searchMsg", "Loaded.");
+      uiToast("Employee loaded.");
+    } catch (e) {
+      setText("searchMsg", e?.message || String(e));
     }
-
-    targetUid = found.uid;
-    targetData = found.data;
-    fillSummary(targetUid, targetData);
-    uiSetText(q$("searchMsg"), "Loaded.");
   });
 
-  q$("btnSaveAppointment").addEventListener("click", async () => {
-    uiSetText(q$("apptMsg"), "");
+  // Wire: Save appointment
+  q$("btnSaveAppointment")?.addEventListener("click", async () => {
+    setText("apptMsg", "");
     try {
-      await updateTarget({
+      const patch = {
         appointment: {
-          date: q$("aDate").value.trim(),
-          time: q$("aTime").value.trim(),
-          address: q$("aAddr").value.trim(),
-          notes: q$("aNotes").value.trim()
+          date:  q$("aDate")?.value?.trim() || "",
+          time:  q$("aTime")?.value?.trim() || "",
+          address: q$("aAddr")?.value?.trim() || "",
+          notes: q$("aNotes")?.value?.trim() || ""
         }
-      });
+      };
+
+      await updateTarget(patch);
+
+      // keep local
+      targetData = targetData || {};
+      targetData.appointment = patch.appointment;
+
       uiToast("Appointment saved.");
-      uiSetText(q$("apptMsg"), "Saved.");
+      setText("apptMsg", "Saved.");
     } catch (e) {
-      uiSetText(q$("apptMsg"), e?.message || String(e));
+      setText("apptMsg", e?.message || String(e));
     }
   });
 
-  q$("btnSaveStageShift").addEventListener("click", async () => {
-    uiSetText(q$("stageMsg"), "");
+  // Wire: Add notification
+  q$("btnAddNotif")?.addEventListener("click", async () => {
     try {
-      const stage = q$("stageSel").value;
-      const status = q$("statusSel").value;
-      const choice = q$("shiftChoice").value;
-      const confirmed = q$("shiftConfirmed").value === "true";
+      if (!targetUid) throw new Error("Load an employee first.");
 
-      await updateTarget({ stage, status, shift: { choice, confirmed } });
+      const title = q$("nTitle")?.value?.trim() || "";
+      const body  = q$("nBody")?.value?.trim() || "";
+      const route = q$("nRoute")?.value || "progress";
 
-      uiToast("Stage/shift saved.");
-      uiSetText(q$("stageMsg"), "Saved.");
+      if (!title || !body) throw new Error("Enter title and message.");
+
+      const next = normalizeNotifs(targetData);
+      next.unshift({
+        id: uidKey("n"),
+        title,
+        body,
+        route,
+        action: "Open",
+        createdAt: Date.now()
+      });
+
+      await updateTarget({ notifications: next });
+
+      targetData.notifications = next;
+
+      // clear inputs
+      q$("nTitle").value = "";
+      q$("nBody").value = "";
+      q$("nRoute").value = "progress";
+
+      uiToast("Notification added.");
+      renderNotifs();
     } catch (e) {
-      uiSetText(q$("stageMsg"), e?.message || String(e));
+      uiToast(e?.message || String(e));
     }
   });
 
-  q$("btnSaveSteps").addEventListener("click", async () => {
-    uiSetText(q$("stepsMsg"), "");
+  // Wire: Add team contact
+  q$("btnAddTeam")?.addEventListener("click", async () => {
     try {
-      if (!targetData?.steps) throw new Error("No steps loaded. Search an employee first.");
-      const boxes = Array.from(document.querySelectorAll("#stepsEditor input[type=checkbox][data-i]"));
-      const steps = targetData.steps.map((s, i) => ({ ...s, done: boxes[i]?.checked || false }));
+      if (!targetUid) throw new Error("Load an employee first.");
 
-      await updateTarget({ steps });
-      uiToast("Steps saved.");
-      uiSetText(q$("stepsMsg"), "Saved.");
+      const name = q$("tName")?.value?.trim() || "";
+      const role = q$("tRole")?.value?.trim() || "";
+      const email = q$("tEmail")?.value?.trim() || "";
+      const phone = q$("tPhone")?.value?.trim() || "";
+
+      if (!name) throw new Error("Enter a name.");
+
+      const contacts = { ...normalizeContacts(targetData) };
+      const key = uidKey("c");
+
+      contacts[key] = { name, role, email, phone };
+
+      await updateTarget({ contacts });
+
+      targetData.contacts = contacts;
+
+      // clear
+      q$("tName").value = "";
+      q$("tRole").value = "";
+      q$("tEmail").value = "";
+      q$("tPhone").value = "";
+
+      uiToast("Team contact added.");
+      renderTeam();
     } catch (e) {
-      uiSetText(q$("stepsMsg"), e?.message || String(e));
+      uiToast(e?.message || String(e));
     }
   });
 
-  // Allowed IDs
-  q$("btnAddAllowed").addEventListener("click", async () => {
-    uiSetText(q$("allowedMsg"), "");
+  // Wire: Add allowed ID
+  q$("btnAddAllowed")?.addEventListener("click", async () => {
     try {
-      const empId = q$("newEmpId").value.trim();
-      const name = q$("newEmpName").value.trim();
+      const empId = q$("newEmpId")?.value?.trim() || "";
+      const name  = q$("newEmpName")?.value?.trim() || "";
+
       await addAllowedId(empId, name);
-      uiToast("Allowed ID added.");
+
       q$("newEmpId").value = "";
       q$("newEmpName").value = "";
-      uiSetText(q$("allowedMsg"), "Saved.");
+
+      uiToast("Allowed ID added.");
       await loadAllowedIds();
     } catch (e) {
-      uiSetText(q$("allowedMsg"), e?.message || String(e));
+      uiToast(e?.message || String(e));
     }
   });
 }
