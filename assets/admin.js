@@ -3,13 +3,28 @@ import { uiSetText, uiToast, escapeHtml } from "./ui.js";
 
 import {
   collection, query, where, limit, getDocs,
-  doc, getDoc, updateDoc, orderBy
+  doc, getDoc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+/**
+ * IMPORTANT:
+ * - This admin panel assumes admin users exist in Firestore:
+ *   admins/{uid}  -> { role: "admin" }
+ * - Employee records are stored in:
+ *   users/{uid}   -> { email, fullName, appointment, steps, shift, stage, status, ... }
+ */
 
 let targetUid = null;
 let targetData = null;
 
 function q$(id) { return document.getElementById(id); }
+
+/** Hard fail with readable message instead of blank screen */
+function mustEl(id) {
+  const el = q$(id);
+  if (!el) throw new Error(`Missing element id="${id}" in admin.html`);
+  return el;
+}
 
 function demoEmployees() {
   return [
@@ -19,7 +34,7 @@ function demoEmployees() {
 }
 
 function renderStepsEditor(steps) {
-  const el = q$("stepsEditor");
+  const el = mustEl("stepsEditor");
   el.innerHTML = "";
 
   (steps || []).forEach((s, i) => {
@@ -34,53 +49,81 @@ function renderStepsEditor(steps) {
   });
 }
 
+/** OPTIONAL: If you have these summary fields in HTML, we fill them. If not, ignore. */
+function safeSet(id, value) {
+  const el = q$(id);
+  if (el) uiSetText(el, value ?? "—");
+}
+
 function fillSummary(uid, d) {
-  uiSetText(q$("vUid"), uid || "—");
-  uiSetText(q$("vName"), d?.fullName || "—");
-  uiSetText(q$("vEmail"), d?.email || "—");
-  uiSetText(q$("vPhone"), d?.phone || "—");
-  uiSetText(q$("vStage"), d?.stage || "—");
-  uiSetText(q$("vStatus"), d?.status || "—");
+  // If these IDs don't exist in your HTML, it won't crash.
+  safeSet("vUid", uid || "—");
+  safeSet("vName", d?.fullName || "—");
+  safeSet("vEmail", d?.email || "—");
+  safeSet("vPhone", d?.phone || "—");
+  safeSet("vStage", d?.stage || "—");
+  safeSet("vStatus", d?.status || "—");
 
-  q$("stageSel").value = d?.stage || "application";
-  q$("statusSel").value = d?.status || "in_review";
+  // Stage fields (match admin.html)
+  const stageSelect = q$("stageSelect");
+  if (stageSelect) stageSelect.value = d?.stage || "application";
 
-  q$("shiftChoice").value = d?.shift?.choice || "";
-  q$("shiftConfirmed").value = String(!!d?.shift?.confirmed);
+  const stageConfirmed = q$("stageConfirmed");
+  if (stageConfirmed) stageConfirmed.value = String(!!d?.stageConfirmed);
 
-  q$("aDate").value = d?.appointment?.date || "";
-  q$("aTime").value = d?.appointment?.time || "";
-  q$("aAddr").value = d?.appointment?.address || "";
-  q$("aNotes").value = d?.appointment?.notes || "";
+  // Shift fields (match your HTML)
+  mustEl("shiftChoice").value = d?.shift?.choice || "";
+  mustEl("shiftConfirmed").value = String(!!d?.shift?.confirmed);
+
+  // Appointment fields (if they exist in HTML)
+  const aDate = q$("aDate");
+  const aTime = q$("aTime");
+  const aAddr = q$("aAddr");
+  const aNotes = q$("aNotes");
+  if (aDate)  aDate.value  = d?.appointment?.date || "";
+  if (aTime)  aTime.value  = d?.appointment?.time || "";
+  if (aAddr)  aAddr.value  = d?.appointment?.address || "";
+  if (aNotes) aNotes.value = d?.appointment?.notes || "";
 
   renderStepsEditor(d?.steps || []);
 }
 
+async function requireAdmin(user) {
+  if (!isFirebaseConfigured()) return true; // preview mode
+  if (!user?.uid) return false;
+  const ref = doc(db, "admins", user.uid);
+  const snap = await getDoc(ref);
+  return snap.exists() && snap.data()?.role === "admin";
+}
+
 async function findUserByEmail(email) {
   if (!isFirebaseConfigured()) {
-    // preview only
     const demo = demoEmployees().find(x => x.email === email) || demoEmployees()[0];
-    return { uid: demo.uid, data: {
-      email: demo.email,
-      fullName: demo.fullName,
-      phone: demo.phone,
-      status: demo.status,
-      stage: demo.stage,
-      appointment: { date:"2026-02-03", time:"10:30", address:"4299 ... Louisville, KY", notes:"Bring ID" },
-      steps: [
-        { id:"application", label:"Application", done: true },
-        { id:"shift_selection", label:"Shift Selection", done: false },
-        { id:"docs", label:"Complete Onboarding Documents", done: false },
-        { id:"first_day", label:"First Day Preparation", done: false }
-      ],
-      shift: { choice:"", confirmed:false }
-    }};
+    return {
+      uid: demo.uid,
+      data: {
+        email: demo.email,
+        fullName: demo.fullName,
+        phone: demo.phone,
+        status: demo.status,
+        stage: demo.stage,
+        appointment: { date:"2026-02-03", time:"10:30", address:"4299 ... Louisville, KY", notes:"Bring ID" },
+        steps: [
+          { id:"application", label:"Application", done: true },
+          { id:"shift_selection", label:"Shift Selection", done: false },
+          { id:"docs", label:"Complete Onboarding Documents", done: false },
+          { id:"first_day", label:"First Day Preparation", done: false }
+        ],
+        shift: { choice:"", confirmed:false }
+      }
+    };
   }
 
   const usersRef = collection(db, "users");
   const q = query(usersRef, where("email", "==", email), limit(1));
   const snap = await getDocs(q);
   if (snap.empty) return null;
+
   const docSnap = snap.docs[0];
   return { uid: docSnap.id, data: docSnap.data() };
 }
@@ -96,7 +139,7 @@ async function updateTarget(patch) {
 }
 
 async function loadQuickList() {
-  const el = q$("quickList");
+  const el = mustEl("quickList");
   el.innerHTML = "";
 
   if (!isFirebaseConfigured()) {
@@ -115,23 +158,45 @@ async function loadQuickList() {
     return;
   }
 
-  // Optional: if you later add "createdAt" index, you can orderBy it.
-  // For now, do nothing if you don't want extra indexes.
-  el.innerHTML = <div class="muted small">Quick list will populate after you create some users.</div>;
+  // If you don't have indexes yet, keep it simple:
+  el.innerHTML = `<div class="muted small">Quick list will populate after you create some users.</div>`;
 }
-export async function initAdminApp() {
+
+function wireButton(id, handler) {
+  const el = q$(id);
+  if (!el) return; // allow HTML variations
+  el.addEventListener("click", handler);
+}
+
+export async function initAdminApp(user) {
+  // 1) Guard: only admin can stay here
+  const ok = await requireAdmin(user);
+  if (!ok) {
+    window.location.href = "./employee.html";
+    return;
+  }
+
+  // 2) Load quick list (never crashes now)
   await loadQuickList();
 
-  q$("btnSearch").addEventListener("click", async () => {
-    const email = q$("searchEmail").value.trim();
-    uiSetText(q$("searchMsg"), "");
-    if (!email) return uiSetText(q$("searchMsg"), "Enter an email.");
+  // 3) Search/load employee by email (optional UI)
+  wireButton("btnSearch", async () => {
+    const emailInput = q$("searchEmail");
+    const searchMsg  = q$("searchMsg");
+    if (!emailInput) return;
+
+    const email = emailInput.value.trim();
+    if (searchMsg) uiSetText(searchMsg, "");
+    if (!email) {
+      if (searchMsg) uiSetText(searchMsg, "Enter an email.");
+      return;
+    }
 
     const found = await findUserByEmail(email);
     if (!found) {
       targetUid = null;
       targetData = null;
-      uiSetText(q$("searchMsg"), "Not found.");
+      if (searchMsg) uiSetText(searchMsg, "Not found.");
       fillSummary(null, null);
       return;
     }
@@ -139,60 +204,71 @@ export async function initAdminApp() {
     targetUid = found.uid;
     targetData = found.data;
     fillSummary(targetUid, targetData);
-    uiSetText(q$("searchMsg"), "Loaded.");
+    if (searchMsg) uiSetText(searchMsg, "Loaded.");
   });
 
-  q$("btnSaveAppointment").addEventListener("click", async () => {
-    uiSetText(q$("apptMsg"), "");
+  // 4) Save stage/shift (matches your HTML ids)
+  wireButton("btnSaveStageShift", async () => {
+    const stageMsg = q$("stageMsg");
+    if (stageMsg) uiSetText(stageMsg, "");
     try {
-      await updateTarget({
-        appointment: {
-          date: q$("aDate").value.trim(),
-          time: q$("aTime").value.trim(),
-          address: q$("aAddr").value.trim(),
-          notes: q$("aNotes").value.trim()
-        }
-      });
-      uiToast("Appointment saved.");
-      uiSetText(q$("apptMsg"), "Saved.");
-    } catch (e) {
-      uiSetText(q$("apptMsg"), e?.message || String(e));
-    }
-  });
+      const stage = mustEl("stageSelect").value;
+      const stageConfirmed = mustEl("stageConfirmed").value === "true";
 
-  q$("btnSaveStageShift").addEventListener("click", async () => {
-    uiSetText(q$("stageMsg"), "");
-    try {
-      const stage = q$("stageSel").value;
-      const status = q$("statusSel").value;
-      const choice = q$("shiftChoice").value;
-      const confirmed = q$("shiftConfirmed").value === "true";
+      const choice = mustEl("shiftChoice").value;
+      const confirmed = mustEl("shiftConfirmed").value === "true";
 
       await updateTarget({
         stage,
-        status,
+        stageConfirmed,
         shift: { choice, confirmed }
       });
 
       uiToast("Stage/shift saved.");
-      uiSetText(q$("stageMsg"), "Saved.");
+      if (stageMsg) uiSetText(stageMsg, "Saved.");
     } catch (e) {
-      uiSetText(q$("stageMsg"), e?.message || String(e));
+      if (stageMsg) uiSetText(stageMsg, e?.message || String(e));
+      else throw e;
     }
   });
 
-  q$("btnSaveSteps").addEventListener("click", async () => {
-    uiSetText(q$("stepsMsg"), "");
+  // 5) Save steps
+  wireButton("btnSaveSteps", async () => {
+    const stepsMsg = q$("stepsMsg");
+    if (stepsMsg) uiSetText(stepsMsg, "");
     try {
-      if (!targetData?.steps) throw new Error("No steps loaded.");
-      const boxes = Array.from(document.querySelectorAll("#stepsEditor input[type=checkbox][data-i]"));
-      const steps = targetData.steps.map((s, i) => ({ ...s, done: boxes[i]?.checked || false }));
+      if (!targetData?.steps) throw new Error("No steps loaded. Search an employee email first.");
+      const boxes = Array.from(document.querySelectorAll('#stepsEditor input[type="checkbox"][data-i]'));
+      const steps = targetData.steps.map((s, i) => ({ ...s, done: !!boxes[i]?.checked }));
 
       await updateTarget({ steps });
       uiToast("Steps saved.");
-      uiSetText(q$("stepsMsg"), "Saved.");
+      if (stepsMsg) uiSetText(stepsMsg, "Saved.");
     } catch (e) {
-      uiSetText(q$("stepsMsg"), e?.message || String(e));
+      if (stepsMsg) uiSetText(stepsMsg, e?.message || String(e));
+      else throw e;
+    }
+  });
+
+  // 6) Appointment saving (only if those fields exist in your admin.html)
+  wireButton("btnSaveAppointment", async () => {
+    const apptMsg = q$("apptMsg");
+    if (apptMsg) uiSetText(apptMsg, "");
+    try {
+      const aDate  = q$("aDate")?.value?.trim() ?? "";
+      const aTime  = q$("aTime")?.value?.trim() ?? "";
+      const aAddr  = q$("aAddr")?.value?.trim() ?? "";
+      const aNotes = q$("aNotes")?.value?.trim() ?? "";
+
+      await updateTarget({
+        appointment: { date: aDate, time: aTime, address: aAddr, notes: aNotes }
+      });
+
+      uiToast("Appointment saved.");
+      if (apptMsg) uiSetText(apptMsg, "Saved.");
+    } catch (e) {
+      if (apptMsg) uiSetText(apptMsg, e?.message || String(e));
+      else throw e;
     }
   });
 }
