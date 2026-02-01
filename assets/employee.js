@@ -30,6 +30,24 @@ function safe(v, fallback = "—") {
   return (v === undefined || v === null || v === "") ? fallback : v;
 }
 
+// Normalize Employee ID inputs (SP024, SP-024, sp 024 -> SP024)
+function normalizeEmpId(input) {
+  const raw = String(input || "").trim().toUpperCase();
+  // remove spaces and non alphanumerics except keep letters+digits
+  const compact = raw.replace(/[^A-Z0-9]/g, "");
+  // if looks like SP + digits, keep as is
+  if (/^SP\d+$/.test(compact)) return compact;
+  return compact;
+}
+
+// Display nicer: SP024 -> SP-024
+function prettyEmpId(empId) {
+  const x = String(empId || "").toUpperCase().trim();
+  if (/^SP-\d+$/.test(x)) return x;
+  if (/^SP\d+$/.test(x)) return x.replace(/^SP(\d+)$/, "SP-$1");
+  return x;
+}
+
 // ---------- Default user doc (if missing) ----------
 function defaultUserDoc(user) {
   return {
@@ -57,6 +75,7 @@ async function ensureUserDocExists(user) {
   if (!isFirebaseConfigured()) return;
   const ref = doc(db, "users", user.uid);
   const snap = await getDoc(ref);
+
   if (!snap.exists()) {
     await setDoc(ref, defaultUserDoc(user), { merge: true });
   } else {
@@ -86,21 +105,39 @@ async function ensureEmployeeId(user) {
 
   if (data?.employeeId) return data.employeeId;
 
-  let empId = prompt("Enter your Employee ID (example: SP-024):");
-  empId = (empId || "").trim();
+  let empIdInput = prompt("Enter your Employee ID (example: SP-024):");
+  empIdInput = (empIdInput || "").trim();
+  if (!empIdInput) throw new Error("Employee ID required.");
 
-  if (!empId) throw new Error("Employee ID required.");
+  const canon = normalizeEmpId(empIdInput);
+  const withDash = prettyEmpId(canon);          // SP-024
+  const noDash = canon;                          // SP024
 
-  // Validate against whitelist: allowedEmployees/{empId}
-  const allowedRef = doc(db, "allowedEmployees", empId);
-  const allowedSnap = await getDoc(allowedRef);
+  // Try multiple possible doc IDs so you don't get stuck on formatting
+  const candidates = Array.from(new Set([empIdInput, withDash, noDash].filter(Boolean)));
 
-  if (!allowedSnap.exists() || allowedSnap.data()?.active !== true) {
+  let matchedId = null;
+  let allowedData = null;
+
+  for (const id of candidates) {
+    const allowedRef = doc(db, "allowedEmployees", id);
+    const allowedSnap = await getDoc(allowedRef);
+    if (allowedSnap.exists()) {
+      allowedData = allowedSnap.data();
+      if (allowedData?.active === true) {
+        matchedId = id;
+        break;
+      }
+    }
+  }
+
+  if (!matchedId) {
     throw new Error("Invalid Employee ID. Contact HR.");
   }
 
-  await updateDoc(userRef, { employeeId: empId, updatedAt: serverTimestamp() });
-  return empId;
+  // Save EXACT matched ID (so it matches your allowedEmployees doc id)
+  await updateDoc(userRef, { employeeId: matchedId, updatedAt: serverTimestamp() });
+  return matchedId;
 }
 
 // ---------- Renderers ----------
@@ -310,12 +347,14 @@ function renderFirstDay(userData, saveUserPatch) {
 }
 
 function renderTeam(userData) {
-  const c = userData?.contacts || {};
-  const rows = Object.values(c).map(x => `
+  const c = (userData && typeof userData.contacts === "object" && userData.contacts) ? userData.contacts : {};
+  const values = Object.values(c);
+
+  const rows = values.map(x => `
     <div class="list-item">
       <div>
-        <div class="li-title">${escapeHtml(x.name || "—")}</div>
-        <div class="li-sub muted">${escapeHtml(x.email || "")} ${x.phone ? "• " + escapeHtml(x.phone) : ""}</div>
+        <div class="li-title">${escapeHtml(x?.name || "—")}</div>
+        <div class="li-sub muted">${escapeHtml(x?.email || "")} ${x?.phone ? "• " + escapeHtml(x.phone) : ""}</div>
       </div>
       <button class="btn sm ghost" disabled>Message</button>
     </div>
@@ -389,10 +428,11 @@ function renderRoute(userData, saveUserPatch) {
   }
 }
 
-// ---------- Mobile menu wiring ----------
+// ---------- Mobile menu wiring (FIXED FOR YOUR HTML IDS) ----------
 function wireMobileMenu() {
-  const menuBtn = document.getElementById("menuBtn");
-  const sidebar = document.querySelector(".sidebar");
+  // your employee.html uses: btnMenu, sidebar, drawerOverlay
+  const menuBtn = document.getElementById("btnMenu");
+  const sidebar = document.getElementById("sidebar");
   const overlay = document.getElementById("drawerOverlay");
 
   if (!menuBtn || !sidebar || !overlay) return;
@@ -416,7 +456,6 @@ function wireMobileMenu() {
   // Close drawer after navigating on mobile
   document.querySelectorAll(".nav-item").forEach(a => {
     a.addEventListener("click", () => {
-      // only close if we are in mobile layout
       if (window.matchMedia("(max-width: 920px)").matches) close();
     });
   });
@@ -432,13 +471,19 @@ export async function initEmployeeApp() {
   const statusChip = document.getElementById("statusChip");
   const adminBtn = document.getElementById("btnAdminGo");
 
+  // wire mobile menu once
   wireMobileMenu();
 
   // Preview mode
   if (!isFirebaseConfigured()) {
     uiSetText(badge, "Preview mode");
     if (statusChip) uiSetText(statusChip, "offline");
-    const demo = { appointment: { date:"Pending", time:"Pending", address:"4299 Louisville, KY", notes:"" }, steps: [] };
+
+    const demo = {
+      appointment: { date:"Pending", time:"Pending", address:"4299 Louisville, KY", notes:"" },
+      steps: []
+    };
+
     renderRoute(demo, async () => {});
     window.addEventListener("hashchange", () => renderRoute(demo, async () => {}));
     if (adminBtn) adminBtn.style.display = "none";
@@ -468,8 +513,8 @@ export async function initEmployeeApp() {
       // Require Employee ID
       const empId = await ensureEmployeeId(user);
 
-      // Show Employee ID (NOT email)
-      uiSetText(badge, empId);
+      // Show Employee ID (pretty)
+      uiSetText(badge, prettyEmpId(empId));
 
       const userRef = doc(db, "users", user.uid);
 
