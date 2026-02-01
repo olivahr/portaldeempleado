@@ -10,7 +10,6 @@
 </head>
 
 <body class="app-bg">
-
   <div class="auth-wrap">
     <div class="auth-card">
 
@@ -54,7 +53,6 @@
     </div>
   </div>
 
-
 <script type="module">
   // UI helpers
   import { uiSetText, uiShow, uiToast } from "./assets/ui.js";
@@ -86,103 +84,150 @@
 
   yearEl.textContent = new Date().getFullYear();
 
-  // ---- Firebase readiness ----
-  const ok = await authReady();
-  if (!ok) uiShow(firebaseNotice, true);
-
-  function showErr(e) {
+  // ---- Small utils ----
+  function showErr(e){
     uiSetText(msg, e?.message || String(e));
   }
 
-  // ✅ ADMIN CHECK (safe)
-  async function goNextByRole() {
-    // If no firebase configured, always go employee (preview safe)
-    if (typeof isFirebaseConfigured === "function" && !isFirebaseConfigured()) {
-      window.location.href = "./employee.html";
+  function setBusy(isBusy){
+    btnLogin.disabled = isBusy;
+    btnRegister.disabled = isBusy;
+    btnReset.disabled = isBusy;
+    btnGoogle.disabled = isBusy;
+
+    btnLogin.textContent = isBusy ? "Signing in..." : "Sign in";
+  }
+
+  // Where to send employees by default
+  const EMPLOYEE_DEFAULT_URL = "./employee.html#progress";
+  const ADMIN_URL = "./admin.html";
+
+  // Optional: remember “where user tried to go”
+  // (If later you add protected routes, you can set this before redirecting to index.html)
+  const intent = sessionStorage.getItem("postLoginIntent") || "";
+
+  function goEmployee(){
+    window.location.href = intent && intent.startsWith("./employee.html")
+      ? intent
+      : EMPLOYEE_DEFAULT_URL;
+  }
+
+  function goAdmin(){
+    window.location.href = ADMIN_URL;
+  }
+
+  // ---- Firebase readiness ----
+  try{
+    const ok = await authReady();
+    if (!ok) uiShow(firebaseNotice, true);
+  }catch{
+    uiShow(firebaseNotice, true);
+  }
+
+  // ✅ ADMIN CHECK (safe, never blocks)
+  async function goNextByRole(){
+    // If firebase not configured → employee (preview safe)
+    try{
+      if (typeof isFirebaseConfigured === "function" && !isFirebaseConfigured()){
+        goEmployee();
+        return;
+      }
+    }catch{
+      goEmployee();
       return;
     }
 
     const user = auth?.currentUser;
-    if (!user) {
-      window.location.href = "./employee.html";
+    if (!user){
+      goEmployee();
       return;
     }
 
-    try {
+    try{
+      // admins/{uid} { role:"admin" }
       const ref = doc(db, "admins", user.uid);
       const snap = await getDoc(ref);
-
       const isAdmin = snap.exists() && snap.data()?.role === "admin";
-      window.location.href = isAdmin ? "./admin.html" : "./employee.html";
-    } catch (e) {
-      // If Firestore rules/index/etc fail → don’t block user
-      window.location.href = "./employee.html";
+
+      // If intent asks for admin but user is not admin → ignore and send employee
+      sessionStorage.removeItem("postLoginIntent");
+      isAdmin ? goAdmin() : goEmployee();
+    }catch{
+      // Firestore failed / rules / offline → don’t block login
+      sessionStorage.removeItem("postLoginIntent");
+      goEmployee();
     }
   }
 
-  // LOGIN
-  async function doLogin() {
+  // ---- Actions ----
+  async function doLogin(){
     uiSetText(msg, "");
-    try {
+    setBusy(true);
+    try{
       const email = emailEl.value.trim();
       const pass  = passEl.value.trim();
-      if (!email || !pass) throw new Error("Enter email and password.");
+      if(!email || !pass) throw new Error("Enter email and password.");
       await signInEmail(email, pass);
       await goNextByRole();
-    } catch (e) {
+    }catch(e){
       showErr(e);
+      setBusy(false);
     }
   }
 
-  // REGISTER
-  async function doRegister() {
+  async function doRegister(){
     uiSetText(msg, "");
-    try {
+    setBusy(true);
+    try{
       const email = emailEl.value.trim();
       const pass  = passEl.value.trim();
-      if (!email) throw new Error("Enter your email.");
-      if (pass.length < 6) throw new Error("Password min 6 characters.");
-
+      if(!email) throw new Error("Enter your email.");
+      if(pass.length < 6) throw new Error("Password min 6 characters.");
       await registerEmail(email, pass);
       uiToast("Account created");
       await goNextByRole();
-    } catch (e) {
+    }catch(e){
       showErr(e);
+      setBusy(false);
     }
   }
 
-  // RESET
-  async function doReset() {
+  async function doReset(){
     uiSetText(msg, "");
-    try {
+    setBusy(true);
+    try{
       const email = emailEl.value.trim();
-      if (!email) throw new Error("Enter email first.");
+      if(!email) throw new Error("Enter email first.");
       await resetPassword(email);
       uiToast("Reset email sent");
-    } catch (e) {
+      setBusy(false);
+    }catch(e){
       showErr(e);
+      setBusy(false);
     }
   }
 
-  // BUTTONS
+  async function doGoogle(){
+    uiSetText(msg, "");
+    setBusy(true);
+    try{
+      await signInGoogle();
+      await goNextByRole();
+    }catch(e){
+      showErr(e);
+      setBusy(false);
+    }
+  }
+
+  // ---- Wires ----
   btnLogin.addEventListener("click", doLogin);
   btnRegister.addEventListener("click", doRegister);
   btnReset.addEventListener("click", doReset);
+  btnGoogle.addEventListener("click", doGoogle);
 
-  // GOOGLE
-  btnGoogle.addEventListener("click", async () => {
-    uiSetText(msg, "");
-    try {
-      await signInGoogle();
-      await goNextByRole();
-    } catch (e) {
-      showErr(e);
-    }
-  });
-
-  // ENTER KEY (no weird Safari submit)
-  passEl.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
+  // Enter key → login (Safari safe)
+  passEl.addEventListener("keydown", (e)=>{
+    if(e.key === "Enter"){
       e.preventDefault();
       doLogin();
     }
