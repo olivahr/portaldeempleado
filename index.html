@@ -4,12 +4,16 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Employee Portal | Sign in</title>
+
   <link rel="stylesheet" href="./assets/app.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
 </head>
+
 <body class="app-bg">
+
   <div class="auth-wrap">
     <div class="auth-card">
+
       <div class="brand">
         <div class="brand-dot"></div>
         <div>
@@ -19,14 +23,14 @@
       </div>
 
       <div class="alert warn" id="firebaseNotice" style="display:none;">
-        Firebase is not configured yet. UI works, login will work after you paste config.
+        Firebase is not configured yet.
       </div>
 
       <label class="lbl">Email</label>
-      <input id="email" class="inp" placeholder="name@email.com" autocomplete="username"/>
+      <input id="email" class="inp" placeholder="name@email.com"/>
 
       <label class="lbl">Password</label>
-      <input id="pass" class="inp" type="password" placeholder="••••••••" autocomplete="current-password"/>
+      <input id="pass" class="inp" type="password" placeholder="••••••••"/>
 
       <button id="btnLogin" class="btn primary">Sign in</button>
 
@@ -46,81 +50,141 @@
     </div>
 
     <div class="auth-foot">
-      <span class="muted">©</span> <span id="year"></span> <span class="muted">Employee Portal</span>
+      © <span id="year"></span> Employee Portal
     </div>
   </div>
 
-  <script type="module">
-    import { uiSetText, uiShow, uiToast } from "./assets/ui.js";
-    import { authReady, signInEmail, signInGoogle, registerEmail, resetPassword } from "./assets/auth.js";
 
-    document.getElementById("year").textContent = new Date().getFullYear();
+<script type="module">
 
-    const msg = document.getElementById("msg");
-    const firebaseNotice = document.getElementById("firebaseNotice");
+// UI helpers
+import { uiSetText, uiShow, uiToast } from "./assets/ui.js";
 
-    const emailEl = document.getElementById("email");
-    const passEl  = document.getElementById("pass");
+// Auth helpers
+import { 
+  authReady, 
+  signInEmail, 
+  signInGoogle, 
+  registerEmail, 
+  resetPassword 
+} from "./assets/auth.js";
 
-    // If Firebase config is placeholder, show notice
-    const ok = await authReady();
-    if (!ok) uiShow(firebaseNotice, true);
+// Firebase
+import { auth, db } from "./assets/firebase.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    async function doLogin() {
-      uiSetText(msg, "");
-      try {
-        const email = emailEl.value.trim();
-        const pass  = passEl.value.trim();
-        await signInEmail(email, pass);
-        window.location.href = "./employee.html#progress";
-      } catch (e) {
-        uiSetText(msg, e?.message || String(e));
-      }
-    }
+document.getElementById("year").textContent = new Date().getFullYear();
 
-    async function doRegister() {
-      uiSetText(msg, "");
-      try {
-        const email = emailEl.value.trim();
-        const pass  = passEl.value.trim();
-        if (pass.length < 6) throw new Error("Password must be at least 6 characters.");
-        await registerEmail(email, pass);
-        uiToast("Account created. You're signed in.");
-        window.location.href = "./employee.html#progress";
-      } catch (e) {
-        uiSetText(msg, e?.message || String(e));
-      }
-    }
+const msg = document.getElementById("msg");
+const firebaseNotice = document.getElementById("firebaseNotice");
 
-    async function doReset() {
-      uiSetText(msg, "");
-      try {
-        const email = emailEl.value.trim();
-        if (!email) throw new Error("Enter your email first.");
-        await resetPassword(email);
-        uiToast("Password reset email sent (after Firebase is configured).");
-      } catch (e) {
-        uiSetText(msg, e?.message || String(e));
-      }
-    }
+const emailEl = document.getElementById("email");
+const passEl  = document.getElementById("pass");
 
-    document.getElementById("btnLogin").addEventListener("click", doLogin);
-    document.getElementById("btnRegister").addEventListener("click", doRegister);
-    document.getElementById("btnReset").addEventListener("click", doReset);
+// Check Firebase
+const ok = await authReady();
+if (!ok) uiShow(firebaseNotice, true);
 
-    document.getElementById("btnGoogle").addEventListener("click", async () => {
-      uiSetText(msg, "");
-      try {
-        await signInGoogle();
-        window.location.href = "./employee.html#progress";
-      } catch (e) {
-        uiSetText(msg, e?.message || String(e));
-      }
-    });
+// 🔥 ADMIN CHECK
+async function goNextByRole() {
 
-    // Enter key submit
-    passEl.
-  addEventListener("keydown", (e) => { if (e.key === "Enter") doLogin(); });
-  </script>
+  const user = auth.currentUser;
+
+  if (!user) {
+    window.location.href = "./employee.html";
+    return;
+  }
+
+  const ref = doc(db, "admins", user.uid);
+  const snap = await getDoc(ref);
+
+  if (snap.exists() && snap.data()?.role === "admin") {
+    window.location.href = "./admin.html";
+  } else {
+    window.location.href = "./employee.html";
+  }
+}
+
+// LOGIN
+async function doLogin() {
+  uiSetText(msg,"");
+
+  try {
+    await signInEmail(
+      emailEl.value.trim(),
+      passEl.value.trim()
+    );
+
+    await goNextByRole();
+
+  } catch(e) {
+    uiSetText(msg, e.message);
+  }
+}
+
+// REGISTER
+async function doRegister() {
+  uiSetText(msg,"");
+
+  try {
+    const pass = passEl.value.trim();
+
+    if(pass.length < 6)
+      throw new Error("Password min 6 characters");
+
+    await registerEmail(
+      emailEl.value.trim(),
+      pass
+    );
+
+    uiToast("Account created");
+    await goNextByRole();
+
+  } catch(e) {
+    uiSetText(msg, e.message);
+  }
+}
+
+// RESET
+async function doReset() {
+  uiSetText(msg,"");
+
+  try {
+    const email = emailEl.value.trim();
+
+    if(!email)
+      throw new Error("Enter email first");
+
+    await resetPassword(email);
+
+    uiToast("Reset email sent");
+
+  } catch(e) {
+    uiSetText(msg, e.message);
+  }
+}
+
+// BUTTONS
+btnLogin.onclick = doLogin;
+btnRegister.onclick = doRegister;
+btnReset.onclick = doReset;
+
+// GOOGLE
+btnGoogle.onclick = async () => {
+  try {
+    await signInGoogle();
+    await goNextByRole();
+  } catch(e) {
+    uiSetText(msg,e.message);
+  }
+};
+
+// ENTER KEY
+passEl.addEventListener("keydown", e=>{
+  if(e.key==="Enter") doLogin();
+});
+
+</script>
+
 </body>
 </html>
