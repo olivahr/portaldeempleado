@@ -11,7 +11,7 @@
   <header class="topbar">
     <div class="topbar-left">
 
-      <!-- Mobile: Hamburger -->
+      <!-- Mobile: Hamburger (employee.js wires this) -->
       <button class="menu-btn" id="btnMenu" aria-label="Open menu" type="button">
         <div class="menu-ico" aria-hidden="true">
           <span></span><span></span><span></span>
@@ -34,7 +34,7 @@
     </div>
   </header>
 
-  <!-- Overlay for mobile drawer -->
+  <!-- Overlay for mobile drawer (employee.js wires this) -->
   <div id="drawerOverlay" class="drawer-overlay"></div>
 
   <div class="shell">
@@ -78,39 +78,7 @@
     import { signOutNow } from "./assets/auth.js";
     import { initEmployeeApp } from "./assets/employee.js";
 
-    // Drawer wiring (works even if employee.js also has it)
-    const btnMenu = document.getElementById("btnMenu");
-    const sidebar = document.getElementById("sidebar");
-    const overlay = document.getElementById("drawerOverlay");
-
-    function openDrawer(){
-      sidebar.classList.add("open");
-      overlay.classList.add("show");
-    }
-    function closeDrawer(){
-      sidebar.classList.remove("open");
-      overlay.classList.remove("show");
-    }
-
-    btnMenu?.addEventListener("click", () => {
-      sidebar.classList.contains("open") ? closeDrawer() : openDrawer();
-    });
-
-    overlay?.addEventListener("click", closeDrawer);
-
-    // Close drawer on nav click (mobile)
-    document.querySelectorAll(".nav-item").forEach(a => {
-      a.addEventListener("click", () => {
-        if (window.matchMedia("(max-width: 920px)").matches) closeDrawer();
-      });
-    });
-
-    // Close drawer if resizing back to desktop
-    window.addEventListener("resize", () => {
-      if (!window.matchMedia("(max-width: 920px)").matches) closeDrawer();
-    });
-
-    // Buttons
+    // Buttons (leave these here)
     document.getElementById("btnLogout").addEventListener("click", async () => {
       await signOutNow();
       window.location.href = "./index.html";
@@ -120,8 +88,10 @@
       window.location.href = "./admin.html";
     });
 
-    // Init app
+    // Init app (employee.js handles auth + drawer + badge)
     await initEmployeeApp();
+
+    // nav active highlight
     uiActiveNav();
     window.addEventListener("hashchange", () => uiActiveNav());
   </script>
