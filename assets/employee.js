@@ -3,6 +3,8 @@
 // - Realtime sync users/{uid}
 // - Require Employee ID from allowedEmployees/{id}
 // - Show Employee ID in top badge (userBadge)
+// - Hide Admin button unless user is admin
+// - Mobile hamburger opens/closes sidebar
 // ===============================
 
 import { uiSetText, uiToast, escapeHtml } from "./ui.js";
@@ -35,23 +37,16 @@ function defaultUserDoc(user) {
     fullName: user?.displayName || "",
     role: "employee",
     status: "active",
-
-    // stages your UI expects
     stage: "shift_selection",
-
     appointment: { date: "", time: "", address: "", notes: "" },
-
     steps: [
       { id: "application", label: "Application", done: true },
       { id: "shift_selection", label: "Shift Selection", done: false },
       { id: "docs", label: "Complete Onboarding Documents", done: false },
       { id: "first_day", label: "First Day Preparation", done: false }
     ],
-
     shift: { choice: "", confirmed: false },
-
     employeeId: "",
-
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
     lastLoginAt: serverTimestamp()
@@ -65,8 +60,19 @@ async function ensureUserDocExists(user) {
   if (!snap.exists()) {
     await setDoc(ref, defaultUserDoc(user), { merge: true });
   } else {
-    // update last login timestamp (optional)
     await updateDoc(ref, { lastLoginAt: serverTimestamp() });
+  }
+}
+
+// ---------- Admin check ----------
+async function isAdminUser(user) {
+  if (!isFirebaseConfigured()) return false;
+  try {
+    const ref = doc(db, "admins", user.uid);
+    const snap = await getDoc(ref);
+    return snap.exists() && snap.data()?.role === "admin";
+  } catch {
+    return false;
   }
 }
 
@@ -80,8 +86,7 @@ async function ensureEmployeeId(user) {
 
   if (data?.employeeId) return data.employeeId;
 
-  // Ask for ID (simple prompt; no HTML changes needed)
-  let empId = prompt("Enter your Employee ID (example: SP025):");
+  let empId = prompt("Enter your Employee ID (example: SP-024):");
   empId = (empId || "").trim();
 
   if (!empId) throw new Error("Employee ID required.");
@@ -94,16 +99,15 @@ async function ensureEmployeeId(user) {
     throw new Error("Invalid Employee ID. Contact HR.");
   }
 
-  // Save employeeId to user doc
   await updateDoc(userRef, { employeeId: empId, updatedAt: serverTimestamp() });
-
   return empId;
 }
 
-// ---------- Renderers (now use real Firestore data) ----------
+// ---------- Renderers ----------
 function renderProgress(userData) {
   const steps = userData?.steps || [];
   const appt = userData?.appointment || {};
+
   const stepsHtml = steps.map(s => `
     <div class="alert ${s.done ? "ok" : "warn"}">
       ${escapeHtml(s.label)} — ${s.done ? "Completed" : "Pending"}
@@ -268,6 +272,7 @@ function renderFootwear() {
 
 function renderFirstDay(userData, saveUserPatch) {
   const appt = userData?.appointment || {};
+
   setPage(
     "First Day",
     "What to bring and where to go.",
@@ -384,26 +389,65 @@ function renderRoute(userData, saveUserPatch) {
   }
 }
 
+// ---------- Mobile menu wiring ----------
+function wireMobileMenu() {
+  const menuBtn = document.getElementById("menuBtn");
+  const sidebar = document.querySelector(".sidebar");
+  const overlay = document.getElementById("drawerOverlay");
+
+  if (!menuBtn || !sidebar || !overlay) return;
+
+  const open = () => {
+    sidebar.classList.add("open");
+    overlay.classList.add("show");
+  };
+  const close = () => {
+    sidebar.classList.remove("open");
+    overlay.classList.remove("show");
+  };
+
+  menuBtn.addEventListener("click", () => {
+    if (sidebar.classList.contains("open")) close();
+    else open();
+  });
+
+  overlay.addEventListener("click", close);
+
+  // Close drawer after navigating on mobile
+  document.querySelectorAll(".nav-item").forEach(a => {
+    a.addEventListener("click", () => {
+      // only close if we are in mobile layout
+      if (window.matchMedia("(max-width: 920px)").matches) close();
+    });
+  });
+
+  window.addEventListener("resize", () => {
+    if (!window.matchMedia("(max-width: 920px)").matches) close();
+  });
+}
+
 // ---------- Init ----------
 export async function initEmployeeApp() {
-  // UI elements from your employee.html
   const badge = document.getElementById("userBadge");
   const statusChip = document.getElementById("statusChip");
+  const adminBtn = document.getElementById("btnAdminGo");
 
-  // If Firebase not configured, keep preview mode
+  wireMobileMenu();
+
+  // Preview mode
   if (!isFirebaseConfigured()) {
     uiSetText(badge, "Preview mode");
     if (statusChip) uiSetText(statusChip, "offline");
     const demo = { appointment: { date:"Pending", time:"Pending", address:"4299 Louisville, KY", notes:"" }, steps: [] };
     renderRoute(demo, async () => {});
     window.addEventListener("hashchange", () => renderRoute(demo, async () => {}));
+    if (adminBtn) adminBtn.style.display = "none";
     return;
   }
 
   onAuth(async (user) => {
     try {
       if (!user) {
-        // not signed in -> back to login
         window.location.href = "./index.html";
         return;
       }
@@ -414,16 +458,19 @@ export async function initEmployeeApp() {
         statusChip.classList.add("ok");
       }
 
-      // Ensure Firestore user doc exists
+      // ✅ show/hide Admin button
+      const admin = await isAdminUser(user);
+      if (adminBtn) adminBtn.style.display = admin ? "" : "none";
+
+      // Ensure user doc exists
       await ensureUserDocExists(user);
 
-      // Require Employee ID (whitelist)
+      // Require Employee ID
       const empId = await ensureEmployeeId(user);
 
-      // Show Employee ID in header badge (NOT email)
+      // Show Employee ID (NOT email)
       uiSetText(badge, empId);
 
-      // Realtime sync user doc
       const userRef = doc(db, "users", user.uid);
 
       const saveUserPatch = async (patch) => {
@@ -432,13 +479,12 @@ export async function initEmployeeApp() {
 
       let currentData = null;
 
-      const unsub = onSnapshot(userRef, (snap) => {
+      onSnapshot(userRef, (snap) => {
         if (!snap.exists()) return;
         currentData = snap.data();
         renderRoute(currentData, saveUserPatch);
       });
 
-      // Re-render on navigation
       window.addEventListener("hashchange", () => {
         if (!currentData) return;
         renderRoute(currentData, saveUserPatch);
@@ -447,8 +493,6 @@ export async function initEmployeeApp() {
     } catch (e) {
       console.error(e);
       uiToast(e?.message || String(e));
-      // If ID invalid, kick them out (optional)
-      // window.location.href = "./index.html";
     }
   });
 }
