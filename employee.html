@@ -23,18 +23,18 @@
         <div class="brand-title">Employee Portal</div>
       </div>
 
-      <!-- employee.js will set this to Employee ID -->
+      <!-- employee.js sets this to Employee ID -->
       <div class="topbar-pill" id="userBadge">Loading…</div>
     </div>
 
     <div class="topbar-right">
-      <!-- employee.js will hide this if NOT admin -->
+      <!-- employee.js hides this if NOT admin -->
       <button class="btn sm ghost" id="btnAdminGo" type="button">Admin</button>
       <button class="btn sm ghost" id="btnLogout" type="button">Log out</button>
     </div>
   </header>
 
-  <!-- overlay para cerrar el drawer tocando afuera -->
+  <!-- Overlay for mobile drawer -->
   <div id="drawerOverlay" class="drawer-overlay"></div>
 
   <div class="shell">
@@ -78,7 +78,7 @@
     import { signOutNow } from "./assets/auth.js";
     import { initEmployeeApp } from "./assets/employee.js";
 
-    // ========== Drawer (mobile menu) ==========
+    // Drawer wiring (works even if employee.js also has it)
     const btnMenu = document.getElementById("btnMenu");
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("drawerOverlay");
@@ -92,11 +92,11 @@
       overlay.classList.remove("show");
     }
 
-    btnMenu.addEventListener("click", () => {
+    btnMenu?.addEventListener("click", () => {
       sidebar.classList.contains("open") ? closeDrawer() : openDrawer();
     });
 
-    overlay.addEventListener("click", closeDrawer);
+    overlay?.addEventListener("click", closeDrawer);
 
     // Close drawer on nav click (mobile)
     document.querySelectorAll(".nav-item").forEach(a => {
@@ -110,7 +110,7 @@
       if (!window.matchMedia("(max-width: 920px)").matches) closeDrawer();
     });
 
-    // ========== Buttons ==========
+    // Buttons
     document.getElementById("btnLogout").addEventListener("click", async () => {
       await signOutNow();
       window.location.href = "./index.html";
@@ -120,7 +120,7 @@
       window.location.href = "./admin.html";
     });
 
-    // ========== App init ==========
+    // Init app
     await initEmployeeApp();
     uiActiveNav();
     window.addEventListener("hashchange", () => uiActiveNav());
