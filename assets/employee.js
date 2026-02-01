@@ -21,50 +21,67 @@ function routeName() {
 }
 
 function setPage(title, sub, html) {
-  uiSetText(document.getElementById("pageTitle"), title);
-  uiSetText(document.getElementById("pageSub"), sub);
-  document.getElementById("pageBody").innerHTML = html;
+  const t = document.getElementById("pageTitle");
+  const s = document.getElementById("pageSub");
+  const b = document.getElementById("pageBody");
+  if (t) uiSetText(t, title);
+  if (s) uiSetText(s, sub);
+  if (b) b.innerHTML = html;
 }
 
 function safe(v, fallback = "—") {
   return (v === undefined || v === null || v === "") ? fallback : v;
 }
 
-// Normalize Employee ID inputs (SP024, SP-024, sp 024 -> SP024)
-function normalizeEmpId(input) {
-  const raw = String(input || "").trim().toUpperCase();
-  // remove spaces and non alphanumerics except keep letters+digits
-  const compact = raw.replace(/[^A-Z0-9]/g, "");
-  // if looks like SP + digits, keep as is
-  if (/^SP\d+$/.test(compact)) return compact;
-  return compact;
-}
-
-// Display nicer: SP024 -> SP-024
-function prettyEmpId(empId) {
-  const x = String(empId || "").toUpperCase().trim();
-  if (/^SP-\d+$/.test(x)) return x;
-  if (/^SP\d+$/.test(x)) return x.replace(/^SP(\d+)$/, "SP-$1");
+// normalize IDs so you can accept "SP-024", "sp024", "SP 024"
+function normalizeEmpId(raw) {
+  let x = String(raw || "").trim().toUpperCase();
+  x = x.replaceAll(" ", "").replaceAll("-", "");
+  // If someone writes "SP024" keep it.
+  // If someone writes "024" we can force SP prefix (optional):
+  if (/^\d+$/.test(x)) x = "SP" + x;
+  // Keep only letters+numbers
+  x = x.replace(/[^A-Z0-9]/g, "");
   return x;
 }
 
-// ---------- Default user doc (if missing) ----------
+// ---------- Default user doc ----------
 function defaultUserDoc(user) {
   return {
     email: user?.email || "",
     fullName: user?.displayName || "",
     role: "employee",
     status: "active",
+
+    // stage your UI expects
     stage: "shift_selection",
+
     appointment: { date: "", time: "", address: "", notes: "" },
+
     steps: [
       { id: "application", label: "Application", done: true },
       { id: "shift_selection", label: "Shift Selection", done: false },
       { id: "docs", label: "Complete Onboarding Documents", done: false },
       { id: "first_day", label: "First Day Preparation", done: false }
     ],
+
     shift: { choice: "", confirmed: false },
+
     employeeId: "",
+
+    // optional later
+    contacts: {
+      siteManager: { name: "Site Manager", phone: "", email: "" },
+      shiftLead:   { name: "Shift Supervisor / Lead", phone: "", email: "" },
+      hr:          { name: "HR / People Operations", phone: "", email: "" },
+      safety:      { name: "Safety Officer", phone: "", email: "" }
+    },
+
+    notifications: [
+      { id:"n1", title:"Reminder: Bring your I-9 documents on your first day", body:"Make sure to bring acceptable documents for the I-9 form.", action:"View I-9 Readiness", route:"i9" },
+      { id:"n2", title:"Please Confirm Your Work Shift", body:"Select your preferred work schedule to confirm your shift.", action:"Go to Shift Selection", route:"shift" }
+    ],
+
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
     lastLoginAt: serverTimestamp()
@@ -105,39 +122,54 @@ async function ensureEmployeeId(user) {
 
   if (data?.employeeId) return data.employeeId;
 
-  let empIdInput = prompt("Enter your Employee ID (example: SP-024):");
-  empIdInput = (empIdInput || "").trim();
-  if (!empIdInput) throw new Error("Employee ID required.");
+  let empId = prompt("Enter your Employee ID (example: SP024):");
+  empId = normalizeEmpId(empId);
 
-  const canon = normalizeEmpId(empIdInput);
-  const withDash = prettyEmpId(canon);          // SP-024
-  const noDash = canon;                          // SP024
+  if (!empId) throw new Error("Employee ID required.");
 
-  // Try multiple possible doc IDs so you don't get stuck on formatting
-  const candidates = Array.from(new Set([empIdInput, withDash, noDash].filter(Boolean)));
+  // Validate whitelist: allowedEmployees/{empId} with { active:true }
+  const allowedRef = doc(db, "allowedEmployees", empId);
+  const allowedSnap = await getDoc(allowedRef);
 
-  let matchedId = null;
-  let allowedData = null;
-
-  for (const id of candidates) {
-    const allowedRef = doc(db, "allowedEmployees", id);
-    const allowedSnap = await getDoc(allowedRef);
-    if (allowedSnap.exists()) {
-      allowedData = allowedSnap.data();
-      if (allowedData?.active === true) {
-        matchedId = id;
-        break;
-      }
-    }
-  }
-
-  if (!matchedId) {
+  if (!allowedSnap.exists() || allowedSnap.data()?.active !== true) {
     throw new Error("Invalid Employee ID. Contact HR.");
   }
 
-  // Save EXACT matched ID (so it matches your allowedEmployees doc id)
-  await updateDoc(userRef, { employeeId: matchedId, updatedAt: serverTimestamp() });
-  return matchedId;
+  await updateDoc(userRef, { employeeId: empId, updatedAt: serverTimestamp() });
+  return empId;
+}
+
+// ---------- Mobile menu wiring (uses YOUR HTML ids) ----------
+function wireMobileMenu() {
+  const btnMenu = document.getElementById("btnMenu");       // ✅ employee.html
+  const sidebar = document.getElementById("sidebar");       // ✅ employee.html
+  const overlay = document.getElementById("drawerOverlay"); // ✅ employee.html
+
+  if (!btnMenu || !sidebar || !overlay) return;
+
+  const close = () => {
+    sidebar.classList.remove("open");
+    overlay.classList.remove("show");
+  };
+
+  btnMenu.addEventListener("click", () => {
+    sidebar.classList.toggle("open");
+    overlay.classList.toggle("show");
+  });
+
+  overlay.addEventListener("click", close);
+
+  // close after click nav on mobile
+  document.querySelectorAll(".nav-item").forEach(a => {
+    a.addEventListener("click", () => {
+      if (window.matchMedia("(max-width: 920px)").matches) close();
+    });
+  });
+
+  // if resized to desktop, close drawer
+  window.addEventListener("resize", () => {
+    if (!window.matchMedia("(max-width: 920px)").matches) close();
+  });
 }
 
 // ---------- Renderers ----------
@@ -347,14 +379,12 @@ function renderFirstDay(userData, saveUserPatch) {
 }
 
 function renderTeam(userData) {
-  const c = (userData && typeof userData.contacts === "object" && userData.contacts) ? userData.contacts : {};
-  const values = Object.values(c);
-
-  const rows = values.map(x => `
+  const c = userData?.contacts || {};
+  const list = Object.values(c).map(x => `
     <div class="list-item">
       <div>
-        <div class="li-title">${escapeHtml(x?.name || "—")}</div>
-        <div class="li-sub muted">${escapeHtml(x?.email || "")} ${x?.phone ? "• " + escapeHtml(x.phone) : ""}</div>
+        <div class="li-title">${escapeHtml(x.name || "—")}</div>
+        <div class="li-sub muted">${escapeHtml(x.email || "")} ${x.phone ? "• " + escapeHtml(x.phone) : ""}</div>
       </div>
       <button class="btn sm ghost" disabled>Message</button>
     </div>
@@ -366,7 +396,7 @@ function renderTeam(userData) {
     `
     <div class="card">
       <h3 class="h3">Contacts</h3>
-      <div class="list">${rows || `<div class="muted">No contacts yet</div>`}</div>
+      <div class="list">${list || `<div class="muted">No contacts yet</div>`}</div>
     </div>
     `
   );
@@ -428,65 +458,27 @@ function renderRoute(userData, saveUserPatch) {
   }
 }
 
-// ---------- Mobile menu wiring (FIXED FOR YOUR HTML IDS) ----------
-function wireMobileMenu() {
-  // your employee.html uses: btnMenu, sidebar, drawerOverlay
-  const menuBtn = document.getElementById("btnMenu");
-  const sidebar = document.getElementById("sidebar");
-  const overlay = document.getElementById("drawerOverlay");
-
-  if (!menuBtn || !sidebar || !overlay) return;
-
-  const open = () => {
-    sidebar.classList.add("open");
-    overlay.classList.add("show");
-  };
-  const close = () => {
-    sidebar.classList.remove("open");
-    overlay.classList.remove("show");
-  };
-
-  menuBtn.addEventListener("click", () => {
-    if (sidebar.classList.contains("open")) close();
-    else open();
-  });
-
-  overlay.addEventListener("click", close);
-
-  // Close drawer after navigating on mobile
-  document.querySelectorAll(".nav-item").forEach(a => {
-    a.addEventListener("click", () => {
-      if (window.matchMedia("(max-width: 920px)").matches) close();
-    });
-  });
-
-  window.addEventListener("resize", () => {
-    if (!window.matchMedia("(max-width: 920px)").matches) close();
-  });
-}
-
 // ---------- Init ----------
 export async function initEmployeeApp() {
+  // Wire menu first (so it always works)
+  wireMobileMenu();
+
   const badge = document.getElementById("userBadge");
   const statusChip = document.getElementById("statusChip");
   const adminBtn = document.getElementById("btnAdminGo");
 
-  // wire mobile menu once
-  wireMobileMenu();
-
   // Preview mode
   if (!isFirebaseConfigured()) {
-    uiSetText(badge, "Preview mode");
+    if (badge) uiSetText(badge, "Preview mode");
     if (statusChip) uiSetText(statusChip, "offline");
+    if (adminBtn) adminBtn.style.display = "none";
 
     const demo = {
       appointment: { date:"Pending", time:"Pending", address:"4299 Louisville, KY", notes:"" },
       steps: []
     };
-
     renderRoute(demo, async () => {});
     window.addEventListener("hashchange", () => renderRoute(demo, async () => {}));
-    if (adminBtn) adminBtn.style.display = "none";
     return;
   }
 
@@ -503,18 +495,18 @@ export async function initEmployeeApp() {
         statusChip.classList.add("ok");
       }
 
-      // ✅ show/hide Admin button
+      // show/hide Admin button
       const admin = await isAdminUser(user);
       if (adminBtn) adminBtn.style.display = admin ? "" : "none";
 
-      // Ensure user doc exists
+      // ensure doc exists
       await ensureUserDocExists(user);
 
-      // Require Employee ID
+      // require employeeId (whitelist)
       const empId = await ensureEmployeeId(user);
 
-      // Show Employee ID (pretty)
-      uiSetText(badge, prettyEmpId(empId));
+      // show employeeId in header
+      if (badge) uiSetText(badge, empId);
 
       const userRef = doc(db, "users", user.uid);
 
