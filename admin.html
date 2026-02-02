@@ -26,12 +26,14 @@
 
 <main class="content">
 
-<!-- SEARCH -->
+<!-- SEARCH BY EMPLOYEE ID -->
 <section class="card">
   <h3 class="h3">Search Employee</h3>
 
-  <input id="searchEmail" class="inp" placeholder="employee@email.com">
+  <!-- 🔥 CAMBIO CLAVE AQUÍ -->
+  <input id="searchEmpId" class="inp" placeholder="SP023">
   <button class="btn primary" id="btnSearch">Load Employee</button>
+
   <div class="small muted" id="searchMsg"></div>
 </section>
 
@@ -44,7 +46,10 @@
   <input id="aAddr" class="inp" placeholder="Address">
   <input id="aNotes" class="inp" placeholder="Notes">
 
-  <button class="btn primary" id="btnSaveAppointment">Save Appointment</button>
+  <button class="btn primary" id="btnSaveAppointment">
+    Save Appointment
+  </button>
+
   <div class="small muted" id="apptMsg"></div>
 </section>
 
@@ -62,7 +67,9 @@
     <option value="firstday">First Day</option>
   </select>
 
-  <button class="btn primary" id="btnAddNotif">Add Notification</button>
+  <button class="btn primary" id="btnAddNotif">
+    Add Notification
+  </button>
 
   <div id="notifList"></div>
 </section>
@@ -76,7 +83,9 @@
   <input id="tEmail" class="inp" placeholder="Email">
   <input id="tPhone" class="inp" placeholder="Phone">
 
-  <button class="btn primary" id="btnAddTeam">Add Team Member</button>
+  <button class="btn primary" id="btnAddTeam">
+    Add Team Member
+  </button>
 
   <div id="teamList"></div>
 </section>
@@ -88,7 +97,9 @@
   <input id="newEmpId" class="inp" placeholder="SP023">
   <input id="newEmpName" class="inp" placeholder="Name (optional)">
 
-  <button class="btn primary" id="btnAddAllowed">Add ID</button>
+  <button class="btn primary" id="btnAddAllowed">
+    Add ID
+  </button>
 
   <div id="allowedList"></div>
 </section>
@@ -106,7 +117,11 @@
   });
 
   onAuth(async (user) => {
-    uiSetText(document.getElementById("adminBadge"), user?.email || "Admin");
+    uiSetText(
+      document.getElementById("adminBadge"),
+      user?.email || "Admin"
+    );
+
     await initAdminApp(user);
   });
 </script>
