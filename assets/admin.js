@@ -7,79 +7,105 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-let targetUid = null;
-let targetData = null;
+let targetUid=null;
+let targetData=null;
 
-function q$(id){ return document.getElementById(id); }
+const q$=id=>document.getElementById(id);
 
-// ---------------- ADMIN GUARD ----------------
+//
+// 🔹 NORMALIZE ID
+//
+function normalizeEmpId(v){
+  if(!v) return "";
+  v=v.toUpperCase().trim();
+  v=v.replace(/\s+/g,"");
+  v=v.replace(/SP[-_]?/,"SP");
+  const m=v.match(/^SP(\d+)$/);
+  return m?`SP${m[1]}`:"";
+}
+
+//
+// 🔹 ADMIN GUARD
+//
 async function ensureAdmin(user){
   if(!isFirebaseConfigured()) return true;
   if(!user?.uid) return false;
 
-  const snap = await getDoc(doc(db,"admins",user.uid));
+  const snap=await getDoc(doc(db,"admins",user.uid));
   return snap.exists();
 }
 
-// ---------------- SEARCH BY SP ID ----------------
-async function findUserByEmployeeId(empId){
-  const q = query(
+//
+// 🔹 FIND USER BY EMPLOYEE ID
+//
+async function findUser(empId){
+  empId=normalizeEmpId(empId);
+  if(!empId) return null;
+
+  const q=query(
     collection(db,"users"),
-    where("employeeId","==",empId.toUpperCase()),
+    where("employeeId","==",empId),
     limit(1)
   );
 
-  const snap = await getDocs(q);
+  const snap=await getDocs(q);
   if(snap.empty) return null;
 
-  const d = snap.docs[0];
+  const d=snap.docs[0];
   return { uid:d.id, data:d.data() };
 }
 
-// ---------------- UPDATE TARGET ----------------
+//
+// 🔹 UPDATE TARGET
+//
 async function updateTarget(patch){
-  if(!targetUid) throw new Error("No employee loaded.");
+  if(!targetUid) throw new Error("Search employee first");
 
-  const ref = doc(db,"users",targetUid);
-
-  await updateDoc(ref,{
+  await updateDoc(doc(db,"users",targetUid),{
     ...patch,
-    updatedAt: serverTimestamp()
+    updatedAt:serverTimestamp()
   });
 }
 
-// ---------------- APPOINTMENT ----------------
+//
+// 🔹 APPOINTMENT
+//
 function fillAppointment(d){
-  q$("aDate").value  = d?.appointment?.date || "";
-  q$("aTime").value  = d?.appointment?.time || "";
-  q$("aAddr").value  = d?.appointment?.address || "";
-  q$("aNotes").value = d?.appointment?.notes || "";
+  q$("aDate").value=d?.appointment?.date||"";
+  q$("aTime").value=d?.appointment?.time||"";
+  q$("aAddr").value=d?.appointment?.address||"";
+  q$("aNotes").value=d?.appointment?.notes||"";
 }
 
-// ---------------- NOTIFICATIONS ----------------
-function normalizeNotifs(d){
-  return Array.isArray(d?.notifications)? d.notifications : [];
-}
-
+//
+// 🔹 NOTIFICATIONS
+//
 function renderNotifs(){
-  const el = q$("notifList");
+  const el=q$("notifList");
   if(!el) return;
   el.innerHTML="";
 
-  const list = normalizeNotifs(targetData);
+  const list=Array.isArray(targetData?.notifications)?targetData.notifications:[];
 
-  list.forEach(n=>{
+  if(!list.length){
+    el.innerHTML="<div class='muted'>No notifications</div>";
+    return;
+  }
+
+  list.forEach((n,i)=>{
     const row=document.createElement("div");
+    row.className="list-item";
+
     row.innerHTML=`
       <div>
-        <b>${escapeHtml(n.title)}</b>
-        <div>${escapeHtml(n.body)}</div>
+        <b>${escapeHtml(n.title||"")}</b>
+        <div>${escapeHtml(n.body||"")}</div>
       </div>
-      <button>Remove</button>
+      <button class="btn sm ghost">Remove</button>
     `;
 
     row.querySelector("button").onclick=async()=>{
-      const next=list.filter(x=>x.id!==n.id);
+      const next=list.filter((_,x)=>x!==i);
       await updateTarget({notifications:next});
       targetData.notifications=next;
       renderNotifs();
@@ -89,28 +115,34 @@ function renderNotifs(){
   });
 }
 
-// ---------------- TEAM ----------------
+//
+// 🔹 TEAM
+//
 function renderTeam(){
   const el=q$("teamList");
   if(!el) return;
   el.innerHTML="";
 
-  const c=targetData?.contacts||{};
+  const contacts=targetData?.contacts||{};
 
-  Object.keys(c).forEach(k=>{
-    const x=c[k];
+  Object.keys(contacts).forEach(k=>{
+    const c=contacts[k];
+
     const row=document.createElement("div");
+    row.className="list-item";
 
     row.innerHTML=`
-      <div>${escapeHtml(x.name)}</div>
-      <button>Remove</button>
+      <div>
+        <b>${escapeHtml(c.name)}</b>
+        <div>${escapeHtml(c.email||"")}</div>
+      </div>
+      <button class="btn sm ghost">Remove</button>
     `;
 
     row.querySelector("button").onclick=async()=>{
-      const next={...c};
-      delete next[k];
-      await updateTarget({contacts:next});
-      targetData.contacts=next;
+      delete contacts[k];
+      await updateTarget({contacts});
+      targetData.contacts=contacts;
       renderTeam();
     };
 
@@ -118,60 +150,41 @@ function renderTeam(){
   });
 }
 
-// ---------------- ALLOWED IDS ----------------
-async function addAllowedId(id){
-  const clean=id.trim().toUpperCase();
+//
+// 🔹 ALLOWED IDS
+//
+async function addAllowed(empId,name){
+  empId=normalizeEmpId(empId);
+  if(!empId) return uiToast("Invalid ID");
 
-  await setDoc(doc(db,"allowedEmployees",clean),{
+  await setDoc(doc(db,"allowedEmployees",empId),{
     active:true,
+    name:name||"",
     createdAt:serverTimestamp()
   });
+
+  uiToast("Allowed ID saved");
 }
 
-async function loadAllowedIds(){
-  const el=q$("allowedList");
-  if(!el) return;
-  el.innerHTML="";
-
-  const snap=await getDocs(collection(db,"allowedEmployees"));
-
-  snap.forEach(d=>{
-    const row=document.createElement("div");
-    row.innerHTML=`
-      ${d.id}
-      <button>X</button>
-    `;
-
-    row.querySelector("button").onclick=async()=>{
-      await deleteDoc(doc(db,"allowedEmployees",d.id));
-      loadAllowedIds();
-    };
-
-    el.appendChild(row);
-  });
-}
-
-// ---------------- INIT ----------------
+//
+// 🔹 INIT
+//
 export async function initAdminApp(user){
 
-  if(!(await ensureAdmin(user))){
+  if(!await ensureAdmin(user)){
     alert("Not admin");
-    location.href="employee.html";
+    location.href="./employee.html";
     return;
   }
 
-  await loadAllowedIds();
-
-  // SEARCH BY SP ID
+  //
+  // SEARCH
+  //
   q$("btnSearch").onclick=async()=>{
-    const id=q$("searchId").value.trim().toUpperCase();
+    const empId=q$("searchEmpId").value;
+    const found=await findUser(empId);
 
-    const found=await findUserByEmployeeId(id);
-
-    if(!found){
-      uiToast("Not found");
-      return;
-    }
+    if(!found) return uiToast("Not found");
 
     targetUid=found.uid;
     targetData=found.data;
@@ -180,59 +193,70 @@ export async function initAdminApp(user){
     renderNotifs();
     renderTeam();
 
-    uiToast("Loaded");
+    uiToast("Employee loaded");
   };
 
-  // SAVE APPOINTMENT (PERSISTENT)
+  //
+  // SAVE APPOINTMENT
+  //
   q$("btnSaveAppointment").onclick=async()=>{
-    const appointment={
-      date:q$("aDate").value,
-      time:q$("aTime").value,
-      address:q$("aAddr").value,
-      notes:q$("aNotes").value
+    if(!targetUid) return uiToast("Search employee first");
+
+    const appt={
+      date:q$("aDate").value||"",
+      time:q$("aTime").value||"",
+      address:q$("aAddr").value||"",
+      notes:q$("aNotes").value||""
     };
 
-    await updateTarget({appointment});
+    await updateTarget({appointment:appt});
+    targetData.appointment=appt;
 
-    targetData.appointment=appointment;
-
-    uiToast("Saved permanent");
+    uiToast("Appointment saved ✅");
   };
 
+  //
   // ADD NOTIF
+  //
   q$("btnAddNotif").onclick=async()=>{
-    const next=normalizeNotifs(targetData);
+    const t=q$("nTitle").value;
+    const b=q$("nBody").value;
+    if(!t||!b) return;
 
-    next.unshift({
-      id:Date.now(),
-      title:q$("nTitle").value,
-      body:q$("nBody").value,
-      route:"progress"
-    });
+    const list=targetData.notifications||[];
+    list.unshift({title:t,body:b});
 
-    await updateTarget({notifications:next});
-    targetData.notifications=next;
+    await updateTarget({notifications:list});
+    targetData.notifications=list;
+
     renderNotifs();
   };
 
+  //
   // ADD TEAM
+  //
   q$("btnAddTeam").onclick=async()=>{
-    const c=targetData.contacts||{};
-    const k="c"+Date.now();
+    const name=q$("tName").value;
+    if(!name) return;
 
-    c[k]={
-      name:q$("tName").value,
-      role:q$("tRole").value
-    };
+    const contacts=targetData.contacts||{};
+    const key="c"+Date.now();
 
-    await updateTarget({contacts:c});
-    targetData.contacts=c;
+    contacts[key]={name,email:q$("tEmail").value||""};
+
+    await updateTarget({contacts});
+    targetData.contacts=contacts;
+
     renderTeam();
   };
 
+  //
   // ADD ALLOWED ID
+  //
   q$("btnAddAllowed").onclick=async()=>{
-    await addAllowedId(q$("newEmpId").value);
-    loadAllowedIds();
+    await addAllowed(
+      q$("newEmpId").value,
+      q$("newEmpName").value
+    );
   };
 }
