@@ -7,7 +7,14 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-let targetUid = null;
+// ✅ rango para NO entrar 1x1
+const EMP_ID_RANGE = { min: 23, max: 200 };
+const AUTO_CREATE_ALLOWED_ID = true;
+
+// ✅ guardamos por EmployeeID aquí (doc fijo)
+const RECORD_DOC = (empId) => doc(db, "employeeRecords", empId);
+
+let targetEmpId = null;
 let targetData = null;
 
 function q$(id){ return document.getElementById(id); }
@@ -37,36 +44,28 @@ function normalizeEmpId(input){
   return `SP${m[1]}`;
 }
 
-// ---------- Default user doc ----------
-function defaultUserDocForId(empId){
+function empIdToNumber(empId){
+  const m = String(empId||"").toUpperCase().match(/^SP(\d{1,6})$/);
+  if(!m) return null;
+  return Number(m[1]);
+}
+
+// ---------- Default employee record (keyed by empId) ----------
+function defaultEmployeeRecord(empId){
   return {
-    email:"",
-    fullName:"",
-    role:"employee",
-    status:"active",
-    stage:"shift_selection",
+    employeeId: empId,
 
-    appointment:{ date:"",time:"",address:"",notes:"" },
+    appointment: { date:"", time:"", address:"", notes:"" },
 
-    steps:[
-      {id:"application",label:"Application",done:true},
-      {id:"shift_selection",label:"Shift Selection",done:false},
-      {id:"docs",label:"Complete Onboarding Documents",done:false},
-      {id:"first_day",label:"First Day Preparation",done:false}
-    ],
+    notifications: [],
+    contacts: {},
 
-    shift:{choice:"",confirmed:false},
-
-    employeeId:empId,
-    notifications:[],
-    contacts:{},
-
-    createdAt:serverTimestamp(),
-    updatedAt:serverTimestamp()
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
   };
 }
 
-// ---------- Load by employeeId ----------
+// ---------- (Compatibility) Load a user doc by employeeId (if exists) ----------
 async function loadUserByEmployeeId(empId){
   const usersRef = collection(db,"users");
   const q = query(usersRef,where("employeeId","==",empId),limit(1));
@@ -75,15 +74,6 @@ async function loadUserByEmployeeId(empId){
   if(snap.empty) return null;
   const d = snap.docs[0];
   return {uid:d.id,data:d.data()};
-}
-
-// ---------- Update target ----------
-async function updateTarget(patch){
-  if(!targetUid) throw new Error("Load an Employee ID first.");
-  if(!isFirebaseConfigured()) return;
-
-  const ref = doc(db,"users",targetUid);
-  await updateDoc(ref,{...patch,updatedAt:serverTimestamp()});
 }
 
 // ---------- UI helpers ----------
@@ -98,10 +88,10 @@ function uidKey(p="k"){
 
 // ---------- Appointment ----------
 function fillAppointment(d){
-  q$("aDate").value=d?.appointment?.date||"";
-  q$("aTime").value=d?.appointment?.time||"";
-  q$("aAddr").value=d?.appointment?.address||"";
-  q$("aNotes").value=d?.appointment?.notes||"";
+  q$("aDate").value  = d?.appointment?.date || "";
+  q$("aTime").value  = d?.appointment?.time || "";
+  q$("aAddr").value  = d?.appointment?.address || "";
+  q$("aNotes").value = d?.appointment?.notes || "";
 }
 
 // ---------- Notifications ----------
@@ -134,17 +124,23 @@ function renderNotifs(){
     row.className="list-item";
     row.innerHTML=`
       <div>
-        <div class="li-title">${escapeHtml(n.title)}</div>
-        <div class="li-sub muted">${escapeHtml(n.body)}</div>
+        <div class="li-title">${escapeHtml(n.title || "—")}</div>
+        <div class="li-sub muted">${escapeHtml(n.body || "")}</div>
+        <div class="small muted">Route: ${escapeHtml(n.route || "progress")}</div>
       </div>
-      <button class="btn sm ghost">Remove</button>
+      <button class="btn sm ghost" type="button">Remove</button>
     `;
 
     row.querySelector("button").onclick=async()=>{
-      const next=list.filter(x=>x.id!==n.id);
-      await updateTarget({notifications:next});
-      targetData.notifications=next;
-      renderNotifs();
+      try{
+        const next = normalizeNotifs(targetData).filter(x=>x.id!==n.id);
+        await updateEmployeeRecord({ notifications: next });
+        targetData.notifications = next;
+        uiToast("Notification removed.");
+        renderNotifs();
+      }catch(e){
+        uiToast(e?.message || String(e));
+      }
     };
 
     el.appendChild(row);
@@ -153,7 +149,8 @@ function renderNotifs(){
 
 // ---------- Team ----------
 function normalizeContacts(d){
-  return (d&&typeof d.contacts==="object")?d.contacts:{};
+  const c = (d && typeof d.contacts === "object" && d.contacts) ? d.contacts : {};
+  return c;
 }
 
 function renderTeam(){
@@ -174,23 +171,59 @@ function renderTeam(){
     const row=document.createElement("div");
     row.className="list-item";
     row.innerHTML=`
-      <div>${escapeHtml(c.name||"")}</div>
-      <button class="btn sm ghost">Remove</button>
+      <div>
+        <div class="li-title">${escapeHtml(c.name||"—")}${c.role?` <span class="muted">• ${escapeHtml(c.role)}</span>`:""}</div>
+        <div class="li-sub muted">${escapeHtml(c.email||"")}${c.phone?` • ${escapeHtml(c.phone)}`:""}</div>
+      </div>
+      <button class="btn sm ghost" type="button">Remove</button>
     `;
 
     row.querySelector("button").onclick=async()=>{
-      const next={...contacts};
-      delete next[k];
-      await updateTarget({contacts:next});
-      targetData.contacts=next;
-      renderTeam();
+      try{
+        const next={...normalizeContacts(targetData)};
+        delete next[k];
+        await updateEmployeeRecord({ contacts: next });
+        targetData.contacts = next;
+        uiToast("Team contact removed.");
+        renderTeam();
+      }catch(e){
+        uiToast(e?.message || String(e));
+      }
     };
 
     el.appendChild(row);
   });
 }
 
-// ---------- Allowed IDs ----------
+// ---------- Allowed IDs (range-friendly) ----------
+async function ensureAllowed(empId, name=""){
+  const n = empIdToNumber(empId);
+  const inRange = (n !== null && n >= EMP_ID_RANGE.min && n <= EMP_ID_RANGE.max);
+
+  const allowedRef = doc(db,"allowedEmployees",empId);
+  const snap = await getDoc(allowedRef);
+
+  if(snap.exists()){
+    // if exists, must be active
+    const active = snap.data()?.active === true;
+    if(!active) throw new Error("ID exists but is inactive.");
+    return true;
+  }
+
+  if(!inRange) throw new Error("ID not registered (and not in allowed range).");
+
+  if(AUTO_CREATE_ALLOWED_ID){
+    await setDoc(allowedRef,{
+      active:true,
+      name:(name||"").trim(),
+      createdAt:serverTimestamp()
+    },{merge:true});
+    return true;
+  }
+
+  throw new Error("ID not registered.");
+}
+
 async function addAllowedId(empId,name){
   const clean=normalizeEmpId(empId);
   if(!clean) throw new Error("Invalid ID format (SP###)");
@@ -201,26 +234,26 @@ async function addAllowedId(empId,name){
     name:(name||"").trim(),
     createdAt:serverTimestamp()
   },{merge:true});
-
-  const existing=await loadUserByEmployeeId(clean);
-
-  if(!existing){
-    const usersRef=collection(db,"users");
-    const newRef=doc(usersRef);
-    await setDoc(newRef,defaultUserDocForId(clean));
-  }
 }
 
 async function removeAllowedId(empId){
   const clean=normalizeEmpId(empId);
+  if(!clean) return;
+
+  // Mejor que borrar: dejar inactive (para auditoría)
   const ref=doc(db,"allowedEmployees",clean);
-  await deleteDoc(ref);
+  await setDoc(ref,{ active:false, updatedAt:serverTimestamp() },{merge:true});
 }
 
 async function loadAllowedIds(){
   const el=q$("allowedList");
   if(!el) return;
   el.innerHTML="";
+
+  if(!isFirebaseConfigured()){
+    el.innerHTML=`<div class="small muted">Preview mode: Allowed IDs not loaded.</div>`;
+    return;
+  }
 
   const snap=await getDocs(collection(db,"allowedEmployees"));
 
@@ -230,21 +263,64 @@ async function loadAllowedIds(){
   }
 
   snap.forEach(d=>{
+    const x = d.data() || {};
     const id=d.id;
+
     const row=document.createElement("div");
     row.className="list-item";
     row.innerHTML=`
-      <div>${escapeHtml(id)}</div>
-      <button class="btn sm ghost">Remove</button>
+      <div>
+        <div class="li-title">${escapeHtml(id)}</div>
+        <div class="li-sub muted">${escapeHtml(x.name||"")} ${x.active===false?"• inactive":""}</div>
+      </div>
+      <button class="btn sm ghost" type="button">Remove</button>
     `;
 
     row.querySelector("button").onclick=async()=>{
-      await removeAllowedId(id);
-      await loadAllowedIds();
+      try{
+        await removeAllowedId(id);
+        uiToast("Set inactive.");
+        await loadAllowedIds();
+      }catch(e){
+        uiToast(e?.message || String(e));
+      }
     };
 
     el.appendChild(row);
   });
+}
+
+// ---------- EmployeeRecord CRUD ----------
+async function loadEmployeeRecord(empId){
+  const ref = RECORD_DOC(empId);
+  const snap = await getDoc(ref);
+  if(!snap.exists()) return null;
+  return snap.data() || null;
+}
+
+async function ensureEmployeeRecordExists(empId){
+  const ref = RECORD_DOC(empId);
+  const snap = await getDoc(ref);
+  if(!snap.exists()){
+    await setDoc(ref, defaultEmployeeRecord(empId), { merge:true });
+  }
+}
+
+async function updateEmployeeRecord(patch){
+  if(!targetEmpId) throw new Error("Load an Employee ID first.");
+  if(!isFirebaseConfigured()) return;
+
+  const ref = RECORD_DOC(targetEmpId);
+  await setDoc(ref, { ...patch, updatedAt: serverTimestamp() }, { merge:true });
+
+  // ✅ Compatibility: if a real users/{uid} exists with this employeeId, write appointment there too
+  if(patch?.appointment){
+    const found = await loadUserByEmployeeId(targetEmpId);
+    if(found?.uid){
+      const userRef = doc(db,"users",found.uid);
+      await setDoc(userRef, { appointment: patch.appointment, updatedAt: serverTimestamp() }, { merge:true });
+    }
+  }
 }
 
 // ---------- INIT ----------
@@ -258,64 +334,86 @@ export async function initAdminApp(user){
 
   // SEARCH BY ID
   q$("btnSearch").onclick=async()=>{
-    const raw=q$("searchEmail").value;
-    const empId=normalizeEmpId(raw);
+    try{
+      const raw=q$("searchEmail")?.value || "";
+      const empId=normalizeEmpId(raw);
 
-    if(!empId){
-      setText("searchMsg","Invalid ID format (SP###)");
-      return;
+      setText("searchMsg","");
+
+      if(!empId){
+        setText("searchMsg","Invalid ID format (SP###)");
+        return;
+      }
+
+      // ✅ allow if exists OR in range (auto create allowed)
+      await ensureAllowed(empId);
+
+      // ✅ ensure record doc exists
+      await ensureEmployeeRecordExists(empId);
+
+      const rec = await loadEmployeeRecord(empId) || defaultEmployeeRecord(empId);
+
+      targetEmpId = empId;
+      targetData = rec;
+
+      fillAppointment(targetData);
+      renderNotifs();
+      renderTeam();
+
+      setText("searchMsg","Loaded "+empId);
+      uiToast("Employee loaded.");
+    }catch(e){
+      targetEmpId = null;
+      targetData = null;
+      setText("searchMsg", e?.message || String(e));
+      uiToast(e?.message || String(e));
     }
-
-    const allowedSnap=await getDoc(doc(db,"allowedEmployees",empId));
-    if(!allowedSnap.exists()){
-      setText("searchMsg","ID not registered");
-      return;
-    }
-
-    let found=await loadUserByEmployeeId(empId);
-
-    if(!found){
-      const usersRef=collection(db,"users");
-      const newRef=doc(usersRef);
-      await setDoc(newRef,defaultUserDocForId(empId));
-      found=await loadUserByEmployeeId(empId);
-    }
-
-    targetUid=found.uid;
-    targetData=found.data;
-
-    fillAppointment(targetData);
-    renderNotifs();
-    renderTeam();
-
-    setText("searchMsg","Loaded "+empId);
   };
 
   // SAVE APPOINTMENT
   q$("btnSaveAppointment").onclick=async()=>{
-    if(!targetUid){
-      uiToast("Load ID first");
-      return;
+    try{
+      if(!targetEmpId){
+        uiToast("Load ID first");
+        return;
+      }
+
+      const appt={
+        date:(q$("aDate")?.value || "").trim(),
+        time:(q$("aTime")?.value || "").trim(),
+        address:(q$("aAddr")?.value || "").trim(),
+        notes:(q$("aNotes")?.value || "").trim()
+      };
+
+      await updateEmployeeRecord({ appointment: appt });
+
+      // local cache
+      targetData = targetData || {};
+      targetData.appointment = appt;
+
+      uiToast("Appointment saved");
+      setText("apptMsg","Saved.");
+    }catch(e){
+      uiToast(e?.message || String(e));
+      setText("apptMsg", e?.message || String(e));
     }
-
-    const appt={
-      date:q$("aDate").value,
-      time:q$("aTime").value,
-      address:q$("aAddr").value,
-      notes:q$("aNotes").value
-    };
-
-    await updateTarget({appointment:appt});
-    targetData.appointment=appt;
-
-    uiToast("Appointment saved");
   };
 
-  // ADD ID
+  // ADD ID (manual, still works)
   q$("btnAddAllowed").onclick=async()=>{
-    const id=q$("newEmpId").value;
-    const name=q$("newEmpName").value;
-    await addAllowedId(id,name);
-    await loadAllowedIds();
+    try{
+      const id=(q$("newEmpId")?.value || "").trim();
+      const name=(q$("newEmpName")?.value || "").trim();
+
+      await addAllowedId(id,name);
+
+      if(q$("newEmpId")) q$("newEmpId").value = "";
+      if(q$("newEmpName")) q$("newEmpName").value = "";
+
+      uiToast("Allowed ID added.");
+      await loadAllowedIds();
+    }catch(e){
+      uiToast(e?.message || String(e));
+    }
   };
 }
