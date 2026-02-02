@@ -35,21 +35,26 @@ async function ensureAdmin(user){
 // ---------- Normalize Employee ID ----------
 function normalizeEmpId(input){
   if(!input) return "";
-  let v = input.trim().toUpperCase();
-  v = v.replace(/\s+/g,"");
-  v = v.replace(/SP[-_]?/g,"SP");
 
-  const m = v.match(/^SP(\d{1,6})$/);
-  if(!m) return "";
-  return `SP${m[1]}`;
+  let v = input.toString().toUpperCase();
+
+  // quita TODO lo que no sea letra o número
+  v = v.replace(/[^A-Z0-9]/g, "");
+
+  // asegurar que empiece con SP
+  if(!v.startsWith("SP")){
+    if(/^\d+$/.test(v)){
+      v = "SP" + v;
+    } else {
+      return "";
+    }
+  }
+
+  const digits = v.replace("SP","");
+  if(!/^\d{1,6}$/.test(digits)) return "";
+
+  return "SP" + digits;
 }
-
-function empIdToNumber(empId){
-  const m = String(empId||"").toUpperCase().match(/^SP(\d{1,6})$/);
-  if(!m) return null;
-  return Number(m[1]);
-}
-
 // ---------- Default employee record (keyed by empId) ----------
 function defaultEmployeeRecord(empId){
   return {
