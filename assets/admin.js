@@ -10,411 +10,229 @@ import {
 let targetUid = null;
 let targetData = null;
 
-function q$(id) { return document.getElementById(id); }
+function q$(id){ return document.getElementById(id); }
 
-// ---------- Admin guard ----------
-async function ensureAdmin(user) {
-  // admins/{uid} -> { role:"admin" }
-  if (!isFirebaseConfigured()) return true;
-  if (!user?.uid) return false;
+// ---------------- ADMIN GUARD ----------------
+async function ensureAdmin(user){
+  if(!isFirebaseConfigured()) return true;
+  if(!user?.uid) return false;
 
-  const ref = doc(db, "admins", user.uid);
-  const snap = await getDoc(ref);
-  return snap.exists() && (snap.data()?.role === "admin" || snap.data()?.isAdmin === true);
+  const snap = await getDoc(doc(db,"admins",user.uid));
+  return snap.exists();
 }
 
-// ---------- Find employee by email ----------
-async function findUserByEmail(email) {
-  if (!isFirebaseConfigured()) {
-    // preview mode
-    return {
-      uid: "preview1",
-      data: {
-        email,
-        appointment: { date: "2026-02-03", time: "10:30", address: "4299 Louisville, KY", notes: "Bring ID" },
-        notifications: [],
-        contacts: {}
-      }
-    };
-  }
+// ---------------- SEARCH BY SP ID ----------------
+async function findUserByEmployeeId(empId){
+  const q = query(
+    collection(db,"users"),
+    where("employeeId","==",empId.toUpperCase()),
+    limit(1)
+  );
 
-  const usersRef = collection(db, "users");
-  const q = query(usersRef, where("email", "==", email), limit(1));
   const snap = await getDocs(q);
-  if (snap.empty) return null;
+  if(snap.empty) return null;
 
   const d = snap.docs[0];
-  return { uid: d.id, data: d.data() };
+  return { uid:d.id, data:d.data() };
 }
 
-// ---------- Save patch to target user ----------
-async function updateTarget(patch) {
-  if (!targetUid) throw new Error("No employee loaded. Search an email first.");
-  if (!isFirebaseConfigured()) {
-    uiToast("Preview mode: not saving (Firebase off).");
-    return;
-  }
-  const ref = doc(db, "users", targetUid);
-  await updateDoc(ref, { ...patch, updatedAt: serverTimestamp() });
+// ---------------- UPDATE TARGET ----------------
+async function updateTarget(patch){
+  if(!targetUid) throw new Error("No employee loaded.");
+
+  const ref = doc(db,"users",targetUid);
+
+  await updateDoc(ref,{
+    ...patch,
+    updatedAt: serverTimestamp()
+  });
 }
 
-// ---------- Render helpers ----------
-function setText(id, v) {
-  const el = q$(id);
-  if (!el) return;
-  uiSetText(el, v ?? "");
-}
-
-function uidKey(prefix = "k") {
-  // safe key (no crypto requirement)
-  return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-}
-
-// ---------- Appointment ----------
-function fillAppointment(d) {
+// ---------------- APPOINTMENT ----------------
+function fillAppointment(d){
   q$("aDate").value  = d?.appointment?.date || "";
   q$("aTime").value  = d?.appointment?.time || "";
   q$("aAddr").value  = d?.appointment?.address || "";
   q$("aNotes").value = d?.appointment?.notes || "";
 }
 
-// ---------- Notifications ----------
-function normalizeNotifs(d) {
-  const arr = Array.isArray(d?.notifications) ? d.notifications : [];
-  // ensure objects
-  return arr.map(n => ({
-    id: n?.id || uidKey("n"),
-    title: n?.title || "",
-    body: n?.body || "",
-    route: n?.route || "progress",
-    action: n?.action || "Open",
-    createdAt: n?.createdAt || null
-  }));
+// ---------------- NOTIFICATIONS ----------------
+function normalizeNotifs(d){
+  return Array.isArray(d?.notifications)? d.notifications : [];
 }
 
-function renderNotifs() {
+function renderNotifs(){
   const el = q$("notifList");
-  if (!el) return;
-  el.innerHTML = "";
+  if(!el) return;
+  el.innerHTML="";
 
   const list = normalizeNotifs(targetData);
 
-  if (!list.length) {
-    el.innerHTML = `<div class="small muted">No notifications yet.</div>`;
-    return;
-  }
-
-  list.forEach((n) => {
-    const row = document.createElement("div");
-    row.className = "list-item";
-    row.innerHTML = `
+  list.forEach(n=>{
+    const row=document.createElement("div");
+    row.innerHTML=`
       <div>
-        <div class="li-title">${escapeHtml(n.title || "—")}</div>
-        <div class="li-sub muted">${escapeHtml(n.body || "")}</div>
-        <div class="small muted">Route: ${escapeHtml(n.route || "progress")}</div>
+        <b>${escapeHtml(n.title)}</b>
+        <div>${escapeHtml(n.body)}</div>
       </div>
-      <button class="btn sm ghost">Remove</button>
+      <button>Remove</button>
     `;
 
-    row.querySelector("button").addEventListener("click", async () => {
-      try {
-        const next = normalizeNotifs(targetData).filter(x => x.id !== n.id);
-        await updateTarget({ notifications: next });
-        targetData.notifications = next;
-        uiToast("Notification removed.");
-        renderNotifs();
-      } catch (e) {
-        uiToast(e?.message || String(e));
-      }
-    });
+    row.querySelector("button").onclick=async()=>{
+      const next=list.filter(x=>x.id!==n.id);
+      await updateTarget({notifications:next});
+      targetData.notifications=next;
+      renderNotifs();
+    };
 
     el.appendChild(row);
   });
 }
 
-// ---------- Team contacts ----------
-function normalizeContacts(d) {
-  const obj = (d && typeof d.contacts === "object" && d.contacts) ? d.contacts : {};
-  return obj;
-}
+// ---------------- TEAM ----------------
+function renderTeam(){
+  const el=q$("teamList");
+  if(!el) return;
+  el.innerHTML="";
 
-function renderTeam() {
-  const el = q$("teamList");
-  if (!el) return;
-  el.innerHTML = "";
+  const c=targetData?.contacts||{};
 
-  const contacts = normalizeContacts(targetData);
-  const keys = Object.keys(contacts);
+  Object.keys(c).forEach(k=>{
+    const x=c[k];
+    const row=document.createElement("div");
 
-  if (!keys.length) {
-    el.innerHTML = `<div class="small muted">No team contacts yet.</div>`;
-    return;
-  }
-
-  keys.forEach((k) => {
-    const c = contacts[k] || {};
-    const row = document.createElement("div");
-    row.className = "list-item";
-    row.innerHTML = `
-      <div>
-        <div class="li-title">${escapeHtml(c.name || "—")} ${c.role ? `<span class="muted">• ${escapeHtml(c.role)}</span>` : ""}</div>
-        <div class="li-sub muted">
-          ${escapeHtml(c.email || "")}${c.phone ? ` • ${escapeHtml(c.phone)}` : ""}
-        </div>
-      </div>
-      <button class="btn sm ghost">Remove</button>
+    row.innerHTML=`
+      <div>${escapeHtml(x.name)}</div>
+      <button>Remove</button>
     `;
 
-    row.querySelector("button").addEventListener("click", async () => {
-      try {
-        const next = { ...normalizeContacts(targetData) };
-        delete next[k];
-        await updateTarget({ contacts: next });
-        targetData.contacts = next;
-        uiToast("Team contact removed.");
-        renderTeam();
-      } catch (e) {
-        uiToast(e?.message || String(e));
-      }
-    });
+    row.querySelector("button").onclick=async()=>{
+      const next={...c};
+      delete next[k];
+      await updateTarget({contacts:next});
+      targetData.contacts=next;
+      renderTeam();
+    };
 
     el.appendChild(row);
   });
 }
 
-// ---------- Allowed IDs ----------
-async function addAllowedId(empId, name) {
-  if (!isFirebaseConfigured()) {
-    uiToast("Preview mode: not saving.");
-    return;
-  }
-  if (!empId) throw new Error("Employee ID required.");
+// ---------------- ALLOWED IDS ----------------
+async function addAllowedId(id){
+  const clean=id.trim().toUpperCase();
 
-  const clean = empId.trim().toUpperCase(); // SP023
-  const ref = doc(db, "allowedEmployees", clean);
-
-  await setDoc(ref, {
-    active: true,
-    name: name || "",
-    createdAt: serverTimestamp()
-  }, { merge: true });
+  await setDoc(doc(db,"allowedEmployees",clean),{
+    active:true,
+    createdAt:serverTimestamp()
+  });
 }
 
-async function removeAllowedId(empId) {
-  if (!isFirebaseConfigured()) {
-    uiToast("Preview mode: not saving.");
-    return;
-  }
-  const ref = doc(db, "allowedEmployees", empId);
-  await deleteDoc(ref);
-}
+async function loadAllowedIds(){
+  const el=q$("allowedList");
+  if(!el) return;
+  el.innerHTML="";
 
-async function loadAllowedIds() {
-  const el = q$("allowedList");
-  if (!el) return;
-  el.innerHTML = "";
+  const snap=await getDocs(collection(db,"allowedEmployees"));
 
-  if (!isFirebaseConfigured()) {
-    el.innerHTML = `<div class="small muted">Preview mode: Allowed IDs not loaded.</div>`;
-    return;
-  }
-
-  const ref = collection(db, "allowedEmployees");
-  const snap = await getDocs(ref);
-
-  if (snap.empty) {
-    el.innerHTML = `<div class="small muted">No allowed IDs yet.</div>`;
-    return;
-  }
-
-  snap.forEach((d) => {
-    const x = d.data() || {};
-    const id = d.id;
-
-    const row = document.createElement("div");
-    row.className = "list-item";
-    row.innerHTML = `
-      <div>
-        <div class="li-title">${escapeHtml(id)}</div>
-        <div class="li-sub muted">${escapeHtml(x.name || "")} ${x.active === false ? "• inactive" : ""}</div>
-      </div>
-      <button class="btn sm ghost">Remove</button>
+  snap.forEach(d=>{
+    const row=document.createElement("div");
+    row.innerHTML=`
+      ${d.id}
+      <button>X</button>
     `;
 
-    row.querySelector("button").addEventListener("click", async () => {
-      try {
-        await removeAllowedId(id);
-        uiToast("Removed.");
-        await loadAllowedIds();
-      } catch (e) {
-        uiToast(e?.message || String(e));
-      }
-    });
+    row.querySelector("button").onclick=async()=>{
+      await deleteDoc(doc(db,"allowedEmployees",d.id));
+      loadAllowedIds();
+    };
 
     el.appendChild(row);
   });
 }
 
-// ---------- Main init ----------
-export async function initAdminApp(user) {
-  const ok = await ensureAdmin(user);
-  if (!ok) {
-    alert("Not authorized (not admin).");
-    window.location.href = "./employee.html";
+// ---------------- INIT ----------------
+export async function initAdminApp(user){
+
+  if(!(await ensureAdmin(user))){
+    alert("Not admin");
+    location.href="employee.html";
     return;
   }
 
-  // allowed IDs list always loads
   await loadAllowedIds();
 
-  // Wire: Search employee
-  q$("btnSearch")?.addEventListener("click", async () => {
-    const email = q$("searchEmail")?.value?.trim() || "";
-    setText("searchMsg", "");
-    if (!email) return setText("searchMsg", "Enter an email.");
+  // SEARCH BY SP ID
+  q$("btnSearch").onclick=async()=>{
+    const id=q$("searchId").value.trim().toUpperCase();
 
-    try {
-      const found = await findUserByEmail(email);
-      if (!found) {
-        targetUid = null;
-        targetData = null;
-        setText("searchMsg", "Not found.");
-        uiToast("Employee not found.");
-        return;
-      }
+    const found=await findUserByEmployeeId(id);
 
-      targetUid = found.uid;
-      targetData = found.data || {};
-
-      // fill UI
-      fillAppointment(targetData);
-      renderNotifs();
-      renderTeam();
-
-      setText("searchMsg", "Loaded.");
-      uiToast("Employee loaded.");
-    } catch (e) {
-      setText("searchMsg", e?.message || String(e));
+    if(!found){
+      uiToast("Not found");
+      return;
     }
-  });
 
-  // Wire: Save appointment
-  q$("btnSaveAppointment")?.addEventListener("click", async () => {
-    setText("apptMsg", "");
-    try {
-     const date  = q$("aDate")?.value?.trim();
-const time  = q$("aTime")?.value?.trim();
-const addr  = q$("aAddr")?.value?.trim();
-const notes = q$("aNotes")?.value?.trim();
+    targetUid=found.uid;
+    targetData=found.data;
 
-const patch = {};
+    fillAppointment(targetData);
+    renderNotifs();
+    renderTeam();
 
-if (date  time  addr || notes) {
-  patch.appointment = {
-    date: date || "",
-    time: time || "",
-    address: addr || "",
-    notes: notes || ""
+    uiToast("Loaded");
   };
-}
 
-      // keep local
-      targetData = targetData || {};
-      targetData.appointment = patch.appointment;
+  // SAVE APPOINTMENT (PERSISTENT)
+  q$("btnSaveAppointment").onclick=async()=>{
+    const appointment={
+      date:q$("aDate").value,
+      time:q$("aTime").value,
+      address:q$("aAddr").value,
+      notes:q$("aNotes").value
+    };
 
-      uiToast("Appointment saved.");
-      setText("apptMsg", "Saved.");
-    } catch (e) {
-      setText("apptMsg", e?.message || String(e));
-    }
-  });
+    await updateTarget({appointment});
 
-  // Wire: Add notification
-  q$("btnAddNotif")?.addEventListener("click", async () => {
-    try {
-      if (!targetUid) throw new Error("Load an employee first.");
+    targetData.appointment=appointment;
 
-      const title = q$("nTitle")?.value?.trim() || "";
-      const body  = q$("nBody")?.value?.trim() || "";
-      const route = q$("nRoute")?.value || "progress";
+    uiToast("Saved permanent");
+  };
 
-      if (!title || !body) throw new Error("Enter title and message.");
+  // ADD NOTIF
+  q$("btnAddNotif").onclick=async()=>{
+    const next=normalizeNotifs(targetData);
 
-      const next = normalizeNotifs(targetData);
-      next.unshift({
-        id: uidKey("n"),
-        title,
-        body,
-        route,
-        action: "Open",
-        createdAt: Date.now()
-      });
+    next.unshift({
+      id:Date.now(),
+      title:q$("nTitle").value,
+      body:q$("nBody").value,
+      route:"progress"
+    });
 
-      await updateTarget({ notifications: next });
+    await updateTarget({notifications:next});
+    targetData.notifications=next;
+    renderNotifs();
+  };
 
-      targetData.notifications = next;
+  // ADD TEAM
+  q$("btnAddTeam").onclick=async()=>{
+    const c=targetData.contacts||{};
+    const k="c"+Date.now();
 
-      // clear inputs
-      q$("nTitle").value = "";
-      q$("nBody").value = "";
-      q$("nRoute").value = "progress";
+    c[k]={
+      name:q$("tName").value,
+      role:q$("tRole").value
+    };
 
-      uiToast("Notification added.");
-      renderNotifs();
-    } catch (e) {
-      uiToast(e?.message || String(e));
-    }
-  });
+    await updateTarget({contacts:c});
+    targetData.contacts=c;
+    renderTeam();
+  };
 
-  // Wire: Add team contact
-  q$("btnAddTeam")?.addEventListener("click", async () => {
-    try {
-      if (!targetUid) throw new Error("Load an employee first.");
-
-      const name = q$("tName")?.value?.trim() || "";
-      const role = q$("tRole")?.value?.trim() || "";
-      const email = q$("tEmail")?.value?.trim() || "";
-      const phone = q$("tPhone")?.value?.trim() || "";
-
-      if (!name) throw new Error("Enter a name.");
-
-      const contacts = { ...normalizeContacts(targetData) };
-      const key = uidKey("c");
-
-      contacts[key] = { name, role, email, phone };
-
-      await updateTarget({ contacts });
-
-      targetData.contacts = contacts;
-
-      // clear
-      q$("tName").value = "";
-      q$("tRole").value = "";
-      q$("tEmail").value = "";
-      q$("tPhone").value = "";
-
-      uiToast("Team contact added.");
-      renderTeam();
-    } catch (e) {
-      uiToast(e?.message || String(e));
-    }
-  });
-
-  // Wire: Add allowed ID
-  q$("btnAddAllowed")?.addEventListener("click", async () => {
-    try {
-      const empId = q$("newEmpId")?.value?.trim() || "";
-      const name  = q$("newEmpName")?.value?.trim() || "";
-
-      await addAllowedId(empId, name);
-
-      q$("newEmpId").value = "";
-      q$("newEmpName").value = "";
-
-      uiToast("Allowed ID added.");
-      await loadAllowedIds();
-    } catch (e) {
-      uiToast(e?.message || String(e));
-    }
-  });
+  // ADD ALLOWED ID
+  q$("btnAddAllowed").onclick=async()=>{
+    await addAllowedId(q$("newEmpId").value);
+    loadAllowedIds();
+  };
 }
