@@ -36,25 +36,20 @@ async function ensureAdmin(user){
 function normalizeEmpId(input){
   if(!input) return "";
 
-  let v = input.toString().toUpperCase();
+  let v = input.toString().toUpperCase().trim();
 
-  // quita TODO lo que no sea letra o número
-  v = v.replace(/[^A-Z0-9]/g, "");
+  v = v.replace(/[\s-_]/g,"");
 
-  // asegurar que empiece con SP
-  if(!v.startsWith("SP")){
-    if(/^\d+$/.test(v)){
-      v = "SP" + v;
-    } else {
-      return "";
-    }
-  }
+  if(!v.startsWith("SP")) return "";
 
-  const digits = v.replace("SP","");
-  if(!/^\d{1,6}$/.test(digits)) return "";
+  const nums = v.slice(2);
 
-  return "SP" + digits;
+  if(!/^\d+$/.test(nums)) return "";
+
+  return "SP" + nums;
 }
+
+
 // ---------- Default employee record (keyed by empId) ----------
 function defaultEmployeeRecord(empId){
   return {
