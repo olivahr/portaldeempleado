@@ -1,6 +1,10 @@
 import { db, isFirebaseConfigured } from "./firebase.js";
 import { uiSetText, uiToast, escapeHtml } from "./ui.js";
-
+function empIdToNumber(empId){
+  if(!empId) return null;
+  const m = empId.toUpperCase().match(/^SP(\d+)$/);
+  return m ? parseInt(m[1],10) : null;
+}
 import {
   collection, query, where, limit, getDocs,
   doc, getDoc, setDoc, deleteDoc, updateDoc,
