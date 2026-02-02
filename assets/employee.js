@@ -60,14 +60,14 @@ function defaultUserDoc(user) {
     fullName: user?.displayName || "",
     role: "employee",
     status: "active",
-    stage: "chip_selection",
+    stage: "shift_selection",
 
     appointment: { date: "", time: "", address: "", notes: "" },
 
     // ✅ UPDATED steps (adds Safety Footwear + I-9; keeps Docs/First Day locked in person)
     steps: [
       { id: "application", label: "Application", done: true },
-      { id: "chip_selection", label: "Chip Selection", done: false },
+      { id: "shift_selection", label: "Shift Selection", done: false },
       { id: "footwear", label: "Safety Footwear", done: false },
       { id: "i9", label: "I-9 Documents", done: false },
       { id: "docs", label: "Complete Onboarding Documents", done: false }, // 🔒 in person
@@ -75,7 +75,7 @@ function defaultUserDoc(user) {
     ],
 
     // preferences
-    chip: {
+    shift: {
       position: "",   // assembler | material | qc
       shift: ""       // early | mid | late
     },
@@ -207,10 +207,10 @@ function renderStagebar(userData) {
   const firstPendingIndex = steps.findIndex(s => !s.done);
   const currentIndex = firstPendingIndex === -1 ? steps.length - 1 : firstPendingIndex;
 
-  const chips = steps.map((s, i) => {
+  const shift = steps.map((s, i) => {
     const done = !!s.done;
     const locked = i > currentIndex; // lock future steps
-    const cls = done ? "sb-chip ok" : locked ? "sb-chip lock" : "sb-chip warn";
+    const cls = done ? "sb-shift ok" : locked ? "sb-shift lock" : "sb-shift warn";
     const icon = done ? "✓" : locked ? "🔒" : "•";
     return `
       <div class="${cls}">
@@ -223,14 +223,14 @@ function renderStagebar(userData) {
   el.innerHTML = `
     <style>
       .sb{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px;}
-      .sb-chip{display:flex;align-items:center;gap:8px;border:1px solid var(--line);
+      .sb-shift{display:flex;align-items:center;gap:8px;border:1px solid var(--line);
         background:#fff;border-radius:999px;padding:8px 10px;font-size:12px;font-weight:900;}
-      .sb-chip.ok{border-color:rgba(22,163,74,.25);background:rgba(22,163,74,.08);color:var(--good);}
-      .sb-chip.warn{border-color:rgba(245,158,11,.25);background:rgba(245,158,11,.08);color:#92400e;}
-      .sb-chip.lock{opacity:.65}
+      .sb-shift.ok{border-color:rgba(22,163,74,.25);background:rgba(22,163,74,.08);color:var(--good);}
+      .sb-shift.warn{border-color:rgba(245,158,11,.25);background:rgba(245,158,11,.08);color:#92400e;}
+      .sb-shift.lock{opacity:.65}
       .sb-ico{width:18px;display:inline-flex;justify-content:center;}
     </style>
-    <div class="sb">${chips}</div>
+    <div class="sb">${shift}</div>
   `;
 }
 
@@ -330,11 +330,11 @@ function renderRoles(userData) {
   );
 }
 
-// ✅ Chip Selection = Position + Shift in ONE page (your spec)
-function renderChipSelection(userData, saveUserPatch) {
-  const chip = userData?.chip || {};
-  const pos = chip.position || "";
-  const sh = chip.shift || "";
+// ✅ Shift Selection = Position + Shift in ONE page (your spec)
+function renderShiftSelection(userData, saveUserPatch) {
+  const shift = userData?.shift || {};
+  const pos = shift.position || "";
+  const sh = shift.shift || "";
 
   setPage(
     "Shift & Position Preferences",
@@ -391,7 +391,7 @@ function renderChipSelection(userData, saveUserPatch) {
       </div>
 
       <div style="height:14px"></div>
-      <button class="btn primary" id="btnChipSave" type="button">Save Preferences</button>
+      <button class="btn primary" id="btnShiftSave" type="button">Save Preferences</button>
     </div>
     `
   );
@@ -431,19 +431,19 @@ function renderChipSelection(userData, saveUserPatch) {
     `;
   }
 
-  document.getElementById("btnChipSave").onclick = async () => {
+  document.getElementById("btnShiftSave").onclick = async () => {
     const position = document.querySelector("input[name=pos]:checked")?.value || "";
     const shift = document.querySelector("input[name=shift]:checked")?.value || "";
 
     if (!position || !shift) return uiToast("Please select 1 position and 1 shift.");
 
-    // mark chip_selection done
+    // mark Shift_selection done
     const steps = (userData.steps || []).map(s =>
-      s.id === "chip_selection" ? ({ ...s, done: true }) : s
+      s.id === "shift_selection" ? ({ ...s, done: true }) : s
     );
 
     await saveUserPatch({
-      chip: { position, shift },
+      shift: { position, shift },
       steps,
       stage: "footwear"
     });
@@ -860,9 +860,9 @@ function renderRoute(userData, saveUserPatch, publicData) {
     // keep old route (you'll remove from menu)
     case "roles": return renderRoles(userData, publicData);
 
-    // ✅ Chip Selection
-    case "shift": return renderChipSelection(userData, saveUserPatch);
-    case "chip_selection": return renderChipSelection(userData, saveUserPatch);
+    // ✅ Shift Selection
+    case "shift": return renderShiftSelection(userData, saveUserPatch);
+    case "shift_selection": return renderShiftSelection(userData, saveUserPatch);
 
     // ✅ new steps
     case "footwear": return renderFootwear(userData, saveUserPatch, publicData);
@@ -884,14 +884,14 @@ function renderRoute(userData, saveUserPatch, publicData) {
 // ---------- Init ----------
 export async function initEmployeeApp() {
   const badge = document.getElementById("userBadge");
-  const statusChip = document.getElementById("statusChip");
+  const statusShift = document.getElementById("statusShift");
   const adminBtn = document.getElementById("btnAdminGo");
 
   wireMobileMenuOnce();
 
   if (!isFirebaseConfigured()) {
     uiSetText(badge, "Preview mode");
-    if (statusChip) uiSetText(statusChip, "offline");
+    if (statusShift) uiSetText(statusShift, "offline");
     if (adminBtn) adminBtn.style.display = "none";
 
     const demoUser = defaultUserDoc({ email: "preview@demo", displayName: "Preview" });
@@ -909,9 +909,9 @@ export async function initEmployeeApp() {
         return;
       }
 
-      if (statusChip) {
-        uiSetText(statusChip, "online");
-        statusChip.classList.add("ok");
+      if (statusShift) {
+        uiSetText(statusShift, "online");
+        statusShift.classList.add("ok");
       }
 
       const admin = await isAdminUser(user);
