@@ -20,6 +20,10 @@ import {
 // Global company content doc (admin updates -> all employees see)
 const PUBLIC_DOC = () => doc(db, "portal", "public");
 
+// ✅ Range auto-allow (so you don't add 180 IDs by hand)
+const EMP_ID_RANGE = { min: 23, max: 200 };
+const AUTO_CREATE_ALLOWED_ID = true;
+
 // ---------- Helpers ----------
 function routeName() {
   return (location.hash || "#progress").replace("#", "");
@@ -51,6 +55,12 @@ function normalizeEmpId(input) {
   const m = v.match(/^SP(\d{1,6})$/);
   if (!m) return v; // return as typed; whitelist decides
   return `SP${m[1]}`;
+}
+
+function empIdToNumber(empId) {
+  const m = String(empId || "").toUpperCase().match(/^SP(\d{1,6})$/);
+  if (!m) return null;
+  return Number(m[1]);
 }
 
 // ---------- Default user doc (if missing) ----------
@@ -102,16 +112,34 @@ function defaultUserDoc(user) {
   };
 }
 
+/**
+ * ✅ FIX CRÍTICO:
+ * Esto ANTES podía pisar appointment/steps/notifications.
+ * Ahora: crea MINIMO si no existe. Si existe, solo timestamps.
+ */
 async function ensureUserDocExists(user) {
   if (!isFirebaseConfigured()) return;
+
   const ref = doc(db, "users", user.uid);
   const snap = await getDoc(ref);
 
+  const patch = {
+    email: user?.email || "",
+    fullName: user?.displayName || "",
+    updatedAt: serverTimestamp(),
+    lastLoginAt: serverTimestamp()
+  };
+
   if (!snap.exists()) {
-    // ✅ merge true keeps future fields safe
-    await setDoc(ref, defaultUserDoc(user), { merge: true });
+    await setDoc(ref, {
+      ...patch,
+      role: "employee",
+      status: "active",
+      createdAt: serverTimestamp()
+    }, { merge: true });
   } else {
-    await updateDoc(ref, { lastLoginAt: serverTimestamp() });
+    // ✅ no tocar nada más
+    await setDoc(ref, patch, { merge: true });
   }
 }
 
@@ -146,11 +174,30 @@ async function ensureEmployeeId(user) {
   const allowedRef = doc(db, "allowedEmployees", empId);
   const allowedSnap = await getDoc(allowedRef);
 
-  if (!allowedSnap.exists() || allowedSnap.data()?.active !== true) {
-    throw new Error("Invalid Employee ID. Contact HR.");
+  let ok = false;
+
+  if (allowedSnap.exists()) {
+    ok = (allowedSnap.data()?.active === true);
+  } else {
+    // ✅ RANGE fallback so you don't add 180 IDs by hand
+    const n = empIdToNumber(empId);
+    if (n !== null && n >= EMP_ID_RANGE.min && n <= EMP_ID_RANGE.max) {
+      ok = true;
+
+      // optional: auto-create allowedEmployees record so admin panel sees it
+      if (AUTO_CREATE_ALLOWED_ID) {
+        await setDoc(allowedRef, {
+          active: true,
+          createdAt: serverTimestamp()
+        }, { merge: true });
+      }
+    }
   }
 
-  await updateDoc(userRef, { employeeId: empId, updatedAt: serverTimestamp() });
+  if (!ok) throw new Error("Invalid Employee ID. Contact HR.");
+
+  // ✅ use setDoc merge so it never fails even if doc was just created
+  await setDoc(userRef, { employeeId: empId, updatedAt: serverTimestamp() }, { merge: true });
   return empId;
 }
 
@@ -949,11 +996,12 @@ export async function initEmployeeApp() {
       onSnapshot(userRef, (snap) => {
         if (!snap.exists()) return;
         currentUserData = snap.data();
-        // if old users don't have new step ids, merge defaults safely
-        // (NO destructive overwrite)
+
+        // ✅ Safe defaults (NO destructive overwrite)
         const d = currentUserData;
+
+        // ensure steps exist + merge new ids without wiping progress
         if (!Array.isArray(d.steps) || d.steps.length < 6) {
-          // keep any existing step done flags where possible
           const base = defaultUserDoc(user);
           const old = Array.isArray(d.steps) ? d.steps : [];
           const mergedSteps = base.steps.map(s => {
@@ -961,7 +1009,20 @@ export async function initEmployeeApp() {
             return o ? { ...s, done: !!o.done, label: s.label } : s;
           });
           currentUserData = { ...base, ...d, steps: mergedSteps };
+        } else {
+          // keep as is, but ensure missing nested objects exist (no overwrite)
+          const base = defaultUserDoc(user);
+          currentUserData = {
+            ...base,
+            ...d,
+            appointment: (d.appointment && typeof d.appointment === "object") ? d.appointment : base.appointment,
+            shift: (d.shift && typeof d.shift === "object") ? d.shift : base.shift,
+            footwear: (d.footwear && typeof d.footwear === "object") ? d.footwear : base.footwear,
+            i9: (d.i9 && typeof d.i9 === "object") ? d.i9 : base.i9,
+            notifications: Array.isArray(d.notifications) ? d.notifications : base.notifications
+          };
         }
+
         rerender();
       });
 
