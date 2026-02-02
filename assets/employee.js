@@ -46,16 +46,22 @@ function fmtShiftLabel(key) {
   return "—";
 }
 
-function normalizeEmpId(input) {
-  let v = (input || "").trim().toUpperCase();
-  v = v.replace(/\s+/g, "");
-  // Accept SP-023, SP023, sp 023
-  v = v.replace(/SP[-_]?/g, "SP");
-  // Keep only SP + digits
-  const m = v.match(/^SP(\d{1,6})$/);
-  if (!m) return v; // return as typed; whitelist decides
-  return `SP${m[1]}`;
+function normalizeEmpId(input){
+  if(!input) return "";
+
+  let v = input.toString().toUpperCase().trim();
+
+  v = v.replace(/[\s-_]/g,"");
+
+  if(!v.startsWith("SP")) return "";
+
+  const nums = v.slice(2);
+
+  if(!/^\d+$/.test(nums)) return "";
+
+  return "SP" + nums;
 }
+
 
 function empIdToNumber(empId) {
   const m = String(empId || "").toUpperCase().match(/^SP(\d{1,6})$/);
