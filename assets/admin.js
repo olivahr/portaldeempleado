@@ -302,16 +302,21 @@ export async function initAdminApp(user) {
   q$("btnSaveAppointment")?.addEventListener("click", async () => {
     setText("apptMsg", "");
     try {
-      const patch = {
-        appointment: {
-          date:  q$("aDate")?.value?.trim() || "",
-          time:  q$("aTime")?.value?.trim() || "",
-          address: q$("aAddr")?.value?.trim() || "",
-          notes: q$("aNotes")?.value?.trim() || ""
-        }
-      };
+     const date  = q$("aDate")?.value?.trim();
+const time  = q$("aTime")?.value?.trim();
+const addr  = q$("aAddr")?.value?.trim();
+const notes = q$("aNotes")?.value?.trim();
 
-      await updateTarget(patch);
+const patch = {};
+
+if (date  time  addr || notes) {
+  patch.appointment = {
+    date: date || "",
+    time: time || "",
+    address: addr || "",
+    notes: notes || ""
+  };
+}
 
       // keep local
       targetData = targetData || {};
