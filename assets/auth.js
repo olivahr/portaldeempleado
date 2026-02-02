@@ -30,55 +30,39 @@ export function onAuth(cb) {
   }
 }
 
+/**
+ * ✅ FIX CRÍTICO:
+ * Antes estabas haciendo setDoc(base, {merge:true}) con appointment/steps vacíos
+ * y eso TE BORRABA la cita y el progreso cada vez que el usuario se loguea.
+ *
+ * Ahora:
+ * - Si NO existe el doc: lo crea MINIMO (sin appointment/steps/notifications).
+ * - Si existe: SOLO actualiza email/fullName + timestamps.
+ * - NO pisa nada que admin haya guardado.
+ */
 async function ensureUserDoc(user) {
   if (!user || !isFirebaseConfigured()) return;
 
   const ref = doc(db, "users", user.uid);
   const snap = await getDoc(ref);
 
-  const base = {
+  const patch = {
     email: user.email || "",
     fullName: user.displayName || "",
-    phone: "",
-    role: "employee",
-    status: "active",
-    stage: "shift_selection",
-
-    appointment: { date: "", time: "", address: "", notes: "" },
-
-    steps: [
-      { id: "application", label: "Application", done: true },
-      { id: "shift_selection", label: "Shift Selection", done: false },
-      { id: "docs", label: "Complete Onboarding Documents", done: false },
-      { id: "first_day", label: "First Day Preparation", done: false }
-    ],
-
-    shift: { choice: "", confirmed: false },
-
-    contacts: {
-      siteManager: { name: "Site Manager", phone: "", email: "" },
-      shiftLead:   { name: "Shift Supervisor / Lead", phone: "", email: "" },
-      hr:          { name: "HR / People Operations", phone: "", email: "" },
-      safety:      { name: "Safety Officer", phone: "", email: "" }
-    },
-
-    notifications: [
-      { id:"n1", title:"Reminder: Bring your I-9 documents on your first day", body:"Make sure to bring acceptable documents for the I-9 form.", action:"View I-9 Readiness", route:"i9" },
-      { id:"n2", title:"Please Confirm Your Work Shift", body:"Select your preferred work schedule to confirm your shift.", action:"Go to Shift Selection", route:"shift" }
-    ],
-
     updatedAt: serverTimestamp(),
     lastLoginAt: serverTimestamp()
   };
 
   if (!snap.exists()) {
     await setDoc(ref, {
-      ...base,
+      ...patch,
+      role: "employee",
+      status: "active",
       createdAt: serverTimestamp()
     }, { merge: true });
   } else {
-    // Update just login timestamps / any missing fields safely
-    await setDoc(ref, base, { merge: true });
+    // ✅ solo actualizar lo mínimo (NO tocar appointment/steps/notifications/contacts)
+    await setDoc(ref, patch, { merge: true });
   }
 }
 
