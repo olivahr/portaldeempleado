@@ -335,7 +335,7 @@ export async function initAdminApp(user){
   // SEARCH BY ID
   q$("btnSearch").onclick=async()=>{
     try{
-      const raw=q$("searchEmail")?.value || "";
+      const raw = q$("searchEmpId")?.value || "";
       const empId=normalizeEmpId(raw);
 
       setText("searchMsg","");
