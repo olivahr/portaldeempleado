@@ -1,14 +1,15 @@
-// ===============================
-// Employee Portal (AMAZON A to Z STYLE)
+     // ===============================
+// Employee Portal (AMAZON A to Z STYLE - MOBILE TABS)
+// ✅ NO hamburger on mobile (no 3 lines)
+// ✅ Bottom Tab Bar on mobile: Home / Schedule / Pay / Benefits / More
+// ✅ Desktop keeps sidebar nav (enterprise)
 // ✅ Stagebar only on #progress
 // ✅ Clean router (no duplicate switches)
 // ✅ Read employeeRecords/{SP###} for appointment/contacts/notifications + modules
 // ✅ Keep users/{uid} for onboarding progress (shift/footwear/i9/steps)
 // ✅ Global company content from portal/public
 // ✅ Require Employee ID from allowedEmployees/{id} (range auto-allow optional)
-// ✅ Show Employee ID in top badge (userBadge)
 // ✅ Hide Admin button unless user is admin
-// ✅ Mobile hamburger opens/closes sidebar (safe, no double listeners)
 // ✅ Help & Support (big actions + ticket)
 // ✅ Safety Footwear (5 checks + embedded shop route)
 // ✅ Schedule list (A to Z feel)
@@ -200,33 +201,341 @@ async function ensureEmployeeId(user) {
   return empId;
 }
 
-// ---------- Mobile Menu (SAFE) ----------
-function wireMobileMenuOnce() {
+// ===============================
+// ✅ MOBILE A to Z CHROME (NO HAMBURGER)
+// - On mobile: hide sidebar + add bottom tabs
+// - On desktop: keep sidebar
+// ===============================
+function isMobile() {
+  return window.matchMedia("(max-width: 920px)").matches;
+}
+
+function ensureChromeOnce() {
+  // Hide any hamburger button if present (we don't want 3 lines)
   const btnMenu = document.getElementById("btnMenu");
+  if (btnMenu) btnMenu.style.display = "none";
+
+  // On mobile, hide sidebar completely (A to Z feel)
   const sidebar = document.getElementById("sidebar");
-  const overlay = document.getElementById("drawerOverlay");
+  if (sidebar) {
+    if (isMobile()) sidebar.style.display = "none";
+    else sidebar.style.display = "";
+  }
 
-  if (!btnMenu || !sidebar || !overlay) return;
-  if (btnMenu.dataset.wired === "1") return;
-  btnMenu.dataset.wired = "1";
+  // Create bottom tabs once
+  if (document.getElementById("azTabs")) return;
 
-  const open = () => { sidebar.classList.add("open"); overlay.classList.add("show"); };
-  const close = () => { sidebar.classList.remove("open"); overlay.classList.remove("show"); };
+  const style = document.createElement("style");
+  style.id = "azTabsStyle";
+  style.textContent = `
+    /* Bottom Tabs (Amazon A to Z vibe) */
+    #azTabs{
+      position:fixed;
+      left:0; right:0; bottom:0;
+      height:72px;
+      background:rgba(255,255,255,.96);
+      border-top:1px solid rgba(229,234,242,.95);
+      display:none;
+      z-index:5000;
+      padding-bottom: env(safe-area-inset-bottom);
+      backdrop-filter: blur(10px);
+    }
+    #azTabs .az-wrap{
+      max-width:980px;
+      margin:0 auto;
+      height:72px;
+      display:grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-items:center;
+      gap:4px;
+      padding:8px 10px;
+    }
+    .az-tab{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+      border-radius:14px;
+      padding:8px 6px;
+      border:1px solid transparent;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      color: rgba(11,18,32,.85);
+      font-weight:950;
+      font-size:11px;
+    }
+    .az-ico{
+      width:26px;height:26px;
+      border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      background: rgba(29,78,216,.08);
+      font-size:16px;
+    }
+    .az-tab.active{
+      background: linear-gradient(90deg, rgba(29,78,216,.10), rgba(14,165,233,.08));
+      border-color: rgba(29,78,216,.16);
+      color: var(--blue);
+    }
+    .az-tab.active .az-ico{
+      background: rgba(29,78,216,.14);
+    }
+    /* Give content room for tabs */
+    body.portal.has-tabs .content{
+      padding-bottom: 90px;
+    }
 
-  btnMenu.addEventListener("click", () => {
-    sidebar.classList.contains("open") ? close() : open();
+    /* More sheet */
+    #azMoreOverlay{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.45);
+      display:none;
+      z-index:6000;
+    }
+    #azMoreSheet{
+      position:fixed;
+      left:0; right:0; bottom:0;
+      background:rgba(255,255,255,.98);
+      border-top-left-radius:20px;
+      border-top-right-radius:20px;
+      border:1px solid rgba(229,234,242,.95);
+      box-shadow: 0 18px 55px rgba(2,6,23,.18);
+      transform: translateY(110%);
+      transition: transform .22s ease;
+      z-index:6100;
+      max-height: 72vh;
+      overflow:auto;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    #azMoreSheet.open{ transform: translateY(0); }
+    .azMoreHead{
+      padding:14px 14px 10px;
+      display:flex;align-items:center;justify-content:space-between;
+      gap:10px;
+      border-bottom:1px solid rgba(229,234,242,.95);
+      position:sticky; top:0; background:rgba(255,255,255,.98);
+      backdrop-filter: blur(10px);
+      z-index:1;
+    }
+    .azMoreTitle{ font-weight:1000; font-size:14px; }
+    .azMoreGrid{
+      padding:12px 14px 16px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+    }
+    .azMoreItem{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+      padding:12px;
+      border-radius:16px;
+      border:1px solid rgba(229,234,242,.95);
+      background:#fff;
+      box-shadow: 0 10px 24px rgba(15,23,42,.05);
+      font-weight:1000;
+    }
+    .azMoreItem .sub{ font-size:12px; font-weight:900; color: var(--muted); margin-top:4px; }
+  `;
+  document.head.appendChild(style);
+
+  const tabs = document.createElement("div");
+  tabs.id = "azTabs";
+  tabs.innerHTML = `
+    <div class="az-wrap">
+      <a class="az-tab" data-route="progress" href="#progress">
+        <div class="az-ico">🏠</div>
+        <div>Home</div>
+      </a>
+      <a class="az-tab" data-route="schedule" href="#schedule">
+        <div class="az-ico">📅</div>
+        <div>Schedule</div>
+      </a>
+      <a class="az-tab" data-route="payroll" href="#payroll">
+        <div class="az-ico">💳</div>
+        <div>Pay</div>
+      </a>
+      <a class="az-tab" data-route="timeoff" href="#timeoff">
+        <div class="az-ico">🛡️</div>
+        <div>Benefits</div>
+      </a>
+      <button class="az-tab" id="azMoreBtn" type="button">
+        <div class="az-ico">☰</div>
+        <div>More</div>
+      </button>
+    </div>
+  `;
+  document.body.appendChild(tabs);
+
+  const moreOverlay = document.createElement("div");
+  moreOverlay.id = "azMoreOverlay";
+  document.body.appendChild(moreOverlay);
+
+  const moreSheet = document.createElement("div");
+  moreSheet.id = "azMoreSheet";
+  moreSheet.innerHTML = `
+    <div class="azMoreHead">
+      <div>
+        <div class="azMoreTitle">More</div>
+        <div class="small muted" style="font-weight:900;margin-top:2px;">All portal modules</div>
+      </div>
+      <button class="btn sm ghost" id="azMoreClose" type="button">Close</button>
+    </div>
+
+    <div class="azMoreGrid">
+      <a class="azMoreItem" href="#shift">
+        <div>
+          <div>Shift Selection</div>
+          <div class="sub">Choose your preference</div>
+        </div>
+        <div class="small muted">›</div>
+      </a>
+
+      <a class="azMoreItem" href="#footwear">
+        <div>
+          <div>Safety Footwear</div>
+          <div class="sub">Program + acknowledgement</div>
+        </div>
+        <div class="small muted">›</div>
+      </a>
+
+      <a class="azMoreItem" href="#i9">
+        <div>
+          <div>I-9</div>
+          <div class="sub">Bring documents on day 1</div>
+        </div>
+        <div class="small muted">›</div>
+      </a>
+
+      <a class="azMoreItem" href="#documents">
+        <div>
+          <div>Documents</div>
+          <div class="sub">Completed in person</div>
+        </div>
+        <div class="small muted">›</div>
+      </a>
+
+      <a class="azMoreItem" href="#firstday">
+        <div>
+          <div>First Day</div>
+          <div class="sub">Check-in instructions</div>
+        </div>
+        <div class="small muted">›</div>
+      </a>
+
+      <a class="azMoreItem" href="#hours">
+        <div>
+          <div>My Hours</div>
+          <div class="sub">Weekly summary</div>
+        </div>
+        <div class="small muted">›</div>
+      </a>
+
+      <a class="azMoreItem" href="#deposit">
+        <div>
+          <div>Direct Deposit</div>
+          <div class="sub">View only</div>
+        </div>
+        <div class="small muted">›</div>
+      </a>
+
+      <a class="azMoreItem" href="#notifications">
+        <div>
+          <div>Notifications</div>
+          <div class="sub">Company + HR + personal</div>
+        </div>
+        <div class="small muted">›</div>
+      </a>
+
+      <a class="azMoreItem" href="#help">
+        <div>
+          <div>Help & Support</div>
+          <div class="sub">Call / Email / Ticket</div>
+        </div>
+        <div class="small muted">›</div>
+      </a>
+    </div>
+  `;
+  document.body.appendChild(moreSheet);
+
+  // Wire "More" once
+  const openMore = () => {
+    moreOverlay.style.display = "block";
+    moreSheet.classList.add("open");
+  };
+  const closeMore = () => {
+    moreOverlay.style.display = "none";
+    moreSheet.classList.remove("open");
+  };
+
+  const moreBtn = document.getElementById("azMoreBtn");
+  if (moreBtn && moreBtn.dataset.wired !== "1") {
+    moreBtn.dataset.wired = "1";
+    moreBtn.addEventListener("click", openMore);
+  }
+
+  const moreClose = document.getElementById("azMoreClose");
+  if (moreClose && moreClose.dataset.wired !== "1") {
+    moreClose.dataset.wired = "1";
+    moreClose.addEventListener("click", closeMore);
+  }
+
+  if (moreOverlay && moreOverlay.dataset.wired !== "1") {
+    moreOverlay.dataset.wired = "1";
+    moreOverlay.addEventListener("click", closeMore);
+  }
+
+  // Close more when clicking any link inside it
+  moreSheet.querySelectorAll("a").forEach(a => {
+    a.addEventListener("click", closeMore);
   });
 
-  overlay.addEventListener("click", close);
+  // Initial responsive apply
+  applyChromeVisibility();
+  window.addEventListener("resize", applyChromeVisibility);
+}
 
+function applyChromeVisibility() {
+  const tabs = document.getElementById("azTabs");
+  if (!tabs) return;
+
+  const sidebar = document.getElementById("sidebar");
+  if (sidebar) sidebar.style.display = isMobile() ? "none" : "";
+
+  if (isMobile()) {
+    tabs.style.display = "block";
+    document.body.classList.add("has-tabs");
+  } else {
+    tabs.style.display = "none";
+    document.body.classList.remove("has-tabs");
+    // also close more sheet if open
+    const overlay = document.getElementById("azMoreOverlay");
+    const sheet = document.getElementById("azMoreSheet");
+    if (overlay) overlay.style.display = "none";
+    if (sheet) sheet.classList.remove("open");
+  }
+}
+
+function setActiveTabsAndSidebar() {
+  const r = routeName();
+
+  // Bottom tabs: map aliases to the same tab
+  const tabKey =
+    (r === "progress") ? "progress" :
+    (r === "schedule") ? "schedule" :
+    (r === "payroll") ? "payroll" :
+    (r === "timeoff") ? "timeoff" :
+    "more"; // anything else -> More
+
+  document.querySelectorAll("#azTabs .az-tab").forEach(el => {
+    const key = el.getAttribute("data-route");
+    if (key) el.classList.toggle("active", key === tabKey);
+  });
+
+  // Sidebar active highlight (desktop)
   document.querySelectorAll(".nav-item").forEach(a => {
-    a.addEventListener("click", () => {
-      if (window.matchMedia("(max-width: 920px)").matches) close();
-    });
-  });
-
-  window.addEventListener("resize", () => {
-    if (!window.matchMedia("(max-width: 920px)").matches) close();
+    const rr = (a.getAttribute("data-route") || "").toLowerCase();
+    a.classList.toggle("active", rr === r);
   });
 }
 
@@ -981,39 +1290,6 @@ function renderDeposit(recordData) {
   );
 }
 
-function renderTeam(recordData) {
-  const contacts = (recordData?.contacts && typeof recordData.contacts === "object") ? recordData.contacts : {};
-  const keys = Object.keys(contacts);
-
-  const list = keys.map(k => {
-    const c = contacts[k] || {};
-    return `
-      <div class="card" style="
-        border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:12px;
-        box-shadow: 0 14px 30px rgba(15,23,42,.06);
-      ">
-        <div style="font-weight:1100;">${escapeHtml(c.name || "—")}</div>
-        <div class="muted" style="margin-top:8px;">
-          ${escapeHtml(c.role || "")}
-          ${c.email ? " • " + escapeHtml(c.email) : ""}
-          ${c.phone ? " • " + escapeHtml(c.phone) : ""}
-        </div>
-      </div>
-    `;
-  }).join("");
-
-  setPage(
-    "Team",
-    "Your assigned contacts.",
-    `
-      <div class="card" style="border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
-        ${sectionHeader("Contacts")}
-        ${list || `<div class="muted">No contacts assigned yet.</div>`}
-      </div>
-    `
-  );
-}
-
 function renderNotifications(userData, recordData, publicData) {
   const personal = Array.isArray(userData?.notifications) ? userData.notifications : [];
   const recordNotifs = Array.isArray(recordData?.notifications) ? recordData.notifications : [];
@@ -1260,7 +1536,6 @@ function renderRoute(userData, saveUserPatch, publicData, recordData, ctx) {
     case "deposit":           return renderDeposit(recordData);
 
     // other
-    case "team":              return renderTeam(recordData);
     case "notifications":     return renderNotifications(userData, recordData, publicData);
     case "help":              return renderHelp(publicData, ctx?.empId, ctx?.user);
 
@@ -1276,7 +1551,9 @@ export async function initEmployeeApp() {
   const statusChip = document.getElementById("statusShift"); // ✅ matches your HTML
   const adminBtn = document.getElementById("btnAdminGo");
 
-  wireMobileMenuOnce();
+  // ✅ A to Z chrome (tabs) - no hamburger
+  ensureChromeOnce();
+  setActiveTabsAndSidebar();
 
   if (!isFirebaseConfigured()) {
     uiSetText(badge, "Preview mode");
@@ -1289,7 +1566,18 @@ export async function initEmployeeApp() {
     const ctx = { empId: "PREVIEW", user: { uid:"preview", email:"preview@demo" } };
 
     renderRoute(demoUser, async () => {}, demoPublic, demoRecord, ctx);
-    window.addEventListener("hashchange", () => renderRoute(demoUser, async () => {}, demoPublic, demoRecord, ctx));
+    setActiveTabsAndSidebar();
+
+    window.addEventListener("hashchange", () => {
+      renderRoute(demoUser, async () => {}, demoPublic, demoRecord, ctx);
+      setActiveTabsAndSidebar();
+    });
+
+    window.addEventListener("resize", () => {
+      applyChromeVisibility();
+      setActiveTabsAndSidebar();
+    });
+
     return;
   }
 
@@ -1326,7 +1614,10 @@ export async function initEmployeeApp() {
 
       const rerender = () => {
         if (!currentUserData) return;
+        ensureChromeOnce();
+        applyChromeVisibility();
         renderRoute(currentUserData, saveUserPatch, currentPublicData, currentRecordData, ctx);
+        setActiveTabsAndSidebar();
       };
 
       // portal/public (company content)
@@ -1399,6 +1690,10 @@ export async function initEmployeeApp() {
       });
 
       window.addEventListener("hashchange", rerender);
+      window.addEventListener("resize", () => {
+        applyChromeVisibility();
+        setActiveTabsAndSidebar();
+      });
 
     } catch (e) {
       console.error(e);
