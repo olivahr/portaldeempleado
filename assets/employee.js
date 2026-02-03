@@ -75,6 +75,12 @@ function fmtDate(d) {
   } catch { return d; }
 }
 
+// ✅ Build safe tel: link from "(502) 555-0148" etc
+function telLink(phone) {
+  const digits = String(phone || "").replace(/[^\d+]/g, "");
+  return digits ? `tel:${digits}` : "tel:0";
+}
+
 // ---------- Default user doc (UI defaults only; we DO NOT overwrite) ----------
 function defaultUserDoc(user) {
   return {
@@ -87,13 +93,14 @@ function defaultUserDoc(user) {
     // compat only (real appt source = employeeRecords)
     appointment: { date: "", time: "", address: "", notes: "" },
 
+    // ✅ Use route-aligned step ids (documents / firstday)
     steps: [
       { id: "application", label: "Application", done: true },
       { id: "shift_selection", label: "Shift Selection", done: false },
       { id: "footwear", label: "Safety Footwear", done: false },
       { id: "i9", label: "I-9 Documents", done: false },
-      { id: "docs", label: "Complete Onboarding Documents", done: false }, // 🔒 in person
-      { id: "first_day", label: "First Day Preparation", done: false }      // 🔒 in person
+      { id: "documents", label: "Complete Onboarding Documents", done: false }, // 🔒 in person
+      { id: "firstday", label: "First Day Preparation", done: false }           // 🔒 in person
     ],
 
     shift: { position: "", shift: "" },
@@ -247,7 +254,6 @@ function renderStagebar(userData) {
     `;
   }).join("");
 
-  // Inline styles just for stagebar (keeps it consistent even if CSS changes)
   el.innerHTML = `
     <style>
       .sb-wrap{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px;}
@@ -742,9 +748,6 @@ function renderFirstDayLocked(userData, recordData) {
 
 // ---------- WORK MODULES (A to Z FEEL) ----------
 function renderSchedule(recordData) {
-  // Accept two formats:
-  // 1) scheduleEvents: [{date, start, end, location, role, status}]
-  // 2) schedule weekly object: {monday:{start,end,type}, ...}
   const events = Array.isArray(recordData?.scheduleEvents) ? recordData.scheduleEvents : [];
   const weekly = recordData?.schedule || {};
 
@@ -1073,8 +1076,8 @@ function renderHelp(publicData, empId, user) {
           Choose the option below and we’ll get you taken care of.
         </div>
 
-        ${bigActionButton(`tel:+15025550148`, "Call HR", `${escapeHtml(h.phone || "(502) 555-0148")} • Mon–Fri 8:00 AM – 5:00 PM (ET)`, "📞")}
-        ${bigActionButton(`mailto:${encodeURIComponent(h.email || "hr@sunpowerc.energy")}?subject=${encodeURIComponent("Employee Portal Help")}`, "Email HR", `${escapeHtml(h.email || "hr@sunpowerc.energy")} • Response within 24 business hours`, "✉️")}
+        ${bigActionButton(telLink(h.phone || "(502) 555-0148"), "Call HR", `${escapeHtml(h.phone || "(502) 555-0148")} • Mon–Fri 8:00 AM – 5:00 PM (ET)`, "📞")}
+        ${bigActionButton(`mailto:${(h.email || "hr@sunpowerc.energy")}?subject=${encodeURIComponent("Employee Portal Help")}`, "Email HR", `${escapeHtml(h.email || "hr@sunpowerc.energy")} • Response within 24 business hours`, "✉️")}
         ${bigActionButton(`#help-ticket`, "Open a Support Ticket", "Submit a request directly inside the portal", "🛟")}
         ${bigActionButton(`#help-safety`, "Report an Emergency / Safety Issue", "Emergency: 911 • On-site contacts available", "🚨")}
         ${bigActionButton(`#help-faq`, "FAQ / Common Issues", "Login, First Day, Footwear, Documents, Payroll, Schedule", "❓")}
@@ -1136,8 +1139,8 @@ function renderHelp(publicData, empId, user) {
         </div>
 
         ${bigActionButton("tel:911", "Emergency", "Call 911 immediately", "🚑")}
-        ${bigActionButton(`tel:+15025550172`, "Safety / Supervisor", `${escapeHtml(site.safetyPhone || "(502) 555-0172")}`, "🦺")}
-        ${bigActionButton(`tel:+15025550122`, "Site Manager", `${escapeHtml(site.managerPhone || "(502) 555-0122")}`, "🏭")}
+        ${bigActionButton(telLink(site.safetyPhone || "(502) 555-0172"), "Safety / Supervisor", `${escapeHtml(site.safetyPhone || "(502) 555-0172")}`, "🦺")}
+        ${bigActionButton(telLink(site.managerPhone || "(502) 555-0122"), "Site Manager", `${escapeHtml(site.managerPhone || "(502) 555-0122")}`, "🏭")}
 
         ${site.address ? `
           <div style="margin-top:12px;" class="muted">
@@ -1223,37 +1226,43 @@ function renderHelp(publicData, empId, user) {
 
 // ---------- Router (CLEAN + FIXED) ----------
 function renderRoute(userData, saveUserPatch, publicData, recordData, ctx) {
-  // ✅ always clear stagebar first
   const sb = document.getElementById("stagebar");
   if (sb) sb.innerHTML = "";
 
   const r = routeName();
 
-  // ✅ stagebar only on progress
   if (r === "progress") renderStagebar(userData);
 
   switch (r) {
     // onboarding
-    case "progress":       return renderProgress(userData, recordData);
+    case "progress":          return renderProgress(userData, recordData);
+
     case "shift":
-    case "shift_selection": return renderShiftSelection(userData, saveUserPatch);
-    case "footwear":       return renderFootwear(userData, saveUserPatch, publicData);
-    case "footwearshop":   return renderFootwearShop(publicData);
-    case "i9":             return renderI9(userData, saveUserPatch);
-    case "documents":      return renderDocumentsLocked();
-    case "firstday":       return renderFirstDayLocked(userData, recordData);
+    case "shift_selection":   return renderShiftSelection(userData, saveUserPatch);
+
+    case "footwear":          return renderFootwear(userData, saveUserPatch, publicData);
+    case "footwearshop":      return renderFootwearShop(publicData);
+
+    case "i9":                return renderI9(userData, saveUserPatch);
+
+    // ✅ aliases (old + new)
+    case "documents":
+    case "docs":              return renderDocumentsLocked();
+
+    case "firstday":
+    case "first_day":         return renderFirstDayLocked(userData, recordData);
 
     // work modules
-    case "schedule":       return renderSchedule(recordData);
-    case "hours":          return renderHours(recordData);
-    case "payroll":        return renderPayroll(recordData);
-    case "timeoff":        return renderTimeOff(recordData);
-    case "deposit":        return renderDeposit(recordData);
+    case "schedule":          return renderSchedule(recordData);
+    case "hours":             return renderHours(recordData);
+    case "payroll":           return renderPayroll(recordData);
+    case "timeoff":           return renderTimeOff(recordData);
+    case "deposit":           return renderDeposit(recordData);
 
     // other
-    case "team":           return renderTeam(recordData);
-    case "notifications":  return renderNotifications(userData, recordData, publicData);
-    case "help":           return renderHelp(publicData, ctx?.empId, ctx?.user);
+    case "team":              return renderTeam(recordData);
+    case "notifications":     return renderNotifications(userData, recordData, publicData);
+    case "help":              return renderHelp(publicData, ctx?.empId, ctx?.user);
 
     default:
       location.hash = "#progress";
@@ -1264,10 +1273,7 @@ function renderRoute(userData, saveUserPatch, publicData, recordData, ctx) {
 // ---------- Init ----------
 export async function initEmployeeApp() {
   const badge = document.getElementById("userBadge");
-
-  // ✅ Your HTML sidebar status id is "statusShift"
-  const statusChip = document.getElementById("statusShift");
-
+  const statusChip = document.getElementById("statusShift"); // ✅ matches your HTML
   const adminBtn = document.getElementById("btnAdminGo");
 
   wireMobileMenuOnce();
@@ -1275,13 +1281,11 @@ export async function initEmployeeApp() {
   if (!isFirebaseConfigured()) {
     uiSetText(badge, "Preview mode");
     if (statusChip) uiSetText(statusChip, "offline");
-/user
     if (adminBtn) adminBtn.style.display = "none";
 
     const demoUser = defaultUserDoc({ email: "preview@demo", displayName: "Preview" });
     const demoPublic = defaultPublicContent();
     const demoRecord = {};
-
     const ctx = { empId: "PREVIEW", user: { uid:"preview", email:"preview@demo" } };
 
     renderRoute(demoUser, async () => {}, demoPublic, demoRecord, ctx);
@@ -1355,15 +1359,17 @@ export async function initEmployeeApp() {
       onSnapshot(userRef, (snap) => {
         if (!snap.exists()) return;
         const d = snap.data() || {};
-
         const base = defaultUserDoc(user);
 
-        // steps merge (keep progress)
+        // ✅ steps merge (keep progress, upgrade older ids if needed)
         let mergedSteps = Array.isArray(d.steps) ? d.steps : [];
         if (!Array.isArray(d.steps) || d.steps.length < base.steps.length) {
           const old = Array.isArray(d.steps) ? d.steps : [];
           mergedSteps = base.steps.map(s => {
-            const o = old.find(x => x.id === s.id);
+            const o =
+              old.find(x => x.id === s.id) ||
+              (s.id === "documents" ? old.find(x => x.id === "docs") : null) ||
+              (s.id === "firstday" ? old.find(x => x.id === "first_day") : null);
             return o ? { ...s, done: !!o.done, label: s.label } : s;
           });
         }
