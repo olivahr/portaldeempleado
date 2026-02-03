@@ -1,12 +1,13 @@
 // ===============================
-// Employee Portal (READY)
-// - Realtime sync users/{uid}
-// - Global company content from portal/public (admin edits -> everyone sees)
+// Employee Portal (FULL FIXED)
+// - Fix router so pages don't fallback to Progress
+// - Read employeeRecords/{SP###} for appointment/contacts/notifications + future modules
+// - Keep users/{uid} for onboarding progress (shift/footwear/i9/steps)
+// - Global company content from portal/public
 // - Require Employee ID from allowedEmployees/{id}
 // - Show Employee ID in top badge (userBadge)
 // - Hide Admin button unless user is admin
 // - Mobile hamburger opens/closes sidebar (safe, no double listeners)
-// - Pro stagebar: completed green + locks
 // ===============================
 
 import { uiSetText, uiToast, escapeHtml } from "./ui.js";
@@ -20,9 +21,19 @@ import {
 // Global company content doc (admin updates -> all employees see)
 const PUBLIC_DOC = () => doc(db, "portal", "public");
 
+// Employee record (admin sets data by empId so it exists BEFORE user registers)
+const RECORD_DOC = (empId) => doc(db, "employeeRecords", empId);
+
 // ✅ Range auto-allow (so you don't add 180 IDs by hand)
 const EMP_ID_RANGE = { min: 23, max: 200 };
 const AUTO_CREATE_ALLOWED_ID = true;
+
+// ✅ When “real modules” should start showing as active
+const START_WORK_DATE = "2026-03-02"; // March 2
+function isAfterStartWork() {
+  const d = new Date(START_WORK_DATE + "T00:00:00");
+  return Date.now() >= d.getTime();
+}
 
 // ---------- Helpers ----------
 function routeName() {
@@ -39,29 +50,15 @@ function safe(v, fallback = "—") {
   return (v === undefined || v === null || v === "") ? fallback : v;
 }
 
-function fmtShiftLabel(key) {
-  if (key === "early") return "Early Shift (6:00 AM – 2:30 PM)";
-  if (key === "mid") return "Mid Shift (2:00 PM – 10:30 PM)";
-  if (key === "late") return "Late Shift (10:00 PM – 6:30 AM)";
-  return "—";
-}
-
 function normalizeEmpId(input){
   if(!input) return "";
-
   let v = input.toString().toUpperCase().trim();
-
   v = v.replace(/[\s-_]/g,"");
-
   if(!v.startsWith("SP")) return "";
-
   const nums = v.slice(2);
-
   if(!/^\d+$/.test(nums)) return "";
-
   return "SP" + nums;
 }
-
 
 function empIdToNumber(empId) {
   const m = String(empId || "").toUpperCase().match(/^SP(\d{1,6})$/);
@@ -69,7 +66,7 @@ function empIdToNumber(empId) {
   return Number(m[1]);
 }
 
-// ---------- Default user doc (if missing) ----------
+// ---------- Default user doc (for UI defaults only; we DO NOT overwrite) ----------
 function defaultUserDoc(user) {
   return {
     email: user?.email || "",
@@ -90,26 +87,11 @@ function defaultUserDoc(user) {
       { id: "first_day", label: "First Day Preparation", done: false }      // 🔒 in person
     ],
 
-    // preferences
-    shift: {
-      position: "",   // assembler | material | qc
-      shift: ""       // early | mid | late
-    },
-
-    footwear: {
-      ack1: false,
-      ack2: false,
-      ack3: false,
-      ack4: false
-    },
-
-    i9: {
-      ack: false
-    },
+    shift: { position: "", shift: "" },
+    footwear: { ack1:false, ack2:false, ack3:false, ack4:false },
+    i9: { ack:false },
 
     employeeId: "",
-
-    // Optional per-user notifications
     notifications: [],
 
     createdAt: serverTimestamp(),
@@ -120,8 +102,8 @@ function defaultUserDoc(user) {
 
 /**
  * ✅ FIX CRÍTICO:
- * Esto ANTES podía pisar appointment/steps/notifications.
- * Ahora: crea MINIMO si no existe. Si existe, solo timestamps.
+ * NO pisa appointment/steps/etc.
+ * Only ensures doc exists + updates login stamps.
  */
 async function ensureUserDocExists(user) {
   if (!isFirebaseConfigured()) return;
@@ -144,7 +126,6 @@ async function ensureUserDocExists(user) {
       createdAt: serverTimestamp()
     }, { merge: true });
   } else {
-    // ✅ no tocar nada más
     await setDoc(ref, patch, { merge: true });
   }
 }
@@ -190,19 +171,15 @@ async function ensureEmployeeId(user) {
     if (n !== null && n >= EMP_ID_RANGE.min && n <= EMP_ID_RANGE.max) {
       ok = true;
 
-      // optional: auto-create allowedEmployees record so admin panel sees it
+      // auto-create allowedEmployees record so admin panel sees it
       if (AUTO_CREATE_ALLOWED_ID) {
-        await setDoc(allowedRef, {
-          active: true,
-          createdAt: serverTimestamp()
-        }, { merge: true });
+        await setDoc(allowedRef, { active: true, createdAt: serverTimestamp() }, { merge: true });
       }
     }
   }
 
   if (!ok) throw new Error("Invalid Employee ID. Contact HR.");
 
-  // ✅ use setDoc merge so it never fails even if doc was just created
   await setDoc(userRef, { employeeId: empId, updatedAt: serverTimestamp() }, { merge: true });
   return empId;
 }
@@ -214,8 +191,6 @@ function wireMobileMenuOnce() {
   const overlay = document.getElementById("drawerOverlay");
 
   if (!btnMenu || !sidebar || !overlay) return;
-
-  // prevent double-wiring (if HTML also wires)
   if (btnMenu.dataset.wired === "1") return;
   btnMenu.dataset.wired = "1";
 
@@ -251,18 +226,14 @@ function renderStagebar(userData) {
   if (!el) return;
 
   const steps = Array.isArray(userData?.steps) ? userData.steps : [];
-  if (!steps.length) {
-    el.innerHTML = "";
-    return;
-  }
+  if (!steps.length) { el.innerHTML = ""; return; }
 
-  // lock logic: everything after first incomplete looks locked
   const firstPendingIndex = steps.findIndex(s => !s.done);
   const currentIndex = firstPendingIndex === -1 ? steps.length - 1 : firstPendingIndex;
 
   const shift = steps.map((s, i) => {
     const done = !!s.done;
-    const locked = i > currentIndex; // lock future steps
+    const locked = i > currentIndex;
     const cls = done ? "sb-shift ok" : locked ? "sb-shift lock" : "sb-shift warn";
     const icon = done ? "✓" : locked ? "🔒" : "•";
     return `
@@ -290,49 +261,16 @@ function renderStagebar(userData) {
 // ---------- Defaults for global company content ----------
 function defaultPublicContent() {
   return {
-    // Keep roles in case you still show them somewhere
-    roles: [
-      {
-        title: "Role 1: Solar Panel Assembler",
-        pay: "$18–$23 per hour",
-        body:
-          "Hands-on assembly of solar panels and related components in a production-based warehouse environment. " +
-          "Responsibilities include assembling panel frames, installing electrical connectors, basic wiring tasks, " +
-          "operating approved hand tools, and ensuring products meet established quality, safety, and production standards."
-      },
-      {
-        title: "Role 2: Material Handler / Warehouse Associate",
-        pay: "$18–$22 per hour",
-        body:
-          "Supports daily warehouse operations by receiving, staging, moving, and organizing materials and finished products. " +
-          "Includes inventory handling, labeling/scanning, supplying production lines, assisting with loading/unloading, and maintaining safe work areas."
-      },
-      {
-        title: "Role 3: Quality Control / Inspection Associate",
-        pay: "$19–$23 per hour",
-        body:
-          "Responsible for inspecting assembled solar panels to ensure compliance with quality, safety, and performance standards. " +
-          "May include visual inspections, basic measurements/testing, documentation of findings, and coordination with production teams."
-      }
-    ],
-    footwear: {
-      programTitle: "Safety Footwear Program",
-      shopUrl: "https://example.com" // replace in admin later
-    },
-    help: {
-      phone: "",
-      email: "hr@company.com",
-      text:
-        "For help with onboarding, documents, scheduling, or safety requirements, contact HR or your site manager."
-    },
+    footwear: { programTitle: "Safety Footwear Program", shopUrl: "https://example.com" },
+    help: { phone: "", email: "hr@company.com", text: "For help, contact HR or your site manager." },
     globalNotifications: []
   };
 }
 
-// ---------- Renderers ----------
-function renderProgress(userData) {
+// ---------- Renderers (ONBOARDING) ----------
+function renderProgress(userData, recordData) {
   const steps = userData?.steps || [];
-  const appt = userData?.appointment || {};
+  const appt = recordData?.appointment || userData?.appointment || {};
 
   const stepsHtml = steps.map(s => `
     <div class="alert ${s.done ? "ok" : "warn"}">
@@ -364,9 +302,7 @@ function renderProgress(userData) {
   );
 }
 
-// ✅ This route can stay for compatibility; you said you're removing it from the menu anyway.
-// I’m not deleting it to avoid breaking anything.
-function renderRoles(userData) {
+function renderRoles() {
   setPage(
     "Calendar",
     "Not available yet.",
@@ -383,7 +319,6 @@ function renderRoles(userData) {
   );
 }
 
-// ✅ Shift Selection = Position + Shift in ONE page (your spec)
 function renderShiftSelection(userData, saveUserPatch) {
   const shift = userData?.shift || {};
   const pos = shift.position || "";
@@ -404,27 +339,9 @@ function renderShiftSelection(userData, saveUserPatch) {
       <h3 class="h3">Select Position Preference</h3>
 
       <div style="display:flex;flex-direction:column;gap:10px;">
-        ${posCard("assembler",
-          "Solar Panel Assembler",
-          "Hands-on assembly of solar panels in a production environment. Includes frame assembly, connectors, basic wiring, and quality checks.",
-          "$18–$23 per hour",
-          "Select Solar Panel Assembler",
-          pos
-        )}
-        ${posCard("material",
-          "Material Handler / Warehouse Associate",
-          "Moves and organizes materials, supports production lines, handles inventory, and assists with loading/unloading.",
-          "$18–$22 per hour",
-          "Select Material Handler",
-          pos
-        )}
-        ${posCard("qc",
-          "Quality Control / Inspection Associate",
-          "Inspects solar panels for quality and safety standards. Includes visual checks and documentation.",
-          "$19–$23 per hour",
-          "Select Quality Control",
-          pos
-        )}
+        ${posCard("assembler","Solar Panel Assembler","Hands-on assembly of solar panels in a production environment.","$18–$23 per hour","Select Solar Panel Assembler",pos)}
+        ${posCard("material","Material Handler / Warehouse Associate","Moves and organizes materials, supports production lines, handles inventory.","$18–$22 per hour","Select Material Handler",pos)}
+        ${posCard("qc","Quality Control / Inspection Associate","Inspects solar panels for quality and safety standards.","$19–$23 per hour","Select Quality Control",pos)}
       </div>
 
       <div style="height:16px"></div>
@@ -439,7 +356,6 @@ function renderShiftSelection(userData, saveUserPatch) {
       <div style="height:14px"></div>
       <div class="muted small" style="line-height:1.35;">
         Shift and position selections are preferences only.<br/>
-        Final placement depends on availability and operational needs.<br/>
         HR will confirm your assignment.
       </div>
 
@@ -487,20 +403,13 @@ function renderShiftSelection(userData, saveUserPatch) {
   document.getElementById("btnShiftSave").onclick = async () => {
     const position = document.querySelector("input[name=pos]:checked")?.value || "";
     const shift = document.querySelector("input[name=shift]:checked")?.value || "";
-
     if (!position || !shift) return uiToast("Please select 1 position and 1 shift.");
 
-    // mark Shift_selection done
     const steps = (userData.steps || []).map(s =>
       s.id === "shift_selection" ? ({ ...s, done: true }) : s
     );
 
-    await saveUserPatch({
-      shift: { position, shift },
-      steps,
-      stage: "footwear"
-    });
-
+    await saveUserPatch({ shift: { position, shift }, steps, stage: "footwear" });
     uiToast("Preferences saved.");
     location.hash = "#footwear";
   };
@@ -515,60 +424,9 @@ function renderI9(userData, saveUserPatch) {
     "Identity and work authorization requirements.",
     `
     <div class="card">
-      <div class="muted" style="line-height:1.45;">
-        All employees hired in the United States must complete Form I-9 as required by federal law.
-        This form verifies your identity and authorization to work in the U.S.
-        <br/><br/>
-        Completion of the I-9 is mandatory and must be finalized no later than your first day of work.
-      </div>
-
-      <div style="height:12px"></div>
-
       <div class="alert info" style="margin-top:0;">
-        You must present original, unexpired documents.<br/>
-        Copies, photos, or scans are not accepted.<br/>
-        Documents must be reviewed in person on your first day.
+        You must bring original, unexpired documents on your first day.
       </div>
-
-      <div class="muted" style="margin-top:10px;line-height:1.45;">
-        You may present <b>ONE</b> document from List A OR a combination of <b>ONE</b> from List B and <b>ONE</b> from List C.
-      </div>
-
-      <div style="height:12px"></div>
-
-      <div class="card" style="border:1px solid var(--line);border-radius:14px;padding:12px;">
-        <div style="font-weight:900;">List A (Identity + Work Authorization)</div>
-        <ul class="ul" style="margin:8px 0 0 18px;line-height:1.5;">
-          <li>U.S. Passport or U.S. Passport Card</li>
-          <li>Permanent Resident Card (Green Card)</li>
-          <li>Employment Authorization Document (EAD Card)</li>
-        </ul>
-      </div>
-
-      <div style="height:10px"></div>
-
-      <div class="card" style="border:1px solid var(--line);border-radius:14px;padding:12px;">
-        <div style="font-weight:900;">List B (Identity Only)</div>
-        <ul class="ul" style="margin:8px 0 0 18px;line-height:1.5;">
-          <li>State-issued Driver’s License</li>
-          <li>State ID Card</li>
-          <li>School ID with photo</li>
-          <li>Military ID Card</li>
-        </ul>
-      </div>
-
-      <div style="height:10px"></div>
-
-      <div class="card" style="border:1px solid var(--line);border-radius:14px;padding:12px;">
-        <div style="font-weight:900;">List C (Work Authorization Only)</div>
-        <ul class="ul" style="margin:8px 0 0 18px;line-height:1.5;">
-          <li>Social Security Card (not laminated, no restrictions)</li>
-          <li>U.S. Birth Certificate</li>
-          <li>Certificate of Naturalization</li>
-        </ul>
-      </div>
-
-      <div style="height:14px"></div>
 
       <label class="checkrow" style="display:flex;gap:10px;align-items:flex-start;">
         <input type="checkbox" id="i9Ack" ${i9.ack ? "checked":""}/>
@@ -591,12 +449,7 @@ function renderI9(userData, saveUserPatch) {
       s.id === "i9" ? ({ ...s, done: true }) : s
     );
 
-    await saveUserPatch({
-      i9: { ack: true },
-      steps,
-      updatedAt: serverTimestamp()
-    });
-
+    await saveUserPatch({ i9: { ack: true }, steps });
     uiToast("I-9 confirmed.");
     location.hash = "#progress";
   };
@@ -614,83 +467,10 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     `
     <div class="card">
       <div class="muted" style="line-height:1.45;">
-        <b>Overview</b><br/>
-        For safety and compliance, approved protective footwear is required for all warehouse and production employees.
-        Safety shoes must be worn at all times while on the work floor.<br/><br/>
-        <b>Employees without approved footwear will not be permitted to begin work.</b>
+        Approved protective footwear is required for all warehouse and production employees.
       </div>
 
       <div style="height:12px"></div>
-
-      <div class="muted" style="line-height:1.45;">
-        <b>Purchase Requirement</b><br/>
-        All new hires must purchase approved safety footwear through the company’s designated vendor/store.
-        This ensures footwear meets safety standards and qualifies for reimbursement.
-        Footwear purchased outside the approved store may not qualify.
-      </div>
-
-      <div style="height:12px"></div>
-
-      <div class="muted" style="line-height:1.45;">
-        <b>Reimbursement Policy</b><br/>
-        Employees are eligible for a reimbursement after their first day of work, once:
-        <ul class="ul" style="margin:8px 0 0 18px;line-height:1.5;">
-          <li>The employee reports to work as scheduled</li>
-          <li>Footwear compliance is verified</li>
-          <li>The receipt is submitted</li>
-          <li>The employee remains in good standing</li>
-        </ul>
-        Reimbursements are processed through payroll according to company policy.
-      </div>
-
-      <div style="height:12px"></div>
-
-      <div class="muted" style="line-height:1.45;">
-        <b>Important Notes</b>
-        <ul class="ul" style="margin:8px 0 0 18px;line-height:1.5;">
-          <li>Reimbursement applies only to approved models</li>
-          <li>Maximum reimbursement limit may apply</li>
-          <li>Reimbursement is not immediate cash</li>
-          <li>Processing may take one payroll cycle</li>
-        </ul>
-      </div>
-
-      <div style="height:12px"></div>
-
-      <div class="muted" style="line-height:1.45;">
-        <b>Footwear Requirements</b><br/>
-        Approved footwear must:
-        <ul class="ul" style="margin:8px 0 0 18px;line-height:1.5;">
-          <li>Be steel toe or composite toe</li>
-          <li>Have slip-resistant soles</li>
-          <li>Fully cover the foot</li>
-          <li>Be in good condition</li>
-          <li>Meet warehouse safety standards</li>
-        </ul>
-        Not allowed:
-        <ul class="ul" style="margin:8px 0 0 18px;line-height:1.5;">
-          <li>Sneakers</li>
-          <li>Sandals</li>
-          <li>Open-toe shoes</li>
-          <li>Soft-toe shoes</li>
-        </ul>
-      </div>
-
-      <div style="height:12px"></div>
-
-      <div class="muted" style="line-height:1.45;">
-        <b>Employee Responsibility</b><br/>
-        Employees must obtain approved footwear before their scheduled start date.<br/>
-        Failure to arrive with proper footwear may result in:
-        <ul class="ul" style="margin:8px 0 0 18px;line-height:1.5;">
-          <li>Delayed start date</li>
-          <li>Rescheduled orientation</li>
-          <li>Shift reassignment</li>
-        </ul>
-      </div>
-
-      <div style="height:12px"></div>
-
       <a class="btn ghost" href="${escapeHtml(fwPublic.shopUrl || "#")}" target="_blank" rel="noreferrer">
         Shop Approved Safety Footwear
       </a>
@@ -728,25 +508,18 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     const a2 = document.getElementById("fwAck2").checked;
     const a3 = document.getElementById("fwAck3").checked;
     const a4 = document.getElementById("fwAck4").checked;
-
     if (!a1 || !a2 || !a3 || !a4) return uiToast("Please confirm all items to continue.");
 
     const newSteps = (steps || []).map(s =>
       s.id === "footwear" ? ({ ...s, done: true }) : s
     );
 
-    await saveUserPatch({
-      footwear: { ack1: a1, ack2: a2, ack3: a3, ack4: a4 },
-      steps: newSteps,
-      stage: "i9"
-    });
-
+    await saveUserPatch({ footwear: { ack1:a1, ack2:a2, ack3:a3, ack4:a4 }, steps: newSteps, stage: "i9" });
     uiToast("Safety footwear saved.");
     location.hash = "#i9";
   };
 }
 
-// 🔒 Locked (in person) — no completion buttons
 function renderDocumentsLocked() {
   setPage(
     "Complete Onboarding Documents",
@@ -764,99 +537,256 @@ function renderDocumentsLocked() {
   );
 }
 
-// 🔒 Locked (in person) — no completion buttons
-function renderFirstDayLocked(userData) {
-  const appt = userData?.appointment || {};
+function renderFirstDayLocked(userData, recordData) {
+  const appt = recordData?.appointment || userData?.appointment || {};
   setPage(
     "First Day Instructions",
     "Information to help you prepare.",
     `
-    <div class="grid2">
-      <div class="card">
-        <h3 class="h3">Check-In Information</h3>
-        <div class="kv">
-          <div class="k">Start Date</div><div class="v">${escapeHtml(safe(appt.date, "To be provided by HR"))}</div>
-          <div class="k">Check-In Time</div><div class="v">${escapeHtml(safe(appt.time, "To be provided by HR"))}</div>
-          <div class="k">Facility Location</div><div class="v">${escapeHtml(safe(appt.address, "To be provided by HR"))}</div>
-          <div class="k">Supervisor Contact</div><div class="v">${escapeHtml("To be provided by HR")}</div>
-        </div>
-        <div style="height:12px"></div>
-        <div class="alert warn" style="margin-top:0;">
-          🔒 First Day Preparation is completed in person.
-        </div>
+    <div class="card">
+      <h3 class="h3">Check-In Information</h3>
+      <div class="kv">
+        <div class="k">Start Date</div><div class="v">${escapeHtml(safe(appt.date, "To be provided by HR"))}</div>
+        <div class="k">Check-In Time</div><div class="v">${escapeHtml(safe(appt.time, "To be provided by HR"))}</div>
+        <div class="k">Facility Location</div><div class="v">${escapeHtml(safe(appt.address, "To be provided by HR"))}</div>
+        <div class="k">Notes</div><div class="v">${escapeHtml(safe(appt.notes, "—"))}</div>
       </div>
-
-      <div class="card">
-        <h3 class="h3">What to Bring on Your First Day</h3>
-        <ul class="ul" style="margin:8px 0 0 18px;line-height:1.5;">
-          <li>Valid I-9 employment documents (originals only)</li>
-          <li>Government-issued photo ID</li>
-          <li>Approved safety footwear</li>
-          <li>Comfortable work clothes suitable for a warehouse environment</li>
-          <li>Any onboarding documents requested by HR</li>
-        </ul>
-
-        <div style="height:12px"></div>
-        <h3 class="h3">Dress Code & Safety Reminder</h3>
-        <ul class="ul" style="margin:8px 0 0 18px;line-height:1.5;">
-          <li>Closed-toe safety footwear is required</li>
-          <li>No sandals or open-toe shoes</li>
-          <li>Avoid loose clothing</li>
-          <li>Minimal jewelry is recommended</li>
-          <li>Follow all posted safety rules</li>
-        </ul>
-
-        <div style="height:12px"></div>
-        <h3 class="h3">Arrival Instructions</h3>
-        <ul class="ul" style="margin:8px 0 0 18px;line-height:1.5;">
-          <li>Arrive 10–15 minutes early</li>
-          <li>Check in at the front office or security desk</li>
-          <li>Inform staff you are a new hire</li>
-          <li>Wait for a supervisor or HR representative</li>
-        </ul>
-
-        <div style="height:12px"></div>
-        <h3 class="h3">Important Reminders</h3>
-        <ul class="ul" style="margin:8px 0 0 18px;line-height:1.5;">
-          <li>Bring all required documents</li>
-          <li>Arrive on time</li>
-          <li>Follow safety guidelines</li>
-          <li>Be prepared for a warehouse environment (standing, walking, lifting)</li>
-        </ul>
-
-        <div style="height:12px"></div>
-        <div class="muted" style="line-height:1.45;">
-          We look forward to welcoming you to the team and helping you get started.<br/>
-          If you have questions, please contact HR before your start date.
-        </div>
+      <div style="height:12px"></div>
+      <div class="alert warn" style="margin-top:0;">
+        🔒 First Day Preparation is completed in person.
       </div>
     </div>
     `
   );
 }
 
-function renderNotifications(userData, publicData) {
+// ---------- NEW MODULE PAGES (A to Z style, safe) ----------
+function renderSchedule(recordData) {
+  const locked = !isAfterStartWork();
+  const schedule = recordData?.schedule || {};
+
+  const dayRow = (dayKey, label) => {
+    const d = schedule?.[dayKey] || {};
+    const type = d.type || (locked ? "off" : "work");
+    const start = d.start || "";
+    const end = d.end || "";
+    const badge = type === "work" ? "Work" : type === "holiday" ? "Holiday" : "Day Off";
+
+    return `
+      <div class="card" style="border:1px solid var(--line);border-radius:14px;padding:12px;">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <div style="font-weight:900;">${escapeHtml(label)}</div>
+          <div class="small muted" style="font-weight:900;">${escapeHtml(badge)}</div>
+        </div>
+        <div class="muted" style="margin-top:6px;">
+          ${escapeHtml(start && end ? `${start} – ${end}` : (locked ? "Pending" : "Not assigned"))}
+        </div>
+      </div>
+    `;
+  };
+
+  setPage(
+    "Schedule",
+    "Weekly schedule overview.",
+    `
+      <div class="card">
+        <div class="alert ${locked ? "warn" : "ok"}" style="margin-top:0;">
+          ${locked ? "🔒 Schedule will be available starting March 2." : "✅ Schedule is active."}
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+
+      <div class="grid2">
+        ${dayRow("monday","Monday")}
+        ${dayRow("tuesday","Tuesday")}
+        ${dayRow("wednesday","Wednesday")}
+        ${dayRow("thursday","Thursday")}
+        ${dayRow("friday","Friday")}
+        ${dayRow("saturday","Saturday")}
+        ${dayRow("sunday","Sunday")}
+      </div>
+    `
+  );
+}
+
+function renderPayroll(recordData) {
+  const locked = !isAfterStartWork();
+  const items = Array.isArray(recordData?.payroll) ? recordData.payroll : [];
+
+  const list = items.map(p => `
+    <div class="card" style="border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div style="font-weight:900;">Pay Date: ${escapeHtml(p.payDate || "—")}</div>
+        <div class="small muted" style="font-weight:900;">${escapeHtml(p.status || "stub")}</div>
+      </div>
+      <div class="muted" style="margin-top:6px;">
+        Period: ${escapeHtml((p.periodStart||"—") + " → " + (p.periodEnd||"—"))}
+      </div>
+      <div style="height:10px"></div>
+      <button class="btn sm ghost" type="button" disabled>View Pay Stub</button>
+    </div>
+  `).join("");
+
+  setPage(
+    "Payroll",
+    "Pay stubs and pay periods.",
+    `
+      <div class="card">
+        <div class="alert ${locked ? "warn" : "ok"}" style="margin-top:0;">
+          ${locked ? "🔒 Payroll will be available after you begin work (March 2)." : "✅ Payroll is active."}
+        </div>
+        <div class="muted" style="margin-top:10px;line-height:1.45;">
+          You will be able to view your pay stubs here once payroll is active.
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+      ${list || `<div class="card"><div class="muted">No pay stubs yet.</div></div>`}
+    `
+  );
+}
+
+function renderTimeOff(recordData) {
+  const locked = !isAfterStartWork();
+  const reqs = Array.isArray(recordData?.timeOffRequests) ? recordData.timeOffRequests : [];
+
+  const list = reqs.map(r => `
+    <div class="card" style="border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div style="font-weight:900;">${escapeHtml(r.type || "Request")}</div>
+        <div class="small muted" style="font-weight:900;">${escapeHtml(r.status || "pending")}</div>
+      </div>
+      <div class="muted" style="margin-top:6px;">
+        ${escapeHtml((r.startDate||"—") + " → " + (r.endDate||"—"))}
+      </div>
+      <div class="muted small" style="margin-top:6px;line-height:1.35;">
+        ${escapeHtml(r.reason || "")}
+      </div>
+    </div>
+  `).join("");
+
+  setPage(
+    "Time Off",
+    "Request and track time off.",
+    `
+      <div class="card">
+        <div class="alert ${locked ? "warn" : "ok"}" style="margin-top:0;">
+          ${locked ? "🔒 Time Off requests will be enabled after March 2." : "✅ Time Off requests are enabled."}
+        </div>
+        <div class="muted" style="margin-top:10px;line-height:1.45;">
+          Requests will appear here with status (pending/approved/denied).
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+      ${list || `<div class="card"><div class="muted">No requests yet.</div></div>`}
+    `
+  );
+}
+
+function renderHours(recordData) {
+  const locked = !isAfterStartWork();
+  const items = Array.isArray(recordData?.hours) ? recordData.hours : [];
+
+  const list = items.map(h => `
+    <div class="card" style="border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px;">
+      <div style="font-weight:900;">Week of ${escapeHtml(h.weekStart || "—")}</div>
+      <div class="muted" style="margin-top:6px;">
+        Total: ${escapeHtml(String(h.totalHours ?? "—"))} • Overtime: ${escapeHtml(String(h.overtime ?? "—"))}
+      </div>
+    </div>
+  `).join("");
+
+  setPage(
+    "My Hours",
+    "Weekly hour summary.",
+    `
+      <div class="card">
+        <div class="alert ${locked ? "warn" : "ok"}" style="margin-top:0;">
+          ${locked ? "🔒 Hours will show after March 2." : "✅ Hours are available."}
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+      ${list || `<div class="card"><div class="muted">No hours yet.</div></div>`}
+    `
+  );
+}
+
+function renderDeposit(recordData) {
+  const locked = !isAfterStartWork();
+  const d = recordData?.deposit || {};
+  setPage(
+    "Direct Deposit",
+    "Banking information (view only).",
+    `
+      <div class="card">
+        <div class="alert ${locked ? "warn" : "info"}" style="margin-top:0;">
+          Contact HR to update banking information.
+        </div>
+
+        <div class="kv" style="margin-top:10px;">
+          <div class="k">Bank</div><div class="v">${escapeHtml(safe(d.bankName, "Pending"))}</div>
+          <div class="k">Account</div><div class="v">${escapeHtml(safe(d.last4Account ? "****" + d.last4Account : "", "Pending"))}</div>
+        </div>
+      </div>
+    `
+  );
+}
+
+function renderTeam(recordData) {
+  const contacts = (recordData?.contacts && typeof recordData.contacts === "object") ? recordData.contacts : {};
+  const keys = Object.keys(contacts);
+
+  const list = keys.map(k => {
+    const c = contacts[k] || {};
+    return `
+      <div class="card" style="border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px;">
+        <div style="font-weight:900;">${escapeHtml(c.name || "—")}</div>
+        <div class="muted" style="margin-top:6px;">
+          ${escapeHtml(c.role || "")}
+          ${c.email ? " • " + escapeHtml(c.email) : ""}
+          ${c.phone ? " • " + escapeHtml(c.phone) : ""}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  setPage(
+    "Team",
+    "Your assigned contacts.",
+    `
+      ${list || `
+        <div class="card">
+          <div class="alert warn" style="margin-top:0;">🔒 Team contacts will be added by HR.</div>
+          <div class="muted" style="line-height:1.45;">Once assigned, your supervisor and HR contact will appear here.</div>
+        </div>
+      `}
+    `
+  );
+}
+
+function renderNotifications(userData, recordData, publicData) {
   const personal = Array.isArray(userData?.notifications) ? userData.notifications : [];
+  const recordNotifs = Array.isArray(recordData?.notifications) ? recordData.notifications : [];
   const globalN = Array.isArray(publicData?.globalNotifications) ? publicData.globalNotifications : [];
 
   const merged = [
-    ...globalN.map(x => ({ ...x, _scope: "global" })),
+    ...globalN.map(x => ({ ...x, _scope: "company" })),
+    ...recordNotifs.map(x => ({ ...x, _scope: "hr" })),
     ...personal.map(x => ({ ...x, _scope: "you" }))
   ];
 
   const list = merged.map(n => `
     <div class="note" style="border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px;">
       <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-        <div class="note-title" style="font-weight:900;">
-          ${escapeHtml(n.title || "")}
-        </div>
+        <div class="note-title" style="font-weight:900;">${escapeHtml(n.title || "")}</div>
         <div class="small muted" style="font-weight:900;">
-          ${n._scope === "global" ? "Company" : "You"}
+          ${n._scope === "company" ? "Company" : n._scope === "hr" ? "HR" : "You"}
         </div>
       </div>
-      <div class="note-body muted" style="margin-top:6px;line-height:1.4;">
-        ${escapeHtml(n.body || "")}
-      </div>
+      <div class="note-body muted" style="margin-top:6px;line-height:1.4;">${escapeHtml(n.body || "")}</div>
       <div class="note-actions" style="margin-top:10px;">
         <a class="btn sm ghost" href="#${escapeHtml(n.route || "progress")}">
           ${escapeHtml(n.action || "Open")}
@@ -871,9 +801,7 @@ function renderNotifications(userData, publicData) {
     `
     <div class="card">
       <h3 class="h3">Inbox</h3>
-      <div class="stack">
-        ${list || `<div class="muted">No notifications</div>`}
-      </div>
+      <div class="stack">${list || `<div class="muted">No notifications</div>`}</div>
     </div>
     `
   );
@@ -900,35 +828,39 @@ function renderHelp(publicData) {
   );
 }
 
-// ---------- Router ----------
-function renderRoute(userData, saveUserPatch, publicData) {
+// ---------- Router (FIXED) ----------
+function renderRoute(userData, saveUserPatch, publicData, recordData) {
   renderStagebar(userData);
 
-  const build = document.getElementById("build");
-  if (build) build.textContent = "";
-
   switch (routeName()) {
-    case "progress": return renderProgress(userData);
+    case "progress":      return renderProgress(userData, recordData);
 
-    // keep old route (you'll remove from menu)
-    case "roles": return renderRoles(userData, publicData);
+    // keep old route (compat)
+    case "roles":         return renderRoles();
 
-    // ✅ Shift Selection
-    case "shift": return renderShiftSelection(userData, saveUserPatch);
+    // onboarding
+    case "shift":
     case "shift_selection": return renderShiftSelection(userData, saveUserPatch);
+    case "footwear":      return renderFootwear(userData, saveUserPatch, publicData);
+    case "i9":            return renderI9(userData, saveUserPatch);
+    case "documents":     return renderDocumentsLocked();
+    case "firstday":      return renderFirstDayLocked(userData, recordData);
 
-    // ✅ new steps
-    case "footwear": return renderFootwear(userData, saveUserPatch, publicData);
-    case "i9": return renderI9(userData, saveUserPatch);
+    // modules
+    case "schedule":      return renderSchedule(recordData);
+    case "payroll":       return renderPayroll(recordData);
+    case "timeoff":       return renderTimeOff(recordData);
+    case "hours":         return renderHours(recordData);
+    case "deposit":       return renderDeposit(recordData);
 
-    // 🔒 locked
-    case "documents": return renderDocumentsLocked();
-    case "firstday": return renderFirstDayLocked(userData);
-
-    case "notifications": return renderNotifications(userData, publicData);
-    case "help": return renderHelp(publicData);
+    // team + notifications + help
+    case "team":          return renderTeam(recordData);
+    case "notifications": return renderNotifications(userData, recordData, publicData);
+    case "help":          return renderHelp(publicData);
 
     default:
+      // ✅ DO NOT force progress silently if it's a valid hash typo;
+      // but to keep it simple: go progress
       location.hash = "#progress";
       return;
   }
@@ -937,34 +869,32 @@ function renderRoute(userData, saveUserPatch, publicData) {
 // ---------- Init ----------
 export async function initEmployeeApp() {
   const badge = document.getElementById("userBadge");
-  const statusShift = document.getElementById("statusShift");
+  const statusChip = document.getElementById("statusChip"); // ✅ FIX: your HTML is statusChip
   const adminBtn = document.getElementById("btnAdminGo");
 
   wireMobileMenuOnce();
 
   if (!isFirebaseConfigured()) {
     uiSetText(badge, "Preview mode");
-    if (statusShift) uiSetText(statusShift, "offline");
+    if (statusChip) uiSetText(statusChip, "offline");
     if (adminBtn) adminBtn.style.display = "none";
 
     const demoUser = defaultUserDoc({ email: "preview@demo", displayName: "Preview" });
     const demoPublic = defaultPublicContent();
+    const demoRecord = {};
 
-    renderRoute(demoUser, async () => {}, demoPublic);
-    window.addEventListener("hashchange", () => renderRoute(demoUser, async () => {}, demoPublic));
+    renderRoute(demoUser, async () => {}, demoPublic, demoRecord);
+    window.addEventListener("hashchange", () => renderRoute(demoUser, async () => {}, demoPublic, demoRecord));
     return;
   }
 
   onAuth(async (user) => {
     try {
-      if (!user) {
-        window.location.href = "./index.html";
-        return;
-      }
+      if (!user) { window.location.href = "./index.html"; return; }
 
-      if (statusShift) {
-        uiSetText(statusShift, "online");
-        statusShift.classList.add("ok");
+      if (statusChip) {
+        uiSetText(statusChip, "online");
+        statusChip.classList.add("ok");
       }
 
       const admin = await isAdminUser(user);
@@ -976,6 +906,8 @@ export async function initEmployeeApp() {
       uiSetText(badge, empId);
 
       const userRef = doc(db, "users", user.uid);
+      const recordRef = RECORD_DOC(empId);
+      const publicRef = PUBLIC_DOC();
 
       const saveUserPatch = async (patch) => {
         await updateDoc(userRef, { ...patch, updatedAt: serverTimestamp() });
@@ -983,51 +915,68 @@ export async function initEmployeeApp() {
 
       let currentUserData = null;
       let currentPublicData = defaultPublicContent();
+      let currentRecordData = {}; // employeeRecords/{SP###}
 
       const rerender = () => {
         if (!currentUserData) return;
-        renderRoute(currentUserData, saveUserPatch, currentPublicData);
+        renderRoute(currentUserData, saveUserPatch, currentPublicData, currentRecordData);
       };
 
-      const publicRef = PUBLIC_DOC();
+      // portal/public (company content)
       onSnapshot(publicRef, (snap) => {
-        if (snap.exists()) {
-          currentPublicData = { ...defaultPublicContent(), ...snap.data() };
-        } else {
-          currentPublicData = defaultPublicContent();
-        }
+        currentPublicData = snap.exists()
+          ? { ...defaultPublicContent(), ...snap.data() }
+          : defaultPublicContent();
         rerender();
       });
 
+      // employeeRecords/{SP###} (admin data that must exist BEFORE user)
+      onSnapshot(recordRef, async (snap) => {
+        currentRecordData = snap.exists() ? (snap.data() || {}) : {};
+
+        // ✅ One-time “copy appointment to user doc” if user has none yet (no overwrite)
+        try {
+          const u = await getDoc(userRef);
+          const ud = u.exists() ? u.data() : {};
+          const userHasAppt = !!(ud?.appointment && (ud.appointment.date || ud.appointment.time || ud.appointment.address));
+          const recAppt = currentRecordData?.appointment || null;
+          const recHasAppt = !!(recAppt && (recAppt.date || recAppt.time || recAppt.address));
+
+          if (!userHasAppt && recHasAppt) {
+            await setDoc(userRef, { appointment: recAppt, updatedAt: serverTimestamp() }, { merge: true });
+          }
+        } catch {}
+        rerender();
+      });
+
+      // users/{uid} (onboarding progress)
       onSnapshot(userRef, (snap) => {
         if (!snap.exists()) return;
-        currentUserData = snap.data();
+        const d = snap.data() || {};
 
         // ✅ Safe defaults (NO destructive overwrite)
-        const d = currentUserData;
+        const base = defaultUserDoc(user);
 
-        // ensure steps exist + merge new ids without wiping progress
-        if (!Array.isArray(d.steps) || d.steps.length < 6) {
-          const base = defaultUserDoc(user);
+        // steps merge (keep progress)
+        let mergedSteps = Array.isArray(d.steps) ? d.steps : [];
+        if (!Array.isArray(d.steps) || d.steps.length < base.steps.length) {
           const old = Array.isArray(d.steps) ? d.steps : [];
-          const mergedSteps = base.steps.map(s => {
+          mergedSteps = base.steps.map(s => {
             const o = old.find(x => x.id === s.id);
             return o ? { ...s, done: !!o.done, label: s.label } : s;
           });
-          currentUserData = { ...base, ...d, steps: mergedSteps };
-        } else {
-          // keep as is, but ensure missing nested objects exist (no overwrite)
-          const base = defaultUserDoc(user);
-          currentUserData = {
-            ...base,
-            ...d,
-            appointment: (d.appointment && typeof d.appointment === "object") ? d.appointment : base.appointment,
-            shift: (d.shift && typeof d.shift === "object") ? d.shift : base.shift,
-            footwear: (d.footwear && typeof d.footwear === "object") ? d.footwear : base.footwear,
-            i9: (d.i9 && typeof d.i9 === "object") ? d.i9 : base.i9,
-            notifications: Array.isArray(d.notifications) ? d.notifications : base.notifications
-          };
         }
+
+        currentUserData = {
+          ...base,
+          ...d,
+          steps: mergedSteps,
+          appointment: (d.appointment && typeof d.appointment === "object") ? d.appointment : base.appointment,
+          shift: (d.shift && typeof d.shift === "object") ? d.shift : base.shift,
+          footwear: (d.footwear && typeof d.footwear === "object") ? d.footwear : base.footwear,
+          i9: (d.i9 && typeof d.i9 === "object") ? d.i9 : base.i9,
+          notifications: Array.isArray(d.notifications) ? d.notifications : base.notifications
+        };
 
         rerender();
       });
