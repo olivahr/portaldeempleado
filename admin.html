@@ -26,83 +26,291 @@
 
 <main class="content">
 
-<!-- SEARCH BY EMPLOYEE ID -->
-<section class="card">
-  <h3 class="h3">Search Employee</h3>
+  <!-- QUICK JUMP (NO JS required) -->
+  <section class="card">
+    <h3 class="h3">Quick Jump</h3>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <a class="btn sm ghost" href="#secSearch">Search</a>
+      <a class="btn sm ghost" href="#secAppointment">Appointment</a>
+      <a class="btn sm ghost" href="#secSchedule">Schedule</a>
+      <a class="btn sm ghost" href="#secPayroll">Payroll</a>
+      <a class="btn sm ghost" href="#secTimeOff">Time Off</a>
+      <a class="btn sm ghost" href="#secHours">Hours</a>
+      <a class="btn sm ghost" href="#secDeposit">Direct Deposit</a>
+      <a class="btn sm ghost" href="#secNotifications">Notifications</a>
+      <a class="btn sm ghost" href="#secTeam">Team</a>
+      <a class="btn sm ghost" href="#secAllowed">Allowed IDs</a>
+      <a class="btn sm ghost" href="#secCompany">Company Settings</a>
+    </div>
+    <div class="small muted" style="margin-top:8px;">
+      Tip: Load an employee first — modules below will save to that employee.
+    </div>
+  </section>
 
-  <!-- 🔥 CAMBIO CLAVE AQUÍ -->
-  <input id="searchEmpId" class="inp" placeholder="SP023">
-  <button class="btn primary" id="btnSearch">Load Employee</button>
+  <!-- SEARCH BY EMPLOYEE ID -->
+  <section class="card" id="secSearch">
+    <h3 class="h3">Search Employee</h3>
 
-  <div class="small muted" id="searchMsg"></div>
-</section>
+    <!-- keep your IDs -->
+    <input id="searchEmpId" class="inp" placeholder="SP023">
+    <button class="btn primary" id="btnSearch">Load Employee</button>
 
-<!-- APPOINTMENT -->
-<section class="card">
-  <h3 class="h3">Appointment</h3>
+    <div class="small muted" id="searchMsg"></div>
+  </section>
 
-  <input id="aDate" class="inp" type="date">
-  <input id="aTime" class="inp" type="time">
-  <input id="aAddr" class="inp" placeholder="Address">
-  <input id="aNotes" class="inp" placeholder="Notes">
+  <!-- APPOINTMENT (keep as-is) -->
+  <section class="card" id="secAppointment">
+    <h3 class="h3">Appointment</h3>
 
-  <button class="btn primary" id="btnSaveAppointment">
-    Save Appointment
-  </button>
+    <input id="aDate" class="inp" type="date">
+    <input id="aTime" class="inp" type="time">
+    <input id="aAddr" class="inp" placeholder="Address">
+    <input id="aNotes" class="inp" placeholder="Notes">
 
-  <div class="small muted" id="apptMsg"></div>
-</section>
+    <button class="btn primary" id="btnSaveAppointment">
+      Save Appointment
+    </button>
 
-<!-- NOTIFICATIONS -->
-<section class="card">
-  <h3 class="h3">Notifications</h3>
+    <div class="small muted" id="apptMsg"></div>
+  </section>
 
-  <input id="nTitle" class="inp" placeholder="Title">
-  <input id="nBody" class="inp" placeholder="Message">
+  <!-- ✅ NEW: SCHEDULE / CALENDAR -->
+  <section class="card" id="secSchedule">
+    <h3 class="h3">Schedule / Calendar</h3>
+    <div class="small muted">Assign weekly schedule (Mon–Sun). Type: work / off / holiday.</div>
 
-  <select id="nRoute" class="inp">
-    <option value="progress">Progress</option>
-    <option value="i9">I-9</option>
-    <option value="shift">Shift</option>
-    <option value="firstday">First Day</option>
-  </select>
+    <div style="height:10px"></div>
 
-  <button class="btn primary" id="btnAddNotif">
-    Add Notification
-  </button>
+    <div class="grid2">
+      <div>
+        <div class="small muted" style="font-weight:900;">Monday</div>
+        <input id="sch_mon_start" class="inp" placeholder="Start (e.g. 06:00 AM)">
+        <input id="sch_mon_end" class="inp" placeholder="End (e.g. 02:30 PM)">
+        <select id="sch_mon_type" class="inp">
+          <option value="work">work</option>
+          <option value="off">off</option>
+          <option value="holiday">holiday</option>
+        </select>
+      </div>
 
-  <div id="notifList"></div>
-</section>
+      <div>
+        <div class="small muted" style="font-weight:900;">Tuesday</div>
+        <input id="sch_tue_start" class="inp" placeholder="Start">
+        <input id="sch_tue_end" class="inp" placeholder="End">
+        <select id="sch_tue_type" class="inp">
+          <option value="work">work</option>
+          <option value="off">off</option>
+          <option value="holiday">holiday</option>
+        </select>
+      </div>
 
-<!-- TEAM -->
-<section class="card">
-  <h3 class="h3">Team</h3>
+      <div>
+        <div class="small muted" style="font-weight:900;">Wednesday</div>
+        <input id="sch_wed_start" class="inp" placeholder="Start">
+        <input id="sch_wed_end" class="inp" placeholder="End">
+        <select id="sch_wed_type" class="inp">
+          <option value="work">work</option>
+          <option value="off">off</option>
+          <option value="holiday">holiday</option>
+        </select>
+      </div>
 
-  <input id="tName" class="inp" placeholder="Name">
-  <input id="tRole" class="inp" placeholder="Role">
-  <input id="tEmail" class="inp" placeholder="Email">
-  <input id="tPhone" class="inp" placeholder="Phone">
+      <div>
+        <div class="small muted" style="font-weight:900;">Thursday</div>
+        <input id="sch_thu_start" class="inp" placeholder="Start">
+        <input id="sch_thu_end" class="inp" placeholder="End">
+        <select id="sch_thu_type" class="inp">
+          <option value="work">work</option>
+          <option value="off">off</option>
+          <option value="holiday">holiday</option>
+        </select>
+      </div>
 
-  <button class="btn primary" id="btnAddTeam">
-    Add Team Member
-  </button>
+      <div>
+        <div class="small muted" style="font-weight:900;">Friday</div>
+        <input id="sch_fri_start" class="inp" placeholder="Start">
+        <input id="sch_fri_end" class="inp" placeholder="End">
+        <select id="sch_fri_type" class="inp">
+          <option value="work">work</option>
+          <option value="off">off</option>
+          <option value="holiday">holiday</option>
+        </select>
+      </div>
 
-  <div id="teamList"></div>
-</section>
+      <div>
+        <div class="small muted" style="font-weight:900;">Saturday</div>
+        <input id="sch_sat_start" class="inp" placeholder="Start">
+        <input id="sch_sat_end" class="inp" placeholder="End">
+        <select id="sch_sat_type" class="inp">
+          <option value="work">work</option>
+          <option value="off">off</option>
+          <option value="holiday">holiday</option>
+        </select>
+      </div>
 
-<!-- ALLOWED IDS -->
-<section class="card">
-  <h3 class="h3">Allowed Employee IDs</h3>
+      <div>
+        <div class="small muted" style="font-weight:900;">Sunday</div>
+        <input id="sch_sun_start" class="inp" placeholder="Start">
+        <input id="sch_sun_end" class="inp" placeholder="End">
+        <select id="sch_sun_type" class="inp">
+          <option value="work">work</option>
+          <option value="off">off</option>
+          <option value="holiday">holiday</option>
+        </select>
+      </div>
+    </div>
 
-  <input id="newEmpId" class="inp" placeholder="SP023">
-  <input id="newEmpName" class="inp" placeholder="Name (optional)">
+    <div style="height:10px"></div>
+    <button class="btn primary" id="btnSaveSchedule">Save Schedule</button>
+    <div class="small muted" id="scheduleMsg"></div>
+  </section>
 
-  <button class="btn primary" id="btnAddAllowed">
-    Add ID
-  </button>
+  <!-- ✅ NEW: PAYROLL -->
+  <section class="card" id="secPayroll">
+    <h3 class="h3">Payroll</h3>
+    <div class="small muted">Upload Pay Stub PDF and attach to employee.</div>
 
-  <div id="allowedList"></div>
-</section>
+    <div style="height:10px"></div>
+
+    <input id="pay_payDate" class="inp" type="date" />
+    <div class="grid2">
+      <input id="pay_periodStart" class="inp" type="date" />
+      <input id="pay_periodEnd" class="inp" type="date" />
+    </div>
+
+    <input id="pay_pdf" class="inp" type="file" accept="application/pdf" />
+
+    <button class="btn primary" id="btnUploadPayStub">Upload Pay Stub</button>
+    <div class="small muted" id="payrollMsg"></div>
+
+    <div style="height:12px"></div>
+    <div class="small muted" style="font-weight:900;">Employee Pay Stubs</div>
+    <div id="payrollList"></div>
+  </section>
+
+  <!-- ✅ NEW: TIME OFF / PTO -->
+  <section class="card" id="secTimeOff">
+    <h3 class="h3">Time Off Requests</h3>
+    <div class="small muted">Review employee requests. Approve / Deny.</div>
+
+    <div style="height:10px"></div>
+    <div id="timeoffList"></div>
+  </section>
+
+  <!-- ✅ NEW: MY HOURS -->
+  <section class="card" id="secHours">
+    <h3 class="h3">Hours</h3>
+    <div class="small muted">Set weekly total hours and overtime for employee.</div>
+
+    <div style="height:10px"></div>
+    <input id="hrs_weekStart" class="inp" type="date" />
+    <div class="grid2">
+      <input id="hrs_total" class="inp" placeholder="Total Hours (e.g. 40)" />
+      <input id="hrs_ot" class="inp" placeholder="Overtime Hours (e.g. 5)" />
+    </div>
+
+    <button class="btn primary" id="btnSaveHours">Save Hours</button>
+    <div class="small muted" id="hoursMsg"></div>
+
+    <div style="height:12px"></div>
+    <div class="small muted" style="font-weight:900;">Past Weeks</div>
+    <div id="hoursList"></div>
+  </section>
+
+  <!-- ✅ NEW: DIRECT DEPOSIT -->
+  <section class="card" id="secDeposit">
+    <h3 class="h3">Direct Deposit</h3>
+    <div class="small muted">Employee view is read-only. Admin can update.</div>
+
+    <div style="height:10px"></div>
+    <input id="dep_bankName" class="inp" placeholder="Bank Name">
+    <input id="dep_last4" class="inp" placeholder="Last 4 Account Digits (e.g. 1234)">
+    <button class="btn primary" id="btnSaveDeposit">Save Deposit Info</button>
+    <div class="small muted" id="depositMsg"></div>
+  </section>
+
+  <!-- NOTIFICATIONS (keep as-is, only add routes) -->
+  <section class="card" id="secNotifications">
+    <h3 class="h3">Notifications</h3>
+
+    <input id="nTitle" class="inp" placeholder="Title">
+    <input id="nBody" class="inp" placeholder="Message">
+
+    <select id="nRoute" class="inp">
+      <option value="progress">Progress</option>
+      <option value="i9">I-9</option>
+      <option value="shift">Shift</option>
+      <option value="footwear">Safety Footwear</option>
+      <option value="documents">Documents</option>
+      <option value="firstday">First Day</option>
+
+      <!-- new modules -->
+      <option value="schedule">Schedule</option>
+      <option value="payroll">Payroll</option>
+      <option value="timeoff">Time Off</option>
+      <option value="hours">My Hours</option>
+      <option value="deposit">Direct Deposit</option>
+    </select>
+
+    <button class="btn primary" id="btnAddNotif">
+      Add Notification
+    </button>
+
+    <div id="notifList"></div>
+  </section>
+
+  <!-- TEAM (keep as-is) -->
+  <section class="card" id="secTeam">
+    <h3 class="h3">Team</h3>
+
+    <input id="tName" class="inp" placeholder="Name">
+    <input id="tRole" class="inp" placeholder="Role">
+    <input id="tEmail" class="inp" placeholder="Email">
+    <input id="tPhone" class="inp" placeholder="Phone">
+
+    <button class="btn primary" id="btnAddTeam">
+      Add Team Member
+    </button>
+
+    <div id="teamList"></div>
+  </section>
+
+  <!-- ALLOWED IDS (keep as-is) -->
+  <section class="card" id="secAllowed">
+    <h3 class="h3">Allowed Employee IDs</h3>
+
+    <input id="newEmpId" class="inp" placeholder="SP023">
+    <input id="newEmpName" class="inp" placeholder="Name (optional)">
+
+    <button class="btn primary" id="btnAddAllowed">
+      Add ID
+    </button>
+
+    <div id="allowedList"></div>
+  </section>
+
+  <!-- ✅ NEW: COMPANY SETTINGS (portal/public) -->
+  <section class="card" id="secCompany">
+    <h3 class="h3">Company Settings</h3>
+    <div class="small muted">
+      These settings appear for all employees (portal/public).
+    </div>
+
+    <div style="height:10px"></div>
+
+    <div class="small muted" style="font-weight:900;">Safety Footwear</div>
+    <input id="co_shoeShopUrl" class="inp" placeholder="Safety footwear shop URL (https://...)">
+
+    <div style="height:10px"></div>
+
+    <div class="small muted" style="font-weight:900;">HR Contact</div>
+    <input id="co_hrEmail" class="inp" placeholder="HR email (e.g. hr@company.com)">
+    <input id="co_hrPhone" class="inp" placeholder="HR phone (optional)">
+    <input id="co_helpText" class="inp" placeholder="Help message shown in Help page">
+
+    <button class="btn primary" id="btnSaveCompany">Save Company Settings</button>
+    <div class="small muted" id="companyMsg"></div>
+  </section>
 
 </main>
 
