@@ -1,29 +1,44 @@
 :root{
+  /* Core palette (Amazon-ish clean) */
   --bg:#f6f7fb;
   --card:#ffffff;
-  --text:#0f172a;
-  --muted:#64748b;
-  --line:#e2e8f0;
+  --text:#0b1220;
+  --muted:#5b6b82;
+  --line:#e5eaf2;
+
   --blue:#1d4ed8;
   --blue2:#0ea5e9;
+
   --good:#16a34a;
   --warn:#f59e0b;
   --bad:#ef4444;
 
+  /* Surfaces */
+  --surface:#ffffff;
+  --surface2:#f8fafc;
+  --soft:#f1f5f9;
+
+  /* Depth */
   --shadow: 0 10px 30px rgba(15,23,42,.08);
   --shadow2: 0 6px 18px rgba(15,23,42,.08);
   --shadow3: 0 18px 55px rgba(2,6,23,.14);
 
+  /* Radius */
   --radius:14px;
   --radius2:18px;
 
-  /* ✅ app surfaces */
-  --surface:#ffffff;
-  --surface2:#f8fafc;
-  --soft:#f1f5f9;
+  /* Density (makes it feel more "enterprise") */
+  --pad:14px;
+  --pad2:18px;
+  --tap:44px;
+
+  /* Focus ring */
+  --ring: 0 0 0 5px rgba(29,78,216,.12);
 }
 
-/* Reset / base */
+/* =========================
+   RESET / BASE
+   ========================= */
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
 body{
@@ -35,6 +50,7 @@ body{
     radial-gradient(900px 500px at 90% 10%, rgba(14,165,233,.08), transparent),
     var(--bg);
   overflow-x:hidden;
+  text-rendering:optimizeLegibility;
 }
 
 /* Avoid iPhone zoom on inputs */
@@ -43,7 +59,21 @@ input, button, select, textarea{ font-size:16px; }
 a{ color:inherit; text-decoration:none; }
 .muted{ color:var(--muted); }
 .small{ font-size:12px; }
-.h3{ margin:0 0 10px 0; font-size:16px; font-weight:900; }
+.h3{ margin:0 0 10px 0; font-size:16px; font-weight:950; letter-spacing:.2px; }
+
+/* Nice selection */
+::selection{ background: rgba(29,78,216,.18); }
+
+/* Scrollbar (desktop only) */
+@media (min-width: 921px){
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb{
+    background: rgba(15,23,42,.16);
+    border-radius: 999px;
+    border: 2px solid rgba(255,255,255,.9);
+  }
+  ::-webkit-scrollbar-track{ background: rgba(255,255,255,.5); }
+}
 
 /* =========================
    AUTH (LOGIN / REGISTER)
@@ -68,7 +98,7 @@ a{ color:inherit; text-decoration:none; }
 .auth-card{
   width:min(460px, 100%);
   background:var(--card);
-  border:1px solid rgba(226,232,240,.9);
+  border:1px solid rgba(229,234,242,.95);
   border-radius:22px;
   box-shadow: var(--shadow3);
   padding:18px;
@@ -85,7 +115,7 @@ a{ color:inherit; text-decoration:none; }
   background: linear-gradient(135deg, var(--blue), var(--blue2));
   box-shadow: 0 8px 18px rgba(29,78,216,.25);
 }
-.brand-title{ font-weight:900; font-size:16px; }
+.brand-title{ font-weight:950; font-size:16px; letter-spacing:.2px; }
 .brand-sub{ color:var(--muted); font-size:13px; margin-top:2px; }
 
 .lbl{
@@ -95,21 +125,25 @@ a{ color:inherit; text-decoration:none; }
   margin:10px 0 6px;
 }
 
+/* Inputs (Amazon-corporate density) */
 .inp{
   width:100%;
   display:block;
   padding:13px 12px;
   border-radius:14px;
-  border:1px solid rgba(226,232,240,.95);
+  border:1px solid rgba(229,234,242,.98);
   outline:none;
   background:var(--surface2);
   transition: .15s ease;
+  color: var(--text);
 }
+.inp::placeholder{ color: rgba(91,107,130,.75); }
 .inp:focus{
   background:#fff;
   border-color: rgba(29,78,216,.55);
-  box-shadow:0 0 0 5px rgba(29,78,216,.10);
+  box-shadow: var(--ring);
 }
+textarea.inp{ resize: vertical; min-height: 120px; }
 
 .row{
   display:flex;
@@ -141,15 +175,16 @@ a{ color:inherit; text-decoration:none; }
    BUTTONS (APP FEEL)
    ========================= */
 .btn{
-  border:1px solid rgba(226,232,240,.95);
+  border:1px solid rgba(229,234,242,.98);
   background:#fff;
   padding:12px 14px;
   border-radius:14px;
   cursor:pointer;
-  font-weight:900;
+  font-weight:950;
   line-height:1;
   white-space:nowrap;
-  transition: transform .12s ease, filter .12s ease, box-shadow .12s ease;
+  transition: transform .10s ease, filter .10s ease, box-shadow .12s ease, background .12s ease, border-color .12s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 .btn:hover{ filter:brightness(.99); box-shadow: var(--shadow2); }
 .btn:active{ transform: translateY(1px); }
@@ -166,7 +201,19 @@ a{ color:inherit; text-decoration:none; }
 .btn.ghost{
   background: var(--surface2);
 }
-.btn.sm{ padding:8px 10px; border-radius:12px; font-size:13px; }
+.btn.ghost:hover{
+  background: rgba(241,245,249,.85);
+  border-color: rgba(29,78,216,.18);
+}
+
+.btn.sm{
+  padding:8px 10px;
+  border-radius:12px;
+  font-size:13px;
+}
+
+/* Make buttons feel more enterprise: consistent height */
+.btn, .inp, .menu-btn{ min-height: var(--tap); }
 
 /* =========================
    ALERTS
@@ -219,7 +266,7 @@ a{ color:inherit; text-decoration:none; }
 }
 
 .brand-mini{ display:flex; align-items:center; gap:10px; }
-.brand-mini .brand-title{ font-weight:900; }
+.brand-mini .brand-title{ font-weight:950; letter-spacing:.2px; }
 
 .topbar-pill{
   background: rgba(255,255,255,.16);
@@ -227,7 +274,7 @@ a{ color:inherit; text-decoration:none; }
   padding:7px 11px;
   border-radius:999px;
   font-size:12px;
-  font-weight:900;
+  font-weight:950;
   backdrop-filter: blur(6px);
 }
 
@@ -238,38 +285,55 @@ a{ color:inherit; text-decoration:none; }
   min-height: calc(100vh - 60px);
 }
 
-/* Sidebar looks like app drawer */
+/* Sidebar - Amazon-ish drawer */
 .sidebar{
-  background: rgba(255,255,255,.90);
-  backdrop-filter: blur(8px);
-  border-right:1px solid rgba(226,232,240,.9);
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(10px);
+  border-right:1px solid rgba(229,234,242,.95);
   padding:14px;
   display:flex;
   flex-direction:column;
   gap:12px;
 }
 
+/* Nav */
 .nav{ display:flex; flex-direction:column; gap:8px; }
 
+/* Make nav items feel like A to Z: flat + crisp hover */
 .nav-item{
   padding:12px 12px;
   border-radius:14px;
   border:1px solid transparent;
   color: var(--text);
-  font-weight:900;
+  font-weight:950;
   font-size:14px;
   transition:.12s ease;
+  position:relative;
 }
-.nav-item:hover{ background: rgba(15,23,42,.04); }
+.nav-item:hover{
+  background: rgba(15,23,42,.04);
+  border-color: rgba(229,234,242,.95);
+}
 .nav-item.active{
   background: linear-gradient(90deg, rgba(29,78,216,.12), rgba(14,165,233,.10));
   border-color: rgba(29,78,216,.18);
   color: var(--blue);
 }
+.nav-item.active::before{
+  content:"";
+  position:absolute;
+  left:8px;
+  top:10px;
+  bottom:10px;
+  width:3px;
+  border-radius:999px;
+  background: linear-gradient(180deg, var(--blue), var(--blue2));
+}
 
+/* Sidebar footer */
 .sidebar-foot{
   margin-top:auto;
-  border-top:1px solid rgba(226,232,240,.9);
+  border-top:1px solid rgba(229,234,242,.95);
   padding-top:12px;
 }
 
@@ -278,10 +342,10 @@ a{ color:inherit; text-decoration:none; }
   display:inline-block;
   padding:7px 12px;
   border-radius:999px;
-  border:1px solid rgba(226,232,240,.95);
+  border:1px solid rgba(229,234,242,.98);
   font-size:12px;
   background:var(--surface2);
-  font-weight:900;
+  font-weight:950;
 }
 .status-chip.ok{
   border-color: rgba(22,163,74,.25);
@@ -289,6 +353,7 @@ a{ color:inherit; text-decoration:none; }
   color: var(--good);
 }
 
+/* Main content */
 .content{
   padding:16px;
   max-width:980px;
@@ -296,22 +361,32 @@ a{ color:inherit; text-decoration:none; }
   width:100%;
 }
 
-/* page head as card (app header) */
+/* Page head */
 .page-head{
-  background: rgba(255,255,255,.92);
-  border:1px solid rgba(226,232,240,.9);
+  background: rgba(255,255,255,.95);
+  border:1px solid rgba(229,234,242,.95);
   border-radius:20px;
   padding:14px;
   box-shadow: var(--shadow2);
   margin-bottom:12px;
 }
-.page-head h1{ margin:0; font-size:20px; font-weight:900; }
-.subhead{ color:var(--muted); margin-top:4px; font-size:13px; }
+.page-head h1{
+  margin:0;
+  font-size:20px;
+  font-weight:980;
+  letter-spacing:.2px;
+}
+.subhead{
+  color:var(--muted);
+  margin-top:4px;
+  font-size:13px;
+  line-height:1.35;
+}
 
-/* cards (app surfaces) */
+/* Cards */
 .card{
-  background: rgba(255,255,255,.92);
-  border:1px solid rgba(226,232,240,.9);
+  background: rgba(255,255,255,.95);
+  border:1px solid rgba(229,234,242,.95);
   border-radius: 20px;
   padding:14px;
   box-shadow: var(--shadow2);
@@ -327,6 +402,7 @@ a{ color:inherit; text-decoration:none; }
   gap:12px;
 }
 
+/* KV pairs */
 .kv{
   display:grid;
   grid-template-columns: 140px 1fr;
@@ -334,15 +410,28 @@ a{ color:inherit; text-decoration:none; }
   align-items:center;
   margin-top:10px;
 }
-.k{ color:var(--muted); font-size:12px; }
-.v{ font-weight:900; font-size:13px; }
+.k{
+  color:var(--muted);
+  font-size:12px;
+}
+.v{
+  font-weight:950;
+  font-size:13px;
+}
 
-.footer{ margin-top:16px; font-size:12px; color:var(--muted); }
+/* Footer */
+.footer{
+  margin-top:16px;
+  font-size:12px;
+  color:var(--muted);
+}
 
 /* stagebar spacing */
 #stagebar{ margin:10px 0 14px; }
 
-/* Toast */
+/* =========================
+   TOAST
+   ========================= */
 .toast{
   position:fixed;
   left:50%;
@@ -357,6 +446,7 @@ a{ color:inherit; text-decoration:none; }
   box-shadow: var(--shadow3);
   font-size:13px;
   z-index:9999;
+  max-width: min(520px, calc(100vw - 24px));
 }
 .toast.show{
   opacity:1;
@@ -367,33 +457,41 @@ a{ color:inherit; text-decoration:none; }
    COMPONENTS USED
    ===================== */
 
-/* admin list items */
+/* Admin list items (clean rows) */
 .list-item{
   display:flex;
   align-items:flex-start;
   justify-content:space-between;
   gap:12px;
   padding:12px;
-  border:1px solid rgba(226,232,240,.95);
+  border:1px solid rgba(229,234,242,.98);
   border-radius:18px;
-  background: rgba(255,255,255,.92);
+  background: rgba(255,255,255,.95);
   box-shadow: var(--shadow2);
   margin-top:10px;
 }
-.li-title{ font-weight:900; font-size:13px; line-height:1.25; }
-.li-sub{ font-size:12px; margin-top:4px; line-height:1.35; }
+.li-title{
+  font-weight:950;
+  font-size:13px;
+  line-height:1.25;
+}
+.li-sub{
+  font-size:12px;
+  margin-top:4px;
+  line-height:1.35;
+}
 
 .stack{ margin-top:10px; }
 
-/* notes */
-.note-title{ font-weight:900; }
+/* Notes */
+.note-title{ font-weight:950; }
 .note-body{ font-size:13px; }
 
 /* UL */
 .ul{ padding-left:18px; margin:0; }
 .ul li{ margin:6px 0; }
 
-/* checkboxes */
+/* Checkboxes */
 .checkrow input{
   width:18px;
   height:18px;
@@ -403,6 +501,20 @@ a{ color:inherit; text-decoration:none; }
 /* inside cards spacing */
 .card .btn{ margin-top:10px; }
 .card .inp + .inp{ margin-top:10px; }
+
+/* Better <select> feel */
+select.inp{
+  appearance:none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(15,23,42,.55) 50%),
+    linear-gradient(135deg, rgba(15,23,42,.55) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(1em + 6px),
+    calc(100% - 13px) calc(1em + 6px);
+  background-size:5px 5px, 5px 5px;
+  background-repeat:no-repeat;
+  padding-right:38px;
+}
 
 /* =====================
    MOBILE MENU
@@ -421,6 +533,7 @@ a{ color:inherit; text-decoration:none; }
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
+.menu-btn:hover{ filter: brightness(1.02); }
 .menu-ico{ width:18px; height:12px; position:relative; }
 .menu-ico span{
   position:absolute; left:0; right:0;
@@ -448,7 +561,11 @@ a{ color:inherit; text-decoration:none; }
   .shell{ grid-template-columns: 1fr; }
   .grid2{ grid-template-columns: 1fr; }
 
-  .menu-btn{ display:flex; align-items:center; justify-content:center; }
+  .menu-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
 
   .sidebar{
     position:fixed;
@@ -456,7 +573,7 @@ a{ color:inherit; text-decoration:none; }
     left:0;
     width:290px;
     height:calc(100dvh - 60px);
-    background: rgba(255,255,255,.96);
+    background: rgba(255,255,255,.97);
     overflow:auto;
     -webkit-overflow-scrolling:touch;
     transform: translateX(-110%);
@@ -464,7 +581,7 @@ a{ color:inherit; text-decoration:none; }
     will-change: transform;
     z-index:2200;
     box-shadow: var(--shadow3);
-    border-right:1px solid rgba(226,232,240,.9);
+    border-right:1px solid rgba(229,234,242,.95);
   }
 
   @supports (-webkit-touch-callout: none) {
@@ -474,6 +591,9 @@ a{ color:inherit; text-decoration:none; }
   .sidebar.open{ transform: translateX(0); }
 
   .content{ padding:14px; }
+
+  /* Make nav items bigger on mobile */
+  .nav-item{ padding:13px 12px; }
 }
 
 /* Auth mobile */
@@ -481,4 +601,31 @@ a{ color:inherit; text-decoration:none; }
   .auth-card{ padding:16px; }
   .row{ flex-direction:column; }
   .btn{ width:100%; }
+  .kv{ grid-template-columns: 1fr; }
+}
+
+/* =========================
+   QUALITY POLISH (Amazon vibe)
+   ========================= */
+
+/* Slightly tighter cards in admin pages, keeps it "dashboard" */
+.app-bg .content .card{
+  background: rgba(255,255,255,.95);
+}
+
+/* Make disabled buttons still look premium */
+.btn:disabled{
+  filter:saturate(.85);
+}
+
+/* Improve focus for keyboard nav */
+:focus-visible{
+  outline:none;
+  box-shadow: var(--ring);
+  border-color: rgba(29,78,216,.55);
+}
+
+/* Reduce motion if user prefers */
+@media (prefers-reduced-motion: reduce){
+  *{ transition:none !important; scroll-behavior:auto !important; }
 }
