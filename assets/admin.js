@@ -1,15 +1,17 @@
 import { db, isFirebaseConfigured } from "./firebase.js";
 import { uiSetText, uiToast, escapeHtml } from "./ui.js";
+
+import {
+  collection, query, where, limit, getDocs,
+  doc, getDoc, setDoc, updateDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
 function empIdToNumber(empId){
   if(!empId) return null;
   const m = empId.toUpperCase().match(/^SP(\d+)$/);
   return m ? parseInt(m[1],10) : null;
 }
-import {
-  collection, query, where, limit, getDocs,
-  doc, getDoc, setDoc, deleteDoc, updateDoc,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 // ✅ rango para NO entrar 1x1
 const EMP_ID_RANGE = { min: 23, max: 200 };
@@ -39,30 +41,37 @@ async function ensureAdmin(user){
 // ---------- Normalize Employee ID ----------
 function normalizeEmpId(input){
   if(!input) return "";
-
   let v = input.toString().toUpperCase().trim();
-
   v = v.replace(/[\s-_]/g,"");
-
   if(!v.startsWith("SP")) return "";
-
   const nums = v.slice(2);
-
   if(!/^\d+$/.test(nums)) return "";
-
   return "SP" + nums;
 }
-
 
 // ---------- Default employee record (keyed by empId) ----------
 function defaultEmployeeRecord(empId){
   return {
     employeeId: empId,
 
+    // ✅ existing
     appointment: { date:"", time:"", address:"", notes:"" },
-
     notifications: [],
     contacts: {},
+
+    // ✅ READY for new modules (won't break old records)
+    schedule: {
+      monday:   { start:"", end:"", type:"work" },
+      tuesday:  { start:"", end:"", type:"work" },
+      wednesday:{ start:"", end:"", type:"work" },
+      thursday: { start:"", end:"", type:"work" },
+      friday:   { start:"", end:"", type:"work" },
+      saturday: { start:"", end:"", type:"off" },
+      sunday:   { start:"", end:"", type:"off" }
+    },
+    deposit: { bankName:"", last4Account:"" },
+    hours: { weekStart:"", totalHours:0, overtime:0 },
+    payroll: { enabled:false }, // stubs vendrán después
 
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
@@ -72,12 +81,12 @@ function defaultEmployeeRecord(empId){
 // ---------- (Compatibility) Load a user doc by employeeId (if exists) ----------
 async function loadUserByEmployeeId(empId){
   const usersRef = collection(db,"users");
-  const q = query(usersRef,where("employeeId","==",empId),limit(1));
+  const q = query(usersRef, where("employeeId","==",empId), limit(1));
   const snap = await getDocs(q);
 
   if(snap.empty) return null;
   const d = snap.docs[0];
-  return {uid:d.id,data:d.data()};
+  return { uid:d.id, data:d.data() };
 }
 
 // ---------- UI helpers ----------
@@ -92,22 +101,22 @@ function uidKey(p="k"){
 
 // ---------- Appointment ----------
 function fillAppointment(d){
-  q$("aDate").value  = d?.appointment?.date || "";
-  q$("aTime").value  = d?.appointment?.time || "";
-  q$("aAddr").value  = d?.appointment?.address || "";
-  q$("aNotes").value = d?.appointment?.notes || "";
+  if(q$("aDate"))  q$("aDate").value  = d?.appointment?.date || "";
+  if(q$("aTime"))  q$("aTime").value  = d?.appointment?.time || "";
+  if(q$("aAddr"))  q$("aAddr").value  = d?.appointment?.address || "";
+  if(q$("aNotes")) q$("aNotes").value = d?.appointment?.notes || "";
 }
 
 // ---------- Notifications ----------
 function normalizeNotifs(d){
-  const arr=Array.isArray(d?.notifications)?d.notifications:[];
+  const arr = Array.isArray(d?.notifications) ? d.notifications : [];
   return arr.map(n=>({
-    id:n?.id||uidKey("n"),
-    title:n?.title||"",
-    body:n?.body||"",
-    route:n?.route||"progress",
-    action:n?.action||"Open",
-    createdAt:n?.createdAt||null
+    id: n?.id || uidKey("n"),
+    title: n?.title || "",
+    body: n?.body || "",
+    route: n?.route || "progress",
+    action: n?.action || "Open",
+    createdAt: n?.createdAt || null
   }));
 }
 
@@ -116,7 +125,7 @@ function renderNotifs(){
   if(!el) return;
   el.innerHTML="";
 
-  const list=normalizeNotifs(targetData);
+  const list = normalizeNotifs(targetData);
 
   if(!list.length){
     el.innerHTML=`<div class="small muted">No notifications yet.</div>`;
@@ -149,6 +158,38 @@ function renderNotifs(){
 
     el.appendChild(row);
   });
+}
+
+// ✅ ADD Notification (missing before)
+async function addNotification(){
+  if(!targetEmpId) throw new Error("Load an Employee ID first.");
+
+  const title = (q$("nTitle")?.value || "").trim();
+  const body  = (q$("nBody")?.value || "").trim();
+  const route = (q$("nRoute")?.value || "progress").trim();
+
+  if(!title || !body) throw new Error("Title and message are required.");
+
+  const item = {
+    id: uidKey("n"),
+    title,
+    body,
+    route,
+    action: "Open",
+    createdAt: new Date().toISOString()
+  };
+
+  const next = [...normalizeNotifs(targetData), item];
+  await updateEmployeeRecord({ notifications: next });
+
+  targetData.notifications = next;
+
+  if(q$("nTitle")) q$("nTitle").value = "";
+  if(q$("nBody")) q$("nBody").value = "";
+  if(q$("nRoute")) q$("nRoute").value = "progress";
+
+  uiToast("Notification added.");
+  renderNotifs();
 }
 
 // ---------- Team ----------
@@ -199,6 +240,34 @@ function renderTeam(){
   });
 }
 
+// ✅ ADD Team Member (missing before)
+async function addTeamMember(){
+  if(!targetEmpId) throw new Error("Load an Employee ID first.");
+
+  const name  = (q$("tName")?.value || "").trim();
+  const role  = (q$("tRole")?.value || "").trim();
+  const email = (q$("tEmail")?.value || "").trim();
+  const phone = (q$("tPhone")?.value || "").trim();
+
+  if(!name) throw new Error("Name is required.");
+
+  const key = uidKey("t");
+  const next = { ...normalizeContacts(targetData) };
+  next[key] = { name, role, email, phone, createdAt: new Date().toISOString() };
+
+  await updateEmployeeRecord({ contacts: next });
+
+  targetData.contacts = next;
+
+  if(q$("tName")) q$("tName").value = "";
+  if(q$("tRole")) q$("tRole").value = "";
+  if(q$("tEmail")) q$("tEmail").value = "";
+  if(q$("tPhone")) q$("tPhone").value = "";
+
+  uiToast("Team member added.");
+  renderTeam();
+}
+
 // ---------- Allowed IDs (range-friendly) ----------
 async function ensureAllowed(empId, name=""){
   const n = empIdToNumber(empId);
@@ -208,7 +277,6 @@ async function ensureAllowed(empId, name=""){
   const snap = await getDoc(allowedRef);
 
   if(snap.exists()){
-    // if exists, must be active
     const active = snap.data()?.active === true;
     if(!active) throw new Error("ID exists but is inactive.");
     return true;
@@ -244,7 +312,6 @@ async function removeAllowedId(empId){
   const clean=normalizeEmpId(empId);
   if(!clean) return;
 
-  // Mejor que borrar: dejar inactive (para auditoría)
   const ref=doc(db,"allowedEmployees",clean);
   await setDoc(ref,{ active:false, updatedAt:serverTimestamp() },{merge:true});
 }
@@ -307,6 +374,9 @@ async function ensureEmployeeRecordExists(empId){
   const snap = await getDoc(ref);
   if(!snap.exists()){
     await setDoc(ref, defaultEmployeeRecord(empId), { merge:true });
+  } else {
+    // ✅ ensure new fields exist without overwriting old data
+    await setDoc(ref, defaultEmployeeRecord(empId), { merge:true });
   }
 }
 
@@ -317,7 +387,8 @@ async function updateEmployeeRecord(patch){
   const ref = RECORD_DOC(targetEmpId);
   await setDoc(ref, { ...patch, updatedAt: serverTimestamp() }, { merge:true });
 
-  // ✅ Compatibility: if a real users/{uid} exists with this employeeId, write appointment there too
+  // ✅ Compatibility: if users/{uid} exists for this employeeId, sync appointment there too
+  // (employee.js reads appointment from users/{uid} today)
   if(patch?.appointment){
     const found = await loadUserByEmployeeId(targetEmpId);
     if(found?.uid){
@@ -352,7 +423,7 @@ export async function initAdminApp(user){
       // ✅ allow if exists OR in range (auto create allowed)
       await ensureAllowed(empId);
 
-      // ✅ ensure record doc exists
+      // ✅ ensure record doc exists + has new fields (merge-safe)
       await ensureEmployeeRecordExists(empId);
 
       const rec = await loadEmployeeRecord(empId) || defaultEmployeeRecord(empId);
@@ -402,6 +473,22 @@ export async function initAdminApp(user){
       setText("apptMsg", e?.message || String(e));
     }
   };
+
+  // ✅ ADD NOTIF (was missing)
+  if(q$("btnAddNotif")){
+    q$("btnAddNotif").onclick = async () => {
+      try { await addNotification(); }
+      catch(e){ uiToast(e?.message || String(e)); }
+    };
+  }
+
+  // ✅ ADD TEAM (was missing)
+  if(q$("btnAddTeam")){
+    q$("btnAddTeam").onclick = async () => {
+      try { await addTeamMember(); }
+      catch(e){ uiToast(e?.message || String(e)); }
+    };
+  }
 
   // ADD ID (manual, still works)
   q$("btnAddAllowed").onclick=async()=>{
