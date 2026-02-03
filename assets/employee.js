@@ -829,9 +829,48 @@ function renderHelp(publicData) {
 }
 
 // ---------- Router (FIXED) ----------
-function renderRoute(userData, saveUserPatch, publicData, recordData) {
-  renderStagebar(userData);
+function renderRoute(userData, saveUserPatch, publicData) {
+  const sb = document.getElementById("stagebar");
+  if (sb) sb.innerHTML = ""; // ✅ limpiar siempre
 
+  // ✅ SOLO mostrar stagebar en Progress
+  if (routeName() === "progress") {
+    renderStagebar(userData);
+  }
+
+  const build = document.getElementById("build");
+  if (build) build.textContent = "";
+
+  switch (routeName()) {
+    case "progress": return renderProgress(userData);
+
+    case "roles": return renderRoles(userData, publicData);
+
+    case "shift": return renderShiftSelection(userData, saveUserPatch);
+    case "shift_selection": return renderShiftSelection(userData, saveUserPatch);
+
+    case "footwear": return renderFootwear(userData, saveUserPatch, publicData);
+    case "i9": return renderI9(userData, saveUserPatch);
+
+    case "documents": return renderDocumentsLocked();
+    case "firstday": return renderFirstDayLocked(userData);
+
+    case "notifications": return renderNotifications(userData, publicData);
+    case "help": return renderHelp(publicData);
+
+    // 👇 (por ahora no existen en tu JS; abajo te dejo el fix #2)
+    case "schedule":
+    case "hours":
+    case "payroll":
+    case "timeoff":
+    case "deposit":
+      return renderComingSoonWorkModule(routeName(), userData);
+
+    default:
+      location.hash = "#progress";
+      return;
+  }
+}
   switch (routeName()) {
     case "progress":      return renderProgress(userData, recordData);
 
