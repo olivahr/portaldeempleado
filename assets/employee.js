@@ -1,13 +1,15 @@
 // ===============================
 // Employee Portal (FULL FIXED)
-// - Fix router so pages don't fallback to Progress
-// - Read employeeRecords/{SP###} for appointment/contacts/notifications + future modules
-// - Keep users/{uid} for onboarding progress (shift/footwear/i9/steps)
-// - Global company content from portal/public
-// - Require Employee ID from allowedEmployees/{id}
-// - Show Employee ID in top badge (userBadge)
-// - Hide Admin button unless user is admin
-// - Mobile hamburger opens/closes sidebar (safe, no double listeners)
+// ✅ Stagebar only on #progress
+// ✅ Remove START_WORK_DATE locks (Amazon A to Z style)
+// ✅ Clean router (no duplicate switches)
+// ✅ Read employeeRecords/{SP###} for appointment/contacts/notifications + modules
+// ✅ Keep users/{uid} for onboarding progress (shift/footwear/i9/steps)
+// ✅ Global company content from portal/public
+// ✅ Require Employee ID from allowedEmployees/{id} (range auto-allow optional)
+// ✅ Show Employee ID in top badge (userBadge)
+// ✅ Hide Admin button unless user is admin
+// ✅ Mobile hamburger opens/closes sidebar (safe, no double listeners)
 // ===============================
 
 import { uiSetText, uiToast, escapeHtml } from "./ui.js";
@@ -27,13 +29,6 @@ const RECORD_DOC = (empId) => doc(db, "employeeRecords", empId);
 // ✅ Range auto-allow (so you don't add 180 IDs by hand)
 const EMP_ID_RANGE = { min: 23, max: 200 };
 const AUTO_CREATE_ALLOWED_ID = true;
-
-// ✅ When “real modules” should start showing as active
-const START_WORK_DATE = "2026-03-02"; // March 2
-function isAfterStartWork() {
-  const d = new Date(START_WORK_DATE + "T00:00:00");
-  return Date.now() >= d.getTime();
-}
 
 // ---------- Helpers ----------
 function routeName() {
@@ -75,6 +70,7 @@ function defaultUserDoc(user) {
     status: "active",
     stage: "shift_selection",
 
+    // keep for compat, but appointment real source is employeeRecords
     appointment: { date: "", time: "", address: "", notes: "" },
 
     // ✅ UPDATED steps (adds Safety Footwear + I-9; keeps Docs/First Day locked in person)
@@ -101,8 +97,8 @@ function defaultUserDoc(user) {
 }
 
 /**
- * ✅ FIX CRÍTICO:
- * NO pisa appointment/steps/etc.
+ * ✅ CRITICAL:
+ * Does NOT overwrite steps/appointment/etc.
  * Only ensures doc exists + updates login stamps.
  */
 async function ensureUserDocExists(user) {
@@ -136,7 +132,7 @@ async function isAdminUser(user) {
   try {
     const ref = doc(db, "admins", user.uid);
     const snap = await getDoc(ref);
-    return snap.exists() && snap.data()?.role === "admin";
+    return snap.exists() && (snap.data()?.role === "admin" || snap.data()?.isAdmin === true);
   } catch {
     return false;
   }
@@ -220,7 +216,7 @@ function wireMobileMenuOnce() {
   });
 }
 
-// ---------- Stagebar ----------
+// ---------- Stagebar (ONLY Progress) ----------
 function renderStagebar(userData) {
   const el = document.getElementById("stagebar");
   if (!el) return;
@@ -309,10 +305,10 @@ function renderRoles() {
     `
       <div class="card">
         <div class="alert warn" style="margin-top:0;">
-          🔒 Calendar is not enabled at this time. It will be available after your first day.
+          🔒 Calendar is not enabled at this time.
         </div>
         <div class="muted" style="line-height:1.45;">
-          Your schedule and calendar access will be provided once you begin work.
+          Your schedule and calendar access will be provided once HR enables it.
         </div>
       </div>
     `
@@ -560,17 +556,26 @@ function renderFirstDayLocked(userData, recordData) {
   );
 }
 
-// ---------- NEW MODULE PAGES (A to Z style, safe) ----------
+// ---------- WORK MODULES (Amazon A to Z style: always show, data if exists) ----------
 function renderSchedule(recordData) {
-  const locked = !isAfterStartWork();
   const schedule = recordData?.schedule || {};
 
   const dayRow = (dayKey, label) => {
     const d = schedule?.[dayKey] || {};
-    const type = d.type || (locked ? "off" : "work");
+    const type = d.type || "";
     const start = d.start || "";
     const end = d.end || "";
-    const badge = type === "work" ? "Work" : type === "holiday" ? "Holiday" : "Day Off";
+
+    const badge =
+      type === "work" ? "Work" :
+      type === "holiday" ? "Holiday" :
+      type === "off" ? "Day Off" :
+      "Pending";
+
+    const line =
+      (start && end) ? `${start} – ${end}` :
+      (type === "off") ? "Day Off" :
+      "Pending";
 
     return `
       <div class="card" style="border:1px solid var(--line);border-radius:14px;padding:12px;">
@@ -579,7 +584,7 @@ function renderSchedule(recordData) {
           <div class="small muted" style="font-weight:900;">${escapeHtml(badge)}</div>
         </div>
         <div class="muted" style="margin-top:6px;">
-          ${escapeHtml(start && end ? `${start} – ${end}` : (locked ? "Pending" : "Not assigned"))}
+          ${escapeHtml(line)}
         </div>
       </div>
     `;
@@ -590,8 +595,8 @@ function renderSchedule(recordData) {
     "Weekly schedule overview.",
     `
       <div class="card">
-        <div class="alert ${locked ? "warn" : "ok"}" style="margin-top:0;">
-          ${locked ? "🔒 Schedule will be available starting March 2." : "✅ Schedule is active."}
+        <div class="alert info" style="margin-top:0;">
+          Your schedule will appear here once assigned by HR.
         </div>
       </div>
 
@@ -611,7 +616,6 @@ function renderSchedule(recordData) {
 }
 
 function renderPayroll(recordData) {
-  const locked = !isAfterStartWork();
   const items = Array.isArray(recordData?.payroll) ? recordData.payroll : [];
 
   const list = items.map(p => `
@@ -633,11 +637,8 @@ function renderPayroll(recordData) {
     "Pay stubs and pay periods.",
     `
       <div class="card">
-        <div class="alert ${locked ? "warn" : "ok"}" style="margin-top:0;">
-          ${locked ? "🔒 Payroll will be available after you begin work (March 2)." : "✅ Payroll is active."}
-        </div>
-        <div class="muted" style="margin-top:10px;line-height:1.45;">
-          You will be able to view your pay stubs here once payroll is active.
+        <div class="alert info" style="margin-top:0;">
+          Pay stubs will appear here once uploaded by payroll.
         </div>
       </div>
 
@@ -648,7 +649,6 @@ function renderPayroll(recordData) {
 }
 
 function renderTimeOff(recordData) {
-  const locked = !isAfterStartWork();
   const reqs = Array.isArray(recordData?.timeOffRequests) ? recordData.timeOffRequests : [];
 
   const list = reqs.map(r => `
@@ -671,11 +671,8 @@ function renderTimeOff(recordData) {
     "Request and track time off.",
     `
       <div class="card">
-        <div class="alert ${locked ? "warn" : "ok"}" style="margin-top:0;">
-          ${locked ? "🔒 Time Off requests will be enabled after March 2." : "✅ Time Off requests are enabled."}
-        </div>
-        <div class="muted" style="margin-top:10px;line-height:1.45;">
-          Requests will appear here with status (pending/approved/denied).
+        <div class="alert info" style="margin-top:0;">
+          Requests and approvals will appear here.
         </div>
       </div>
 
@@ -686,7 +683,6 @@ function renderTimeOff(recordData) {
 }
 
 function renderHours(recordData) {
-  const locked = !isAfterStartWork();
   const items = Array.isArray(recordData?.hours) ? recordData.hours : [];
 
   const list = items.map(h => `
@@ -703,8 +699,8 @@ function renderHours(recordData) {
     "Weekly hour summary.",
     `
       <div class="card">
-        <div class="alert ${locked ? "warn" : "ok"}" style="margin-top:0;">
-          ${locked ? "🔒 Hours will show after March 2." : "✅ Hours are available."}
+        <div class="alert info" style="margin-top:0;">
+          Weekly hours will appear here once posted.
         </div>
       </div>
 
@@ -715,14 +711,13 @@ function renderHours(recordData) {
 }
 
 function renderDeposit(recordData) {
-  const locked = !isAfterStartWork();
   const d = recordData?.deposit || {};
   setPage(
     "Direct Deposit",
     "Banking information (view only).",
     `
       <div class="card">
-        <div class="alert ${locked ? "warn" : "info"}" style="margin-top:0;">
+        <div class="alert info" style="margin-top:0;">
           Contact HR to update banking information.
         </div>
 
@@ -759,8 +754,8 @@ function renderTeam(recordData) {
     `
       ${list || `
         <div class="card">
-          <div class="alert warn" style="margin-top:0;">🔒 Team contacts will be added by HR.</div>
-          <div class="muted" style="line-height:1.45;">Once assigned, your supervisor and HR contact will appear here.</div>
+          <div class="alert info" style="margin-top:0;">Team contacts will appear here once assigned.</div>
+          <div class="muted" style="line-height:1.45;">No contacts yet.</div>
         </div>
       `}
     `
@@ -828,53 +823,20 @@ function renderHelp(publicData) {
   );
 }
 
-// ---------- Router (FIXED) ----------
-function renderRoute(userData, saveUserPatch, publicData) {
+// ---------- Router (CLEAN + FIXED) ----------
+function renderRoute(userData, saveUserPatch, publicData, recordData) {
+  // ✅ Always clear stagebar
   const sb = document.getElementById("stagebar");
-  if (sb) sb.innerHTML = ""; // ✅ limpiar siempre
+  if (sb) sb.innerHTML = "";
 
-  // ✅ SOLO mostrar stagebar en Progress
-  if (routeName() === "progress") {
-    renderStagebar(userData);
-  }
-
-  const build = document.getElementById("build");
-  if (build) build.textContent = "";
+  // ✅ Stagebar ONLY in progress
+  if (routeName() === "progress") renderStagebar(userData);
 
   switch (routeName()) {
-    case "progress": return renderProgress(userData);
-
-    case "roles": return renderRoles(userData, publicData);
-
-    case "shift": return renderShiftSelection(userData, saveUserPatch);
-    case "shift_selection": return renderShiftSelection(userData, saveUserPatch);
-
-    case "footwear": return renderFootwear(userData, saveUserPatch, publicData);
-    case "i9": return renderI9(userData, saveUserPatch);
-
-    case "documents": return renderDocumentsLocked();
-    case "firstday": return renderFirstDayLocked(userData);
-
-    case "notifications": return renderNotifications(userData, publicData);
-    case "help": return renderHelp(publicData);
-
-    // 👇 (por ahora no existen en tu JS; abajo te dejo el fix #2)
-    case "schedule":
-    case "hours":
-    case "payroll":
-    case "timeoff":
-    case "deposit":
-      return renderComingSoonWorkModule(routeName(), userData);
-
-    default:
-      location.hash = "#progress";
-      return;
-  }
-}
-  switch (routeName()) {
+    // progress
     case "progress":      return renderProgress(userData, recordData);
 
-    // keep old route (compat)
+    // old route (compat)
     case "roles":         return renderRoles();
 
     // onboarding
@@ -885,11 +847,11 @@ function renderRoute(userData, saveUserPatch, publicData) {
     case "documents":     return renderDocumentsLocked();
     case "firstday":      return renderFirstDayLocked(userData, recordData);
 
-    // modules
+    // modules (always show A to Z style)
     case "schedule":      return renderSchedule(recordData);
+    case "hours":         return renderHours(recordData);
     case "payroll":       return renderPayroll(recordData);
     case "timeoff":       return renderTimeOff(recordData);
-    case "hours":         return renderHours(recordData);
     case "deposit":       return renderDeposit(recordData);
 
     // team + notifications + help
@@ -898,8 +860,6 @@ function renderRoute(userData, saveUserPatch, publicData) {
     case "help":          return renderHelp(publicData);
 
     default:
-      // ✅ DO NOT force progress silently if it's a valid hash typo;
-      // but to keep it simple: go progress
       location.hash = "#progress";
       return;
   }
@@ -908,7 +868,7 @@ function renderRoute(userData, saveUserPatch, publicData) {
 // ---------- Init ----------
 export async function initEmployeeApp() {
   const badge = document.getElementById("userBadge");
-  const statusChip = document.getElementById("statusChip"); // ✅ FIX: your HTML is statusChip
+  const statusChip = document.getElementById("statusShift"); // ✅ FIX: your HTML is statusShift
   const adminBtn = document.getElementById("btnAdminGo");
 
   wireMobileMenuOnce();
@@ -969,7 +929,7 @@ export async function initEmployeeApp() {
         rerender();
       });
 
-      // employeeRecords/{SP###} (admin data that must exist BEFORE user)
+      // employeeRecords/{SP###} (admin data)
       onSnapshot(recordRef, async (snap) => {
         currentRecordData = snap.exists() ? (snap.data() || {}) : {};
 
