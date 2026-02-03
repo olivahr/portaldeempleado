@@ -20,13 +20,13 @@
 
   <div class="topbar-right">
     <div class="topbar-pill" id="adminBadge">Admin</div>
-    <button class="btn sm ghost" id="btnLogout">Log out</button>
+    <button class="btn sm ghost" id="btnLogout" type="button">Log out</button>
   </div>
 </header>
 
 <main class="content">
 
-  <!-- QUICK JUMP (NO JS required) -->
+  <!-- QUICK JUMP -->
   <section class="card">
     <h3 class="h3">Quick Jump</h3>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -47,18 +47,17 @@
     </div>
   </section>
 
-  <!-- SEARCH BY EMPLOYEE ID -->
+  <!-- SEARCH -->
   <section class="card" id="secSearch">
     <h3 class="h3">Search Employee</h3>
 
-    <!-- keep your IDs -->
     <input id="searchEmpId" class="inp" placeholder="SP023">
-    <button class="btn primary" id="btnSearch">Load Employee</button>
+    <button class="btn primary" id="btnSearch" type="button">Load Employee</button>
 
     <div class="small muted" id="searchMsg"></div>
   </section>
 
-  <!-- APPOINTMENT (keep as-is) -->
+  <!-- APPOINTMENT -->
   <section class="card" id="secAppointment">
     <h3 class="h3">Appointment</h3>
 
@@ -67,14 +66,11 @@
     <input id="aAddr" class="inp" placeholder="Address">
     <input id="aNotes" class="inp" placeholder="Notes">
 
-    <button class="btn primary" id="btnSaveAppointment">
-      Save Appointment
-    </button>
-
+    <button class="btn primary" id="btnSaveAppointment" type="button">Save Appointment</button>
     <div class="small muted" id="apptMsg"></div>
   </section>
 
-  <!-- ✅ NEW: SCHEDULE / CALENDAR -->
+  <!-- SCHEDULE / CALENDAR -->
   <section class="card" id="secSchedule">
     <h3 class="h3">Schedule / Calendar</h3>
     <div class="small muted">Assign weekly schedule (Mon–Sun). Type: work / off / holiday.</div>
@@ -161,17 +157,16 @@
     </div>
 
     <div style="height:10px"></div>
-    <button class="btn primary" id="btnSaveSchedule">Save Schedule</button>
+    <button class="btn primary" id="btnSaveSchedule" type="button">Save Schedule</button>
     <div class="small muted" id="scheduleMsg"></div>
   </section>
 
-  <!-- ✅ NEW: PAYROLL -->
+  <!-- PAYROLL -->
   <section class="card" id="secPayroll">
     <h3 class="h3">Payroll</h3>
     <div class="small muted">Upload Pay Stub PDF and attach to employee.</div>
 
     <div style="height:10px"></div>
-
     <input id="pay_payDate" class="inp" type="date" />
     <div class="grid2">
       <input id="pay_periodStart" class="inp" type="date" />
@@ -179,8 +174,7 @@
     </div>
 
     <input id="pay_pdf" class="inp" type="file" accept="application/pdf" />
-
-    <button class="btn primary" id="btnUploadPayStub">Upload Pay Stub</button>
+    <button class="btn primary" id="btnUploadPayStub" type="button">Upload Pay Stub</button>
     <div class="small muted" id="payrollMsg"></div>
 
     <div style="height:12px"></div>
@@ -188,7 +182,7 @@
     <div id="payrollList"></div>
   </section>
 
-  <!-- ✅ NEW: TIME OFF / PTO -->
+  <!-- TIME OFF -->
   <section class="card" id="secTimeOff">
     <h3 class="h3">Time Off Requests</h3>
     <div class="small muted">Review employee requests. Approve / Deny.</div>
@@ -197,7 +191,7 @@
     <div id="timeoffList"></div>
   </section>
 
-  <!-- ✅ NEW: MY HOURS -->
+  <!-- HOURS -->
   <section class="card" id="secHours">
     <h3 class="h3">Hours</h3>
     <div class="small muted">Set weekly total hours and overtime for employee.</div>
@@ -209,7 +203,7 @@
       <input id="hrs_ot" class="inp" placeholder="Overtime Hours (e.g. 5)" />
     </div>
 
-    <button class="btn primary" id="btnSaveHours">Save Hours</button>
+    <button class="btn primary" id="btnSaveHours" type="button">Save Hours</button>
     <div class="small muted" id="hoursMsg"></div>
 
     <div style="height:12px"></div>
@@ -217,7 +211,7 @@
     <div id="hoursList"></div>
   </section>
 
-  <!-- ✅ NEW: DIRECT DEPOSIT -->
+  <!-- DIRECT DEPOSIT -->
   <section class="card" id="secDeposit">
     <h3 class="h3">Direct Deposit</h3>
     <div class="small muted">Employee view is read-only. Admin can update.</div>
@@ -225,11 +219,11 @@
     <div style="height:10px"></div>
     <input id="dep_bankName" class="inp" placeholder="Bank Name">
     <input id="dep_last4" class="inp" placeholder="Last 4 Account Digits (e.g. 1234)">
-    <button class="btn primary" id="btnSaveDeposit">Save Deposit Info</button>
+    <button class="btn primary" id="btnSaveDeposit" type="button">Save Deposit Info</button>
     <div class="small muted" id="depositMsg"></div>
   </section>
 
-  <!-- NOTIFICATIONS (keep as-is, only add routes) -->
+  <!-- NOTIFICATIONS -->
   <section class="card" id="secNotifications">
     <h3 class="h3">Notifications</h3>
 
@@ -244,7 +238,6 @@
       <option value="documents">Documents</option>
       <option value="firstday">First Day</option>
 
-      <!-- new modules -->
       <option value="schedule">Schedule</option>
       <option value="payroll">Payroll</option>
       <option value="timeoff">Time Off</option>
@@ -252,14 +245,11 @@
       <option value="deposit">Direct Deposit</option>
     </select>
 
-    <button class="btn primary" id="btnAddNotif">
-      Add Notification
-    </button>
-
+    <button class="btn primary" id="btnAddNotif" type="button">Add Notification</button>
     <div id="notifList"></div>
   </section>
 
-  <!-- TEAM (keep as-is) -->
+  <!-- TEAM -->
   <section class="card" id="secTeam">
     <h3 class="h3">Team</h3>
 
@@ -268,33 +258,25 @@
     <input id="tEmail" class="inp" placeholder="Email">
     <input id="tPhone" class="inp" placeholder="Phone">
 
-    <button class="btn primary" id="btnAddTeam">
-      Add Team Member
-    </button>
-
+    <button class="btn primary" id="btnAddTeam" type="button">Add Team Member</button>
     <div id="teamList"></div>
   </section>
 
-  <!-- ALLOWED IDS (keep as-is) -->
+  <!-- ALLOWED IDS -->
   <section class="card" id="secAllowed">
     <h3 class="h3">Allowed Employee IDs</h3>
 
     <input id="newEmpId" class="inp" placeholder="SP023">
     <input id="newEmpName" class="inp" placeholder="Name (optional)">
 
-    <button class="btn primary" id="btnAddAllowed">
-      Add ID
-    </button>
-
+    <button class="btn primary" id="btnAddAllowed" type="button">Add ID</button>
     <div id="allowedList"></div>
   </section>
 
-  <!-- ✅ NEW: COMPANY SETTINGS (portal/public) -->
+  <!-- COMPANY SETTINGS -->
   <section class="card" id="secCompany">
     <h3 class="h3">Company Settings</h3>
-    <div class="small muted">
-      These settings appear for all employees (portal/public).
-    </div>
+    <div class="small muted">These settings appear for all employees (portal/public).</div>
 
     <div style="height:10px"></div>
 
@@ -308,7 +290,7 @@
     <input id="co_hrPhone" class="inp" placeholder="HR phone (optional)">
     <input id="co_helpText" class="inp" placeholder="Help message shown in Help page">
 
-    <button class="btn primary" id="btnSaveCompany">Save Company Settings</button>
+    <button class="btn primary" id="btnSaveCompany" type="button">Save Company Settings</button>
     <div class="small muted" id="companyMsg"></div>
   </section>
 
@@ -325,11 +307,7 @@
   });
 
   onAuth(async (user) => {
-    uiSetText(
-      document.getElementById("adminBadge"),
-      user?.email || "Admin"
-    );
-
+    uiSetText(document.getElementById("adminBadge"), user?.email || "Admin");
     await initAdminApp(user);
   });
 </script>
