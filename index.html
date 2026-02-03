@@ -98,21 +98,25 @@
     btnLogin.textContent = isBusy ? "Signing in..." : "Sign in";
   }
 
-  // Where to send employees by default
+  // Routes
   const EMPLOYEE_DEFAULT_URL = "./employee.html#progress";
   const ADMIN_URL = "./admin.html";
 
   // Optional: remember “where user tried to go”
-  // (If later you add protected routes, you can set this before redirecting to index.html)
+  // If later you add protected routes, you can set this before redirecting to index.html
   const intent = sessionStorage.getItem("postLoginIntent") || "";
 
   function goEmployee(){
-    window.location.href = intent && intent.startsWith("./employee.html")
+    const next = (intent && intent.startsWith("./employee.html"))
       ? intent
       : EMPLOYEE_DEFAULT_URL;
+
+    sessionStorage.removeItem("postLoginIntent");
+    window.location.href = next;
   }
 
   function goAdmin(){
+    sessionStorage.removeItem("postLoginIntent");
     window.location.href = ADMIN_URL;
   }
 
@@ -126,7 +130,7 @@
 
   // ✅ ADMIN CHECK (safe, never blocks)
   async function goNextByRole(){
-    // If firebase not configured → employee (preview safe)
+    // Preview mode → employee (never block)
     try{
       if (typeof isFirebaseConfigured === "function" && !isFirebaseConfigured()){
         goEmployee();
@@ -144,17 +148,22 @@
     }
 
     try{
-      // admins/{uid} { role:"admin" }
+      // admins/{uid} { role:"admin" } OR { isAdmin:true }
       const ref = doc(db, "admins", user.uid);
       const snap = await getDoc(ref);
-      const isAdmin = snap.exists() && snap.data()?.role === "admin";
+
+      const d = snap.exists() ? (snap.data() || {}) : {};
+      const isAdmin = snap.exists() && (d.role === "admin" || d.isAdmin === true);
 
       // If intent asks for admin but user is not admin → ignore and send employee
-      sessionStorage.removeItem("postLoginIntent");
+      if (intent && intent.startsWith("./admin.html") && !isAdmin){
+        goEmployee();
+        return;
+      }
+
       isAdmin ? goAdmin() : goEmployee();
     }catch{
       // Firestore failed / rules / offline → don’t block login
-      sessionStorage.removeItem("postLoginIntent");
       goEmployee();
     }
   }
