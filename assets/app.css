@@ -276,6 +276,9 @@ a{ color:inherit; text-decoration:none; }
   box-shadow: 0 1px 0 rgba(15,23,42,.03);
 }
 
+/* ✅ make cards breathe like an app */
+.card + .card{ margin-top:12px; }
+
 .grid2{
   display:grid;
   grid-template-columns: 1fr 1fr;
@@ -293,6 +296,11 @@ a{ color:inherit; text-decoration:none; }
 .v{ font-weight:900; font-size:13px; }
 
 .footer{ margin-top:16px; font-size:12px; color:var(--muted); }
+
+/* ✅ Stagebar container spacing (prevents “reguero” look) */
+#stagebar{
+  margin:10px 0 14px;
+}
 
 /* Toast */
 .toast{
@@ -314,6 +322,47 @@ a{ color:inherit; text-decoration:none; }
   opacity:1;
   transform:translateX(-50%) translateY(-3px);
 }
+
+/* =====================
+   PORTAL COMPONENTS
+   (Missing styles used by your JS/HTML)
+   ===================== */
+
+/* Lists in admin panels */
+.list-item{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#fff;
+  margin-top:10px;
+}
+.li-title{ font-weight:900; font-size:13px; line-height:1.25; }
+.li-sub{ font-size:12px; margin-top:4px; line-height:1.35; }
+
+.stack{ margin-top:10px; }
+
+/* Notes (notifications page) */
+.note-title{ font-weight:900; }
+.note-body{ font-size:13px; }
+
+/* UL used by employee pages */
+.ul{ padding-left:18px; margin:0; }
+.ul li{ margin:6px 0; }
+
+/* checkbox rows */
+.checkrow input{
+  width:18px;
+  height:18px;
+  margin-top:2px;
+}
+
+/* small horizontal spacing helpers */
+.card .btn{ margin-top:10px; }
+.card .inp + .inp{ margin-top:10px; }
 
 /* =====================
    MOBILE MENU (3 lines)
@@ -391,6 +440,9 @@ a{ color:inherit; text-decoration:none; }
   .sidebar.open{
     transform: translateX(0);
   }
+
+  /* content spacing on phone */
+  .content{ padding:14px; }
 }
 
 /* Auth mobile */
