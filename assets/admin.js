@@ -36,7 +36,8 @@ const RECORD_DOC = (empId) => doc(db, "employeeRecords", empId);
 const PUBLIC_DOC = () => doc(db, "portal", "public");
 
 // ✅ storage folder for paystubs
-const PAYSTUB_PATH = (empId, stubId, filename) => `paystubs/${empId}/${stubId}_${filename || "paystub.pdf"}`;
+const PAYSTUB_PATH = (empId, stubId, filename) =>
+  `paystubs/${empId}/${stubId}_${filename || "paystub.pdf"}`;
 
 let targetEmpId = null;
 let targetData = null;
@@ -70,13 +71,12 @@ function defaultEmployeeRecord(empId){
   return {
     employeeId: empId,
 
-    // existing
     appointment: { date:"", time:"", address:"", notes:"" },
     notifications: [],
     contacts: {},
 
     // ✅ modules aligned with employee.js
-    scheduleEvents: [], // optional future
+    scheduleEvents: [],
     schedule: {
       monday:   { start:"", end:"", type:"work" },
       tuesday:  { start:"", end:"", type:"work" },
@@ -87,9 +87,9 @@ function defaultEmployeeRecord(empId){
       sunday:   { start:"", end:"", type:"off" }
     },
     deposit: { bankName:"", last4Account:"" },
-    hours: [],              // [{weekStart,totalHours,overtime,updatedAt}]
-    payroll: [],            // [{id,payDate,periodStart,periodEnd,fileUrl,fileName,uploadedAt,status}]
-    timeOffRequests: [],    // [{id,type,startDate,endDate,reason,status,createdAt,updatedAt}]
+    hours: [],
+    payroll: [],
+    timeOffRequests: [],
 
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
@@ -171,21 +171,36 @@ async function loadAllowedIds(){
     return;
   }
 
-  snap.forEach(d=>{
-    const x = d.data() || {};
-    const id=d.id;
+  // Sort by numeric part if possible
+  const rows = snap.docs.map(d => ({ id:d.id, data:d.data()||{} }))
+    .sort((a,b)=>{
+      const an = empIdToNumber(a.id); const bn = empIdToNumber(b.id);
+      if(an===null && bn===null) return a.id.localeCompare(b.id);
+      if(an===null) return 1;
+      if(bn===null) return -1;
+      return an - bn;
+    });
 
+  rows.forEach(({id, data:x})=>{
     const row=document.createElement("div");
     row.className="list-item";
+
+    const inactive = x.active === false;
     row.innerHTML=`
       <div>
         <div class="li-title">${escapeHtml(id)}</div>
-        <div class="li-sub muted">${escapeHtml(x.name||"")} ${x.active===false?"• inactive":""}</div>
+        <div class="li-sub muted">
+          ${escapeHtml(x.name||"")}
+          ${inactive ? " • inactive" : ""}
+        </div>
       </div>
-      <button class="btn sm ghost" type="button">Remove</button>
+      <button class="btn sm ghost" type="button">${inactive ? "Inactive" : "Remove"}</button>
     `;
 
-    row.querySelector("button").onclick=async()=>{
+    const btn = row.querySelector("button");
+    btn.disabled = inactive;
+
+    btn.onclick=async()=>{
       try{
         await removeAllowedId(id);
         uiToast("Set inactive.");
@@ -209,15 +224,7 @@ async function loadEmployeeRecord(empId){
 
 async function ensureEmployeeRecordExists(empId){
   const ref = RECORD_DOC(empId);
-  const snap = await getDoc(ref);
-
-  // merge-safe: adds missing fields without overwriting existing ones
   await setDoc(ref, defaultEmployeeRecord(empId), { merge:true });
-
-  // if it didn't exist, above creates it. if it existed, it just fills missing keys.
-  if(!snap.exists()){
-    // no-op
-  }
 }
 
 async function updateEmployeeRecord(patch){
@@ -249,7 +256,6 @@ function fillAppointment(d){
 function fillSchedule(d){
   const sch = d?.schedule || {};
   const g = (day) => sch?.[day] || {};
-
   const set = (id, v) => { const el=q$(id); if(el) el.value = v || ""; };
 
   set("sch_mon_start", g("monday").start);
@@ -328,7 +334,6 @@ async function saveDeposit(){
 // ---------- Hours ----------
 function normalizeHoursArr(d){
   const arr = Array.isArray(d?.hours) ? d.hours : [];
-  // sort newest first by weekStart string
   return [...arr].sort((a,b)=> String(b.weekStart||"").localeCompare(String(a.weekStart||"")));
 }
 
@@ -413,7 +418,6 @@ async function saveHours(){
 // ---------- Payroll ----------
 function normalizePayroll(d){
   const arr = Array.isArray(d?.payroll) ? d.payroll : [];
-  // newest first by uploadedAt if present
   return [...arr].sort((a,b)=> String(b.uploadedAt||"").localeCompare(String(a.uploadedAt||"")));
 }
 
@@ -472,17 +476,14 @@ async function uploadPayStub(){
   if(!payDate) throw new Error("Pay Date is required.");
   if(!periodStart || !periodEnd) throw new Error("Pay period start/end is required.");
   if(!file) throw new Error("Select a PDF file.");
-
   if(file.type !== "application/pdf") throw new Error("File must be a PDF.");
 
-  // Preview mode
   if(!isFirebaseConfigured()){
     uiToast("Preview mode: upload skipped.");
     setText("payrollMsg","Preview mode: not uploaded.");
     return;
   }
 
-  // Upload to Storage
   const storage = getStorage();
   const stubId = uidKey("stub");
   const path = PAYSTUB_PATH(targetEmpId, stubId, file.name);
@@ -508,7 +509,6 @@ async function uploadPayStub(){
   await updateEmployeeRecord({ payroll: next });
   targetData.payroll = next;
 
-  // clear inputs
   if(q$("pay_pdf")) q$("pay_pdf").value = "";
   uiToast("Pay stub uploaded.");
   setText("payrollMsg","Uploaded.");
@@ -754,30 +754,22 @@ async function addTeamMember(){
   renderTeam();
 }
 
-// ---------- Company Settings (optional wiring if inputs exist) ----------
+// ---------- Company Settings (uses YOUR admin.html ids) ----------
 async function saveCompanySettingsIfPresent(){
-  // Esto NO rompe nada si no tienes inputs en admin.html todavía.
   const hasAny =
-    q$("c_shopUrl") || q$("c_fwTitle") ||
-    q$("c_helpPhone") || q$("c_helpEmail") || q$("c_helpText") ||
-    q$("c_siteManagerPhone") || q$("c_siteSafetyPhone") || q$("c_siteAddress");
+    q$("c_shopUrl") ||
+    q$("c_helpPhone") || q$("c_helpEmail") || q$("c_helpText");
 
   if(!hasAny) return;
 
   const patch = {
     footwear: {
-      programTitle: (q$("c_fwTitle")?.value || "").trim(),
       shopUrl: (q$("c_shopUrl")?.value || "").trim()
     },
     help: {
       phone: (q$("c_helpPhone")?.value || "").trim(),
       email: (q$("c_helpEmail")?.value || "").trim(),
       text: (q$("c_helpText")?.value || "").trim()
-    },
-    site: {
-      managerPhone: (q$("c_siteManagerPhone")?.value || "").trim(),
-      safetyPhone: (q$("c_siteSafetyPhone")?.value || "").trim(),
-      address: (q$("c_siteAddress")?.value || "").trim()
     },
     updatedAt: serverTimestamp()
   };
@@ -789,6 +781,19 @@ async function saveCompanySettingsIfPresent(){
 
   await setDoc(PUBLIC_DOC(), patch, { merge:true });
   uiToast("Company settings saved.");
+  setText("companyMsg","Saved.");
+}
+
+// ---------- Optional: show active employee in Admin UI ----------
+function setActiveEmployeeUI(empId){
+  // These are OPTIONAL. If you don't have them in HTML, nothing breaks.
+  const pill = q$("activeEmpPill");
+  const txt  = q$("activeEmpText");
+  const box  = q$("secActiveEmp");
+
+  if(box) box.style.display = empId ? "" : "none";
+  if(pill) pill.textContent = empId ? "Active" : "—";
+  if(txt) txt.textContent  = empId ? empId : "";
 }
 
 // ---------- INIT ----------
@@ -798,7 +803,15 @@ export async function initAdminApp(user){
     return;
   }
 
-  await loadAllowedIds();
+  // Preview: still wire UI, but don’t fetch collections
+  if(isFirebaseConfigured()){
+    await loadAllowedIds();
+  }else{
+    const el=q$("allowedList");
+    if(el) el.innerHTML=`<div class="small muted">Preview mode: connect Firebase to manage Allowed IDs.</div>`;
+  }
+
+  setActiveEmployeeUI("");
 
   // SEARCH BY ID
   q$("btnSearch").onclick = async () => {
@@ -807,6 +820,11 @@ export async function initAdminApp(user){
       const empId = normalizeEmpId(raw);
 
       setText("searchMsg","");
+      setText("apptMsg","");
+      setText("scheduleMsg","");
+      setText("payrollMsg","");
+      setText("hoursMsg","");
+      setText("depositMsg","");
 
       if(!empId){
         setText("searchMsg","Invalid ID format (SP###)");
@@ -814,15 +832,19 @@ export async function initAdminApp(user){
       }
 
       // allow if exists OR in range (auto create allowed)
-      await ensureAllowed(empId);
+      if(isFirebaseConfigured()){
+        await ensureAllowed(empId);
+        await ensureEmployeeRecordExists(empId);
+      }
 
-      // ensure record doc exists + has new fields (merge-safe)
-      await ensureEmployeeRecordExists(empId);
-
-      const rec = await loadEmployeeRecord(empId) || defaultEmployeeRecord(empId);
+      const rec = (isFirebaseConfigured()
+        ? (await loadEmployeeRecord(empId))
+        : null) || defaultEmployeeRecord(empId);
 
       targetEmpId = empId;
       targetData = rec;
+
+      setActiveEmployeeUI(empId);
 
       // fill UI
       fillAppointment(targetData);
@@ -837,9 +859,15 @@ export async function initAdminApp(user){
 
       setText("searchMsg","Loaded " + empId);
       uiToast("Employee loaded.");
+
+      // refresh allowed list after auto-create
+      if(isFirebaseConfigured()){
+        await loadAllowedIds();
+      }
     }catch(e){
       targetEmpId = null;
       targetData = null;
+      setActiveEmployeeUI("");
       setText("searchMsg", e?.message || String(e));
       uiToast(e?.message || String(e));
     }
@@ -938,7 +966,7 @@ export async function initAdminApp(user){
     };
   }
 
-  // COMPANY SETTINGS (solo si existen inputs)
+  // COMPANY SETTINGS
   if(q$("btnSaveCompany")){
     q$("btnSaveCompany").onclick = async () => {
       try{ await saveCompanySettingsIfPresent(); }
