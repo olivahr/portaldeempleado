@@ -1,3 +1,7 @@
+// ===============================
+// Firebase (App/Auth/Firestore/Storage)
+// ===============================
+
 // Firebase core
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 
@@ -7,17 +11,21 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-aut
 // Firestore
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-// Storage (para Payroll PDFs)
+// Storage
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
 
 /**
- * Firebase configuration (TU PROYECTO REAL)
+ * ✅ TU CONFIG REAL
+ * Nota: storageBucket SIEMPRE debe ser *.appspot.com
  */
 const firebaseConfig = {
   apiKey: "AIzaSyAFWdMujLQ8dDcNhjmtMVOTE7CED8DAI10",
   authDomain: "portal-empleado-df279.firebaseapp.com",
   projectId: "portal-empleado-df279",
-  storageBucket: "portal-empleado-df279.firebasestorage.app",
+
+  // ✅ BUCKET REAL (CORRECTO)
+  storageBucket: "portal-empleado-df279.appspot.com",
+
   messagingSenderId: "641787761578",
   appId: "1:641787761578:web:912e2437974c7cb46951d3",
   measurementId: "G-QS8HGPTNRL"
@@ -28,10 +36,10 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// ✅ Storage export (PAYROLL PDFs)
+// ✅ Storage amarrado al mismo app
 export const storage = getStorage(app);
 
-// Used by app
+// Used by app (tu app siempre “real” aquí)
 export function isFirebaseConfigured() {
   return true;
 }
