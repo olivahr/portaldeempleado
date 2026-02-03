@@ -7,6 +7,9 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-aut
 // Firestore
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
+// Storage (para Payroll PDFs)
+import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
+
 /**
  * Firebase configuration (TU PROYECTO REAL)
  */
@@ -20,12 +23,15 @@ const firebaseConfig = {
   measurementId: "G-QS8HGPTNRL"
 };
 
-// Initialize Firebase
+// Init
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// Helper: usado por tu app para saber si Firebase está activo
+// ✅ Storage export (PAYROLL PDFs)
+export const storage = getStorage(app);
+
+// Used by app
 export function isFirebaseConfigured() {
   return true;
 }
