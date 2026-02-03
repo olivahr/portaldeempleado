@@ -1,4 +1,4 @@
-import { db, isFirebaseConfigured } from "./firebase.js";
+import { db, isFirebaseConfigured, storage } from "./firebase.js";
 import { uiSetText, uiToast, escapeHtml } from "./ui.js";
 
 import {
