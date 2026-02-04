@@ -848,4 +848,99 @@ select.inp{
 
 @media (prefers-reduced-motion: reduce){
   *{ transition:none !important; scroll-behavior:auto !important; }
+/* =========================================
+   SUNPOWER FIX PACK (FINAL OVERRIDES)
+   - quita duplo / sombra rara
+   - arregla recorte abajo en iPhone
+   - distribuye tabs bien (sin hueco derecha)
+   - desactiva sidebar en mobile SI ya tienes bottomnav
+   ========================================= */
+
+/* 1) SAFE AREA REAL + espacio para bottom nav */
+:root{
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* 2) Tu content estaba quedándose corto abajo: esto lo deja perfecto */
+@media (max-width: 920px){
+  .content{
+    padding-bottom: calc(var(--tabH) + var(--safe-bottom) + 22px) !important;
+  }
+}
+
+/* 3) Si ya estás usando bottomnav fija, NO dejes sidebar viva en mobile (causa "duplo") */
+@media (max-width: 920px){
+  .sidebar{
+    display:none !important;
+  }
+}
+
+/* 4) BOTTOMNAV (tu nav fijo real) — que se vea PRO y que no se pegue ni deje huecos */
+.bottomnav{
+  position:fixed !important;
+  left:10px !important;
+  right:10px !important;
+  bottom:10px !important;
+  z-index:5000 !important;
+
+  background: rgba(255,255,255,.98) !important;
+  border: 1px solid var(--hair) !important;
+  border-radius: 18px !important;
+
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important; /* 🔥 evita hueco raro */
+  gap:10px !important;
+
+  padding:10px !important;
+  padding-bottom: calc(10px + var(--safe-bottom)) !important;
+
+  box-shadow: 0 -16px 38px rgba(2,6,23,.16) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* cada item ocupa el mismo espacio (no se pega, no deja hueco) */
+.bottomnav .nav-item{
+  flex:1 !important;
+  min-width:0 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  gap:6px !important;
+  padding:10px 8px !important;
+
+  border-radius:14px !important;
+  border:1px solid transparent !important;
+
+  color: rgba(11,18,32,.78) !important;
+  font-weight:1000 !important;
+  font-size:11px !important;
+
+  -webkit-tap-highlight-color: transparent !important;
+  touch-action: manipulation !important;
+}
+
+/* estado activo clean */
+.bottomnav .nav-item.active{
+  background: linear-gradient(90deg, rgba(29,78,216,.12), rgba(14,165,233,.10)) !important;
+  border-color: rgba(29,78,216,.18) !important;
+  color: var(--blue) !important;
+}
+
+/* 5) Mata cualquier "burbujita" / pseudo elementos que estén creando el overlay arriba */
+.nav-item::before,
+.nav-item::after{
+  content:none !important;
+  display:none !important;
+}
+
+/* 6) Si tu topbar o page-head está “montándose raro”, esto elimina sombra/espacio fantasma */
+.page-head{
+  position:relative !important;
+  z-index:2 !important;
+}
 }
