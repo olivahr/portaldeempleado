@@ -895,4 +895,30 @@ select.inp, select.input{
 .bottomnav .nav-item.active .bn-ico{
   color:#2563eb;
 }
+/* ✅ FORCE: bottom nav siempre clickeable */
+.bottomnav,
+.bottomnav * {
+  pointer-events: auto !important;
+}
+
+.bottomnav {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 999999 !important;
+}
+
+/* El SVG no debe “capturar” el tap; que lo capture el <a> */
+.bottomnav svg,
+.bottomnav .bn-ico {
+  pointer-events: none !important;
+}
+
+/* Asegura que cada item sea un botón real */
+.bottomnav .bn-item {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
 }
