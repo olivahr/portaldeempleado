@@ -1,10 +1,10 @@
- // ===============================
+// ===============================
 // Employee Portal (SUNPOWER STYLE, NO EMOJIS)
 // ✅ Bottom Tab Bar mobile: Home / Schedule / Benefits / More (4 tabs)
 // ✅ Desktop keeps sidebar
 // ✅ No "amazon a to z" text anywhere
 // ✅ No "Ask A to Z" button anywhere
-// ✅ iPhone/Android tap fix: buttons + JS navigation + safe-area padding
+// ✅ iPhone/Android tap fix: buttons + JS navigation + safe-area padding (CSS in app.css)
 // ✅ Schedule tabs + real calendar month grid
 // ✅ Uses employeeRecords/{SP###} + portal/public + users/{uid}
 // ✅ Employee ID gate allowedEmployees/{SP###} + optional range auto-allow
@@ -54,14 +54,13 @@ function normalizeStatus(s) {
   const v = String(s || "").trim().toUpperCase();
   return STATUS_ORDER.find(x => x.toUpperCase() === v) || EMPLOYEE_STATUS.APPLICANT;
 }
-
 function statusAtLeast(current, required) {
   const a = STATUS_ORDER.indexOf(normalizeStatus(current));
   const b = STATUS_ORDER.indexOf(normalizeStatus(required));
   return a >= b;
 }
 
-// Route access rules (per your spec)
+// Route access rules
 function canAccessRoute(route, status) {
   const s = normalizeStatus(status);
 
@@ -72,25 +71,26 @@ function canAccessRoute(route, status) {
   }
 
   if (s === EMPLOYEE_STATUS.PRE_ONBOARDING) {
-    return ["home", "progress", "shift", "shift_selection", "firstdayinfo", "help", "notifications", "company"].includes(route);
+    return ["home","progress","shift","shift_selection","firstdayinfo","help","notifications","company"].includes(route);
   }
 
   if (s === EMPLOYEE_STATUS.FIRST_DAY_SCHEDULED) {
     return [
-      "home", "progress", "shift", "shift_selection",
-      "firstday", "firstdayinfo", "i9",
-      "footwear", "footwearshop", "footwearpolicy",
-      "help", "notifications", "company"
+      "home","progress","shift","shift_selection",
+      "firstday","firstdayinfo","i9",
+      "footwear","footwearshop","footwearpolicy",
+      "help","notifications","company"
     ].includes(route);
   }
 
   if (s === EMPLOYEE_STATUS.ACTIVE_EMPLOYEE) {
     return [
-      "home", "progress", "policies", "footwearpolicy", "legal", "company",
-      "schedule", "schedule-timecard", "schedule-findshifts",
-      "hours", "timeoff", "deposit",
-      "help", "notifications",
-      "footwear", "footwearshop", "i9", "firstday", "firstdayinfo"
+      "home","progress","policies","footwearpolicy","legal","company",
+      "schedule","schedule-timecard","schedule-findshifts",
+      "hours","timeoff","deposit",
+      "help","notifications",
+      "footwear","footwearshop","i9","firstday","firstdayinfo",
+      "documents"
     ].includes(route);
   }
 
@@ -104,7 +104,6 @@ function routeGuardRedirect(route, status) {
   if (canAccessRoute(route, status)) return null;
 
   const s = normalizeStatus(status);
-
   if (s === EMPLOYEE_STATUS.APPLICANT) return "#home";
   if (s === EMPLOYEE_STATUS.PRE_ONBOARDING) return "#progress";
   if (s === EMPLOYEE_STATUS.FIRST_DAY_SCHEDULED) return "#firstdayinfo";
@@ -145,187 +144,61 @@ const OFFICIAL_CONTENT = {
   policies: {
     title: "General Warehouse Policies",
     sections: [
-      {
-        h: "Conduct on site",
-        p: [
-          "Respect supervisors and co-workers",
-          "Use professional language",
-          "Follow site rules",
-          "Zero violence or threats",
-          "Zero harassment"
-        ]
-      },
-      {
-        h: "Cell phone use",
-        p: [
-          "In many operational areas, phone use is limited or prohibited",
-          "Use only during breaks",
-          "No use while operating equipment"
-        ]
-      },
-      {
-        h: "Dress code",
-        p: [
-          "Wear safe, comfortable work clothing",
-          "No loose clothing that creates hazards",
-          "Tie back long hair",
-          "Use PPE where required"
-        ]
-      },
-      {
-        h: "Attendance and punctuality",
-        p: [
-          "Punctuality is critical in warehouse operations",
-          "Arrive before your scheduled shift",
-          "Late arrivals may result in warnings",
-          "Absences without notice may result in discipline",
-          "Call-outs: notify before your shift starts"
-        ]
-      }
+      { h: "Conduct on site", p: ["Respect supervisors and co-workers","Use professional language","Follow site rules","Zero violence or threats","Zero harassment"] },
+      { h: "Cell phone use", p: ["In many operational areas, phone use is limited or prohibited","Use only during breaks","No use while operating equipment"] },
+      { h: "Dress code", p: ["Wear safe, comfortable work clothing","No loose clothing that creates hazards","Tie back long hair","Use PPE where required"] },
+      { h: "Attendance and punctuality", p: ["Punctuality is critical in warehouse operations","Arrive before your scheduled shift","Late arrivals may result in warnings","Absences without notice may result in discipline","Call-outs: notify before your shift starts"] }
     ]
   },
 
   firstDay: {
     title: "First Day",
     purpose: "Ensure a legal, safe, and organized start.",
-    bring: [
-      "Valid ID",
-      "I-9 documents",
-      "Approved safety footwear",
-      "Appropriate work clothing"
-    ],
-    flow: [
-      "Arrive 15–20 minutes early",
-      "HR check-in",
-      "Identity confirmation",
-      "I-9 verification",
-      "Safety video",
-      "Risk overview",
-      "Evacuation routes",
-      "Restricted areas",
-      "Supervisor introduction",
-      "Guided first tasks"
-    ],
-    evaluation: [
-      "Punctuality",
-      "Safety attention",
-      "Attitude",
-      "Ability to follow instructions"
-    ]
+    bring: ["Valid ID","I-9 documents","Approved safety footwear","Appropriate work clothing"],
+    flow: ["Arrive 15–20 minutes early","HR check-in","Identity confirmation","I-9 verification","Safety video","Risk overview","Evacuation routes","Restricted areas","Supervisor introduction","Guided first tasks"],
+    evaluation: ["Punctuality","Safety attention","Attitude","Ability to follow instructions"]
   },
 
   i9: {
     title: "I-9 Employment Verification",
     purpose: "Federal requirement.",
-    accepted: [
-      "U.S. Passport",
-      "Permanent Resident Card (Green Card)",
-      "Driver’s License + Social Security card"
-    ],
-    rules: [
-      "Originals only",
-      "Unexpired",
-      "No copies",
-      "Without a valid I-9 you cannot work"
-    ]
+    accepted: ["U.S. Passport","Permanent Resident Card (Green Card)","Driver’s License + Social Security card"],
+    rules: ["Originals only","Unexpired","No copies","Without a valid I-9 you cannot work"]
   },
 
   footwear: {
     title: "Safety Footwear Program",
-    purpose: [
-      "Reduce foot injuries from pallets",
-      "Mobile equipment",
-      "Heavy boxes",
-      "Slips and falls"
-    ],
-    required: [
-      "Required from Day 1",
-      "No approved footwear = no work on the operational floor"
-    ],
-    whereBuy: [
-      "Purchase only through company-authorized store",
-      "Footwear from non-authorized stores is not accepted"
-    ],
-    specs: [
-      "Steel/composite toe",
-      "Slip-resistant",
-      "Certified",
-      "Good condition"
-    ],
-    reimbursement: [
-      "Employee buys approved footwear",
-      "Employee submits receipt",
-      "Safety validates",
-      "Reimbursement included in first payroll"
-    ],
-    reimbursementRules: [
-      "One-time only",
-      "First payroll only",
-      "Receipt required",
-      "Must be purchased through authorized store"
-    ],
-    inspections: [
-      "Safety may inspect at any time",
-      "Damaged footwear must be replaced"
-    ]
+    purpose: ["Reduce foot injuries from pallets","Mobile equipment","Heavy boxes","Slips and falls"],
+    required: ["Required from Day 1","No approved footwear = no work on the operational floor"],
+    whereBuy: ["Purchase only through company-authorized store","Footwear from non-authorized stores is not accepted"],
+    specs: ["Steel/composite toe","Slip-resistant","Certified","Good condition"],
+    reimbursement: ["Employee buys approved footwear","Employee submits receipt","Safety validates","Reimbursement included in first payroll"],
+    reimbursementRules: ["One-time only","First payroll only","Receipt required","Must be purchased through authorized store"],
+    inspections: ["Safety may inspect at any time","Damaged footwear must be replaced"]
   },
 
   payroll: {
     title: "Payroll",
-    how: [
-      "Pay is based on recorded hours",
-      "Cycle: Work → Time recorded → Supervisor approval → Processing → Direct deposit"
-    ],
-    firstPay: [
-      "First pay occurs after completing the payroll cycle",
-      "It may take 1–2 weeks depending on the start date and cycle cutoff"
-    ],
-    errors: [
-      "Report pay errors within 48 hours"
-    ],
-    payStubs: {
-      title: "Pay Stubs",
-      include: ["Hours", "Rate", "Deductions", "Net pay"],
-      note: "Available after the first payroll is processed."
-    }
+    how: ["Pay is based on recorded hours","Cycle: Work → Time recorded → Supervisor approval → Processing → Direct deposit"],
+    firstPay: ["First pay occurs after completing the payroll cycle","It may take 1–2 weeks depending on the start date and cycle cutoff"],
+    errors: ["Report pay errors within 48 hours"],
+    payStubs: { title: "Pay Stubs", include: ["Hours","Rate","Deductions","Net pay"], note: "Available after the first payroll is processed." }
   },
 
   benefits: {
     title: "Benefits",
     note: "Benefits depend on the company and hours worked. May include:",
-    list: [
-      "PTO (if applicable)",
-      "Holiday pay (if applicable)",
-      "On-site training",
-      "Promotion opportunities",
-      "Workplace safety programs"
-    ]
+    list: ["PTO (if applicable)","Holiday pay (if applicable)","On-site training","Promotion opportunities","Workplace safety programs"]
   },
 
   help: {
     title: "Help & Support",
-    body: [
-      "Contact HR for pay, schedules, safety, and documents.",
-      "Use Support Tickets for formal requests (creates a record)."
-    ]
-  },
-
-  emergency: {
-    title: "Safety & Emergencies",
-    body: [
-      "In an emergency call 911.",
-      "Then report to your supervisor."
-    ]
+    body: ["Contact HR for pay, schedules, safety, and documents.","Use Support Tickets for formal requests (creates a record)."]
   },
 
   legal: {
     title: "Legal",
-    bullets: [
-      "Policies may change.",
-      "Safety compliance is mandatory.",
-      "Benefits do not guarantee continued employment.",
-      "Employment may be at-will per state law."
-    ]
+    bullets: ["Policies may change.","Safety compliance is mandatory.","Benefits do not guarantee continued employment.","Employment may be at-will per state law."]
   },
 
   company: {
@@ -344,8 +217,7 @@ const OFFICIAL_CONTENT = {
       { label: "Morning", hours: "6:00 AM – 2:30 PM" },
       { label: "Afternoon", hours: "2:00 PM – 10:30 PM" },
       { label: "Night", hours: "10:00 PM – 6:30 AM" }
-    ],
-    safetyOrSupervisorPhoneNote: "Provided by your supervisor at check-in."
+    ]
   }
 };
 
@@ -356,17 +228,14 @@ function routeName() {
 }
 function navTo(hash) {
   const h = (hash || "#home").startsWith("#") ? hash : `#${hash}`;
-  if (location.hash === h) {
-    // force rerender if needed
-    window.dispatchEvent(new HashChangeEvent("hashchange"));
-  } else {
-    location.hash = h;
-  }
+  if (location.hash === h) window.dispatchEvent(new HashChangeEvent("hashchange"));
+  else location.hash = h;
 }
 function setPage(title, sub, html) {
   uiSetText(document.getElementById("pageTitle"), title);
   uiSetText(document.getElementById("pageSub"), sub);
-  document.getElementById("pageBody").innerHTML = html;
+  const body = document.getElementById("pageBody");
+  if (body) body.innerHTML = html;
 }
 function safe(v, fallback = "—") {
   return (v === undefined || v === null || v === "") ? fallback : v;
@@ -396,15 +265,6 @@ function fmtMonthTitle(year, monthIndex) {
   const d = new Date(year, monthIndex, 1);
   return d.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 }
-function telLink(phone) {
-  const digits = String(phone || "").replace(/[^\d+]/g, "");
-  return digits ? `tel:${digits}` : "tel:0";
-}
-function clamp(n, a, b) {
-  n = Number(n);
-  if (isNaN(n)) return a;
-  return Math.max(a, Math.min(b, n));
-}
 function nowISODate() {
   const d = new Date();
   const y = d.getFullYear();
@@ -421,6 +281,11 @@ function ymd(d) {
     const day = String(x.getDate()).padStart(2, "0");
     return `${y}-${m}-${day}`;
   } catch { return ""; }
+}
+function clamp(n, a, b) {
+  n = Number(n);
+  if (isNaN(n)) return a;
+  return Math.max(a, Math.min(b, n));
 }
 
 // ---------- Default docs ----------
@@ -441,22 +306,9 @@ function defaultPublicContent() {
       hours: OFFICIAL_CONTENT.company.hrHours,
       text: "Choose an option below and we’ll get you taken care of."
     },
-    site: {
-      managerPhone: "",
-      safetyPhone: "",
-      address: OFFICIAL_CONTENT.company.address
-    },
     home: {
-      welcomeShort:
-        "This portal is the official workplace communication system. Review it regularly for safety, schedules, and pay updates.",
-      news: [
-        {
-          title: "SunPower Updates",
-          subtitle: "Company announcements and HR updates",
-          linkText: "All notifications",
-          route: "notifications"
-        }
-      ]
+      welcomeShort: "This portal is the official workplace communication system. Review it regularly for safety, schedules, and pay updates.",
+      news: [{ title: "SunPower Updates", subtitle: "Company announcements and HR updates", linkText: "All notifications", route: "notifications" }]
     },
     footwear: {
       programTitle: OFFICIAL_CONTENT.footwear.title,
@@ -483,7 +335,7 @@ function defaultUserDoc(user) {
       { id: "documents", label: "Complete Onboarding Documents", done: false },
       { id: "firstday", label: "First Day Preparation", done: false }
     ],
-    shift: { position: "", shift: "" },
+    shift: { position: "", shift: "", approved: false },
     footwear: { ack1: false, ack2: false, ack3: false, ack4: false, ack5: false },
     i9: { ack: false },
     employeeId: "",
@@ -496,7 +348,6 @@ function defaultUserDoc(user) {
 
 async function ensureUserDocExists(user) {
   if (!isFirebaseConfigured()) return;
-
   const ref = doc(db, "users", user.uid);
   const snap = await getDoc(ref);
 
@@ -512,16 +363,6 @@ async function ensureUserDocExists(user) {
   } else {
     await setDoc(ref, patch, { merge: true });
   }
-}
-
-async function isAdminUser(user) {
-  if (!isFirebaseConfigured()) return false;
-  try {
-    const ref = doc(db, "admins", user.uid);
-    const snap = await getDoc(ref);
-    const d = snap.exists() ? (snap.data() || {}) : {};
-    return snap.exists() && (d.role === "admin" || d.isAdmin === true);
-  } catch { return false; }
 }
 
 async function ensureEmployeeId(user) {
@@ -560,7 +401,7 @@ async function ensureEmployeeId(user) {
 }
 
 // ===============================
-// ICONS
+// ICONS (NO AMAZON TEXT ANYWHERE)
 // ===============================
 function azIcon(name) {
   const common = `width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -574,377 +415,61 @@ function azIcon(name) {
     chat: `<svg ${common}><path d="M21 15a4 4 0 01-4 4H8l-5 3V7a4 4 0 014-4h10a4 4 0 014 4z"/></svg>`,
     chevR: `<svg ${common}><path d="M9 18l6-6-6-6"/></svg>`,
     chevL: `<svg ${common}><path d="M15 18l-6-6 6-6"/></svg>`,
-    dots: `<svg ${common}><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg>`,
-    search: `<svg ${common}><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>`,
     clock: `<svg ${common}><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg>`
   };
-  return icons[name] || icons.dots;
+  return icons[name] || icons.more;
 }
 
 // ===============================
-// MOBILE TABS + MORE SHEET (FIXED)
+// MOBILE TABS + MORE SHEET (JS ONLY)
 // ===============================
+function isMobile() {
+  return window.matchMedia("(max-width: 920px)").matches;
+}
+
+function killOldDuplicateBars() {
+  // remove old injected style bars or template bars
+  ["azTabs","azMoreOverlay","azMoreSheet","spTabs","spMoreOverlay","spMoreSheet","bottomNav","bottomTabs","mobileTabs","tabbar","footerNav"].forEach(id=>{
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  });
+  document.querySelectorAll(".bottom-nav,.bottom-tabs,.mobile-tabs,.tabbar,.footer-nav").forEach(el=>el.remove());
+}
+
 function ensureChromeOnce() {
+  killOldDuplicateBars();
+
   const btnMenu = document.getElementById("btnMenu");
   if (btnMenu) btnMenu.style.display = "none";
 
   const sidebar = document.getElementById("sidebar");
   if (sidebar) sidebar.style.display = isMobile() ? "none" : "";
 
-  if (document.getElementById("azTabs")) return;
+  if (document.getElementById("spTabs")) return;
 
-  const style = document.createElement("style");
-  style.id = "azStyle";
-  style.textContent = `
-    body.portal.has-tabs .content{
-      padding-bottom: calc(130px + env(safe-area-inset-bottom)) !important;
-    }
-
-    #azTabs{
-      position:fixed; left:0; right:0; bottom:0;
-      z-index:5000;
-      background: rgba(255,255,255,.98);
-      border-top:1px solid rgba(229,234,242,.95);
-      display:none;
-      padding-bottom: env(safe-area-inset-bottom);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 -10px 30px rgba(15,23,42,.08);
-    }
-
-    /* FLEX: no empty holes */
-    #azTabs .az-wrap{
-      max-width:980px;
-      margin:0 auto;
-      height: 84px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding:12px 12px;
-    }
-
-    .az-tab{
-      flex:1;
-      min-width:0;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap:6px;
-      border-radius:14px;
-      padding:10px 6px;
-      border:1px solid transparent;
-      user-select:none;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-      color: rgba(11,18,32,.85);
-      font-weight:900;
-      font-size:11px;
-      background:transparent;
-      cursor:pointer;
-    }
-    .az-ico{
-      width:30px;height:30px;
-      border-radius:999px;
-      display:flex;align-items:center;justify-content:center;
-      background: rgba(2,6,23,.04);
-      color: rgba(2,6,23,.78);
-    }
-    .az-ico svg{ width:18px; height:18px; }
-    .az-tab.active{ color: rgba(29,78,216,1); }
-    .az-tab.active .az-ico{
-      background: rgba(29,78,216,.10);
-      color: rgba(29,78,216,1);
-    }
-
-    #azMoreOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; z-index:6000; }
-    #azMoreSheet{
-      position:fixed; left:0; right:0; bottom:0;
-      background:rgba(255,255,255,.98);
-      border-top-left-radius:20px; border-top-right-radius:20px;
-      border:1px solid rgba(229,234,242,.95);
-      box-shadow: 0 18px 55px rgba(2,6,23,.18);
-      transform: translateY(110%);
-      transition: transform .22s ease;
-      z-index:6100;
-      max-height: 72vh;
-      overflow:auto;
-      padding-bottom: env(safe-area-inset-bottom);
-      -webkit-overflow-scrolling: touch;
-    }
-    #azMoreSheet.open{ transform: translateY(0); }
-
-    .azMoreHead{
-      padding:14px 14px 10px;
-      display:flex;align-items:center;justify-content:space-between;
-      gap:10px;
-      border-bottom:1px solid rgba(229,234,242,.95);
-      position:sticky; top:0; background:rgba(255,255,255,.98);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      z-index:1;
-    }
-    .azMoreTitle{ font-weight:1000; font-size:14px; }
-    .azMoreGrid{ padding:12px 14px 16px; display:grid; grid-template-columns: 1fr; gap:10px; }
-    .azMoreItem{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:10px;
-      padding:12px;
-      border-radius:16px;
-      border:1px solid rgba(229,234,242,.95);
-      background:#fff;
-      box-shadow: 0 10px 24px rgba(15,23,42,.05);
-      font-weight:1000;
-      cursor:pointer;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
-    .azMoreItem .sub{ font-size:12px; font-weight:800; color: var(--muted); margin-top:4px; }
-    .azMoreArrow{ display:flex; align-items:center; justify-content:center; width:18px; height:18px; color: rgba(2,6,23,.45); }
-    .azMoreArrow svg{ width:18px; height:18px; }
-
-    .azTopRow{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:10px; margin-bottom:10px;
-    }
-    .azTopIcons{ display:flex; gap:10px; }
-    .azIconBtn{
-      width:34px; height:34px;
-      border-radius:999px;
-      border:1px solid rgba(229,234,242,.95);
-      background:#fff;
-      display:flex;align-items:center;justify-content:center;
-      box-shadow: 0 10px 22px rgba(15,23,42,.05);
-      color: rgba(2,6,23,.70);
-    }
-    .azIconBtn svg{ width:18px; height:18px; }
-
-    .azHero{
-      border-radius:18px;
-      overflow:hidden;
-      border:1px solid rgba(229,234,242,.95);
-      background: linear-gradient(180deg, rgba(2,6,23,.06), rgba(2,6,23,.02));
-      box-shadow: 0 14px 30px rgba(15,23,42,.06);
-    }
-    .azHeroInner{ padding:12px; }
-    .azHeroTitle{ font-weight:1000; font-size:13px; color: rgba(2,6,23,.78); }
-    .azHeroSub{ margin-top:6px; font-weight:900; font-size:12px; color: rgba(2,6,23,.55); }
-    .azHeroPills{ display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
-    .azPill{
-      padding:7px 10px;
-      border-radius:999px;
-      border:1px solid rgba(229,234,242,.95);
-      background: rgba(255,255,255,.92);
-      font-weight:900;
-      font-size:12px;
-      color: rgba(2,6,23,.72);
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      text-decoration:none;
-    }
-
-    .azRow2{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
-    .azCard{
-      border-radius:16px;
-      border:1px solid rgba(229,234,242,.95);
-      background:#fff;
-      box-shadow: 0 14px 30px rgba(15,23,42,.06);
-      padding:12px;
-    }
-    .azCardTitle{ font-weight:1000; font-size:13px; }
-    .azCardSub{ margin-top:6px; font-weight:900; font-size:12px; color: var(--muted); line-height:1.25; }
-    .azCardLink{
-      margin-top:10px;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      font-weight:1000;
-      font-size:12px;
-      color: rgba(29,78,216,1);
-      text-decoration:none;
-    }
-    .azCardLink svg{ width:16px; height:16px; }
-
-    .azWide{ margin-top:10px; }
-    .azBar{
-      height:10px; border-radius:999px;
-      background: rgba(2,6,23,.08);
-      overflow:hidden;
-      border:1px solid rgba(229,234,242,.95);
-      margin-top:10px;
-    }
-    .azBar > div{
-      height:100%;
-      background: rgba(29,78,216,.45);
-      width:0%;
-    }
-
-    .azTabsTop{
-      display:flex; gap:18px; align-items:center;
-      border-bottom:1px solid rgba(229,234,242,.95);
-      margin: 4px 0 12px;
-      padding-bottom:8px;
-      overflow:auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    .azTabsTop a{
-      text-decoration:none;
-      font-weight:1000;
-      font-size:13px;
-      color: rgba(2,6,23,.55);
-      padding:8px 0;
-      border-bottom:3px solid transparent;
-      white-space:nowrap;
-    }
-    .azTabsTop a.active{
-      color: rgba(2,6,23,.85);
-      border-bottom-color: rgba(29,78,216,.85);
-    }
-
-    .azCalWrap{
-      border-radius:16px;
-      border:1px solid rgba(229,234,242,.95);
-      background:#fff;
-      box-shadow: 0 14px 30px rgba(15,23,42,.06);
-      overflow:hidden;
-    }
-    .azCalHead{
-      display:flex; justify-content:space-between; align-items:center;
-      padding:12px;
-      border-bottom:1px solid rgba(229,234,242,.95);
-    }
-    .azCalMonth{ font-weight:1000; font-size:14px; }
-    .azCalNav{ display:flex; gap:8px; }
-    .azCalBtn{
-      width:34px;height:34px;border-radius:999px;
-      border:1px solid rgba(229,234,242,.95);
-      background:#fff;
-      display:flex;align-items:center;justify-content:center;
-      color: rgba(2,6,23,.70);
-      box-shadow: 0 10px 22px rgba(15,23,42,.05);
-      cursor:pointer;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
-    .azCalGrid{
-      display:grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap:0;
-      padding:10px;
-    }
-    .azCalDow{
-      font-weight:1000;
-      font-size:11px;
-      color: rgba(2,6,23,.45);
-      padding:8px 6px;
-      text-align:center;
-    }
-    .azDay{
-      height:44px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      position:relative;
-      font-weight:1000;
-      font-size:12px;
-      color: rgba(2,6,23,.75);
-      border-radius:10px;
-      margin:2px;
-      cursor:pointer;
-      user-select:none;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
-    .azDay.muted{ color: rgba(2,6,23,.28); font-weight:900; }
-    .azDay.sel{ outline:2px solid rgba(29,78,216,.65); outline-offset:1px; }
-    .azDay.today{ border:1px solid rgba(2,6,23,.18); }
-    .azDay .dot{
-      position:absolute; bottom:6px; left:50%; transform:translateX(-50%);
-      width:5px;height:5px;border-radius:99px;background: rgba(2,6,23,.25);
-    }
-
-    .azLegend{
-      display:flex; gap:14px; flex-wrap:wrap;
-      padding:10px 12px 12px;
-      border-top:1px solid rgba(229,234,242,.95);
-      color: rgba(2,6,23,.55);
-      font-weight:900;
-      font-size:12px;
-    }
-
-    .azQuickGrid{
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap:10px;
-      margin-top:10px;
-    }
-    .azQuick{
-      border-radius:14px;
-      border:1px solid rgba(229,234,242,.95);
-      background:#fff;
-      box-shadow: 0 10px 22px rgba(15,23,42,.05);
-      padding:12px;
-      font-weight:1000;
-      min-height:70px;
-      display:flex;
-      flex-direction:column;
-      justify-content:space-between;
-      color: rgba(2,6,23,.82);
-      text-decoration:none;
-    }
-    .azQuickTop{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
-    .azQuickIcon{
-      width:34px;height:34px;border-radius:12px;
-      background: rgba(2,6,23,.05);
-      display:flex;align-items:center;justify-content:center;
-      color: rgba(2,6,23,.70);
-    }
-    .azQuickIcon svg{ width:18px;height:18px; }
-    .azQuickSub{ margin-top:8px; font-weight:900; font-size:12px; color: rgba(2,6,23,.50); }
-
-    .azPunchRow{
-      display:flex; justify-content:space-between; align-items:center;
-      padding:10px 0;
-      border-top:1px solid rgba(229,234,242,.95);
-      font-weight:1000;
-    }
-    .azPunchRow:first-child{ border-top:none; }
-    .azPunchLeft{ display:flex; flex-direction:column; gap:4px; }
-    .azPunchType{ font-size:12px; color: rgba(2,6,23,.65); }
-    .azPunchTime{ font-size:14px; color: rgba(2,6,23,.85); }
-
-    @media (max-width: 420px){
-      .azRow2{ grid-template-columns: 1fr; }
-      .azQuickGrid{ grid-template-columns: repeat(2,1fr); }
-    }
-  `;
-  document.head.appendChild(style);
-
-  // Bottom tabs (4)
+  // Bottom tabs container
   const tabs = document.createElement("div");
-  tabs.id = "azTabs";
+  tabs.id = "spTabs";
   tabs.innerHTML = `
-    <div class="az-wrap">
-      <button class="az-tab" data-route="home" type="button">
-        <div class="az-ico">${azIcon("home")}</div>
-        <div>Home</div>
+    <div class="spTabsWrap">
+      <button class="spTab" data-route="home" type="button">
+        <div class="spIco">${azIcon("home")}</div>
+        <div class="spLbl">Home</div>
       </button>
 
-      <button class="az-tab" data-route="schedule" type="button">
-        <div class="az-ico">${azIcon("schedule")}</div>
-        <div>Schedule</div>
+      <button class="spTab" data-route="schedule" type="button">
+        <div class="spIco">${azIcon("schedule")}</div>
+        <div class="spLbl">Schedule</div>
       </button>
 
-      <button class="az-tab" data-route="timeoff" type="button">
-        <div class="az-ico">${azIcon("benefits")}</div>
-        <div>Benefits</div>
+      <button class="spTab" data-route="timeoff" type="button">
+        <div class="spIco">${azIcon("benefits")}</div>
+        <div class="spLbl">Benefits</div>
       </button>
 
-      <button class="az-tab" id="azMoreBtn" data-route="more" type="button">
-        <div class="az-ico">${azIcon("more")}</div>
-        <div>More</div>
+      <button class="spTab" id="spMoreBtn" data-route="more" type="button">
+        <div class="spIco">${azIcon("more")}</div>
+        <div class="spLbl">More</div>
       </button>
     </div>
   `;
@@ -952,28 +477,30 @@ function ensureChromeOnce() {
 
   // More overlay + sheet
   const overlay = document.createElement("div");
-  overlay.id = "azMoreOverlay";
+  overlay.id = "spMoreOverlay";
+  overlay.style.display = "none";
   document.body.appendChild(overlay);
 
   const sheet = document.createElement("div");
-  sheet.id = "azMoreSheet";
+  sheet.id = "spMoreSheet";
+  sheet.className = "spMoreSheet";
   sheet.innerHTML = `
-    <div class="azMoreHead">
+    <div class="spMoreHead">
       <div>
-        <div class="azMoreTitle">More</div>
-        <div class="small muted" style="font-weight:900;margin-top:2px;">All portal modules</div>
+        <div class="spMoreTitle">More</div>
+        <div class="spMoreSub">All portal modules</div>
       </div>
-      <button class="btn sm ghost" id="azMoreClose" type="button">Close</button>
+      <button class="spMoreClose" id="spMoreClose" type="button">Close</button>
     </div>
 
-    <div class="azMoreGrid">
+    <div class="spMoreGrid">
       ${moreItem("progress","Progress","Onboarding checklist")}
       ${moreItem("company","Company","Site and HR info")}
       ${moreItem("policies","Policies","Warehouse rules")}
       ${moreItem("firstdayinfo","First Day Info","Arrival and requirements")}
-      ${moreItem("shift","Shift Selection","Choose your preference")}
-      ${moreItem("footwear","Safety Footwear","Program acknowledgement")}
+      ${moreItem("shift_selection","Shift Selection","Choose your preference")}
       ${moreItem("footwearpolicy","Footwear Policy","Rules and reimbursement")}
+      ${moreItem("footwear","Safety Footwear","Program acknowledgement")}
       ${moreItem("i9","I-9","Bring original documents")}
       ${moreItem("documents","Documents","Completed on first day")}
       ${moreItem("firstday","First Day","Check-in details")}
@@ -988,12 +515,12 @@ function ensureChromeOnce() {
 
   function moreItem(route, title, sub) {
     return `
-      <button class="azMoreItem" type="button" data-route="${escapeHtml(route)}">
+      <button class="spMoreItem" type="button" data-route="${escapeHtml(route)}">
         <div>
-          <div>${escapeHtml(title)}</div>
-          <div class="sub">${escapeHtml(sub)}</div>
+          <div class="spMoreItemTitle">${escapeHtml(title)}</div>
+          <div class="spMoreItemSub">${escapeHtml(sub)}</div>
         </div>
-        <div class="azMoreArrow">${azIcon("chevR")}</div>
+        <div class="spMoreArrow">${azIcon("chevR")}</div>
       </button>
     `;
   }
@@ -1007,25 +534,25 @@ function ensureChromeOnce() {
     sheet.classList.remove("open");
   };
 
-  document.getElementById("azMoreBtn").addEventListener("click", openMore);
-  document.getElementById("azMoreClose").addEventListener("click", closeMore);
+  document.getElementById("spMoreBtn").addEventListener("click", openMore);
+  document.getElementById("spMoreClose").addEventListener("click", closeMore);
   overlay.addEventListener("click", closeMore);
 
-  // Wire bottom tabs (tap fix)
-  tabs.querySelectorAll("button.az-tab").forEach(btn => {
+  // Bottom tabs tap wiring (iPhone/Android safe)
+  tabs.querySelectorAll("button.spTab").forEach(btn => {
     const r = btn.getAttribute("data-route");
     if (!r) return;
     if (r === "more") return;
-    btn.addEventListener("click", () => navTo(`#${r}`));
+    btn.addEventListener("click", () => navTo(`#${r}`), { passive: true });
   });
 
-  // Wire More sheet items
+  // More sheet items wiring
   sheet.querySelectorAll("button[data-route]").forEach(btn => {
     btn.addEventListener("click", () => {
       const r = btn.getAttribute("data-route") || "home";
       closeMore();
       navTo(`#${r}`);
-    });
+    }, { passive: true });
   });
 
   applyChromeVisibility();
@@ -1033,7 +560,7 @@ function ensureChromeOnce() {
 }
 
 function applyChromeVisibility() {
-  const tabs = document.getElementById("azTabs");
+  const tabs = document.getElementById("spTabs");
   if (!tabs) return;
 
   const sidebar = document.getElementById("sidebar");
@@ -1045,9 +572,8 @@ function applyChromeVisibility() {
   } else {
     tabs.style.display = "none";
     document.body.classList.remove("has-tabs");
-
-    const overlay = document.getElementById("azMoreOverlay");
-    const sheet = document.getElementById("azMoreSheet");
+    const overlay = document.getElementById("spMoreOverlay");
+    const sheet = document.getElementById("spMoreSheet");
     if (overlay) overlay.style.display = "none";
     if (sheet) sheet.classList.remove("open");
   }
@@ -1055,7 +581,7 @@ function applyChromeVisibility() {
 
 function applyMoreVisibility(status) {
   const s = normalizeStatus(status);
-  const sheet = document.getElementById("azMoreSheet");
+  const sheet = document.getElementById("spMoreSheet");
   if (!sheet) return;
 
   sheet.querySelectorAll("[data-route]").forEach(btn => {
@@ -1067,14 +593,13 @@ function applyMoreVisibility(status) {
 
 function setActiveTabsAndSidebar(statusForGate = EMPLOYEE_STATUS.FULLY_ACTIVE) {
   const r = routeName();
-
   const tabKey =
     (r === "home" || r === "progress") ? "home" :
     (r.startsWith("schedule")) ? "schedule" :
     (r === "timeoff") ? "timeoff" :
     "more";
 
-  document.querySelectorAll("#azTabs .az-tab").forEach(el => {
+  document.querySelectorAll("#spTabs .spTab").forEach(el => {
     const key = el.getAttribute("data-route");
     if (!key) return;
     el.classList.toggle("active", key === tabKey);
@@ -1089,222 +614,782 @@ function setActiveTabsAndSidebar(statusForGate = EMPLOYEE_STATUS.FULLY_ACTIVE) {
 }
 
 // ===============================
-// STAGEBAR (ONLY Progress)
+// PROGRESS (CHECKLIST)
 // ===============================
-function renderStagebar(userData) {
-  const el = document.getElementById("stagebar");
-  if (!el) return;
-
+function stepDone(userData, stepId) {
   const steps = Array.isArray(userData?.steps) ? userData.steps : [];
-  if (!steps.length) { el.innerHTML = ""; return; }
+  const s = steps.find(x => x.id === stepId);
+  return !!s?.done;
+}
+function setStepDoneLocal(userData, stepId, done) {
+  const steps = Array.isArray(userData?.steps) ? userData.steps : [];
+  const idx = steps.findIndex(x => x.id === stepId);
+  if (idx >= 0) steps[idx].done = !!done;
+  return steps;
+}
 
-  const firstPendingIndex = steps.findIndex(s => !s.done);
-  const currentIndex = firstPendingIndex === -1 ? steps.length - 1 : firstPendingIndex;
+// ===============================
+// SCHEDULE / CALENDAR + MODULES
+// ===============================
+function renderScheduleTabs(active) {
+  const tabs = [
+    { id: "schedule", label: "Calendar", href: "#schedule" },
+    { id: "schedule-timecard", label: "Time Card", href: "#schedule-timecard" },
+    { id: "schedule-findshifts", label: "Find Shifts", href: "#schedule-findshifts" }
+  ];
+  return `
+    <div class="azTabsTop">
+      ${tabs.map(t => `<a href="${t.href}" class="${active === t.id ? "active" : ""}">${escapeHtml(t.label)}</a>`).join("")}
+    </div>
+  `;
+}
 
-  const chips = steps.map((s, i) => {
-    const done = !!s.done;
-    const locked = i > currentIndex;
-    const cls = done ? "sb-chip ok" : locked ? "sb-chip lock" : "sb-chip warn";
-    const icon = done ? "✓" : "•";
-    return `
-      <div class="${cls}">
-        <span class="sb-ico">${icon}</span>
-        <span class="sb-lbl">${escapeHtml(s.label || "")}</span>
+function buildCalendarMatrix(year, monthIndex) {
+  const first = new Date(year, monthIndex, 1);
+  const startDow = first.getDay();
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+  const prevDays = new Date(year, monthIndex, 0).getDate();
+
+  const cells = [];
+  for (let i = 0; i < 42; i++) {
+    const dayNum = i - startDow + 1;
+    if (dayNum <= 0) cells.push({ y: year, m: monthIndex - 1, d: prevDays + dayNum, muted: true });
+    else if (dayNum > daysInMonth) cells.push({ y: year, m: monthIndex + 1, d: dayNum - daysInMonth, muted: true });
+    else cells.push({ y: year, m: monthIndex, d: dayNum, muted: false });
+  }
+  return cells;
+}
+
+function renderScheduleCalendar(recordData, publicData) {
+  const now = new Date();
+  const state = window.__calState || { y: now.getFullYear(), m: now.getMonth(), sel: ymd(now) };
+  window.__calState = state;
+
+  const cells = buildCalendarMatrix(state.y, state.m);
+  const dow = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+  const shifts = Array.isArray(publicData?.company?.shifts) ? publicData.company.shifts : OFFICIAL_CONTENT.company.shifts;
+  const appt = recordData?.appointment || {};
+
+  const events = Array.isArray(recordData?.scheduleEvents) ? recordData.scheduleEvents : [];
+  const eventMap = {};
+  events.forEach(ev => {
+    const k = ymd(ev?.date);
+    if (!k) return;
+    if (!eventMap[k]) eventMap[k] = [];
+    eventMap[k].push(ev);
+  });
+
+  const todayKey = ymd(new Date());
+  const selKey = state.sel || todayKey;
+  const selEvents = eventMap[selKey] || [];
+
+  const apptKey = ymd(appt?.date || "");
+  const hasAppt = !!apptKey;
+
+  const cal = `
+    <div class="azCalWrap">
+      <div class="azCalHead">
+        <div class="azCalMonth">${escapeHtml(fmtMonthTitle(state.y, state.m))}</div>
+        <div class="azCalNav">
+          <button class="azCalBtn" id="calPrev" type="button" aria-label="Previous">${azIcon("chevL")}</button>
+          <button class="azCalBtn" id="calNext" type="button" aria-label="Next">${azIcon("chevR")}</button>
+        </div>
       </div>
-    `;
-  }).join("");
 
-  el.innerHTML = `
-    <style>
-      .sb-wrap{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px;}
-      .sb-chip{
-        display:flex;align-items:center;gap:8px;
-        border:1px solid var(--line); background:#fff;
-        border-radius:999px; padding:10px 12px;
-        font-size:12px; font-weight:900;
-        box-shadow: 0 6px 18px rgba(15,23,42,.06);
-      }
-      .sb-chip.ok{border-color:rgba(22,163,74,.25);background:rgba(22,163,74,.08);color:var(--good);}
-      .sb-chip.warn{border-color:rgba(245,158,11,.25);background:rgba(245,158,11,.08);color:#92400e;}
-      .sb-chip.lock{opacity:.55}
-      .sb-ico{width:18px;display:inline-flex;justify-content:center;}
-    </style>
-    <div class="sb-wrap">${chips}</div>
-  `;
-}
+      <div class="azCalGrid">
+        ${dow.map(x => `<div class="azCalDow">${escapeHtml(x)}</div>`).join("")}
+        ${cells.map(c => {
+          const d = new Date(c.y, c.m, c.d);
+          const key = ymd(d);
+          const isToday = key === todayKey;
+          const isSel = key === selKey;
+          const hasDot = !!eventMap[key]?.length || (hasAppt && key === apptKey);
 
-// ===============================
-// UI blocks
-// ===============================
-function sectionHeader(title, right = "") {
-  return `
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
-      <div style="font-weight:1000;font-size:14px;letter-spacing:.2px;">${escapeHtml(title)}</div>
-      ${right ? `<div class="small muted" style="font-weight:900;">${escapeHtml(right)}</div>` : ""}
+          const cls = [
+            "azDay",
+            c.muted ? "muted" : "",
+            isToday ? "today" : "",
+            isSel ? "sel" : ""
+          ].join(" ").trim();
+
+          return `
+            <div class="${cls}" data-date="${escapeHtml(key)}">
+              ${escapeHtml(String(c.d))}
+              ${hasDot ? `<span class="dot"></span>` : ""}
+            </div>
+          `;
+        }).join("")}
+      </div>
     </div>
   `;
+
+  const details = `
+    <div class="azCard" style="margin-top:12px;">
+      <div class="azCardTitle">Selected day</div>
+      <div class="azCardSub">${escapeHtml(fmtDate(selKey))}</div>
+
+      ${hasAppt && apptKey === selKey ? `
+        <div style="margin-top:12px;border-top:1px solid rgba(229,234,242,.95);padding-top:12px;">
+          <div class="azCardTitle">First day appointment</div>
+          <div class="azCardSub">
+            Time: ${escapeHtml(safe(appt?.time, OFFICIAL_CONTENT.company.firstDayArrival))}<br/>
+            Address: ${escapeHtml(safe(appt?.address, OFFICIAL_CONTENT.company.address))}
+          </div>
+          ${appt?.notes ? `<div class="azCardSub" style="margin-top:8px;">${escapeHtml(appt.notes)}</div>` : ""}
+        </div>
+      ` : ""}
+
+      <div style="margin-top:12px;border-top:1px solid rgba(229,234,242,.95);padding-top:12px;">
+        <div class="azCardTitle">Shift information</div>
+        <div class="azCardSub">
+          ${shifts.map(s => `<div style="margin-top:6px;">${escapeHtml(s.label)}: ${escapeHtml(s.hours)}</div>`).join("")}
+        </div>
+      </div>
+
+      <div style="margin-top:12px;border-top:1px solid rgba(229,234,242,.95);padding-top:12px;">
+        <div class="azCardTitle">Events</div>
+        ${selEvents.length ? `
+          <div class="azCardSub">
+            ${selEvents.map(e => `
+              <div style="margin-top:10px;">
+                <div style="font-weight:1000;">${escapeHtml(e.title || "Event")}</div>
+                <div class="muted small" style="margin-top:3px;font-weight:900;">${escapeHtml(safe(e.time,""))} ${escapeHtml(safe(e.location,""))}</div>
+                ${e.note ? `<div class="small" style="margin-top:4px;font-weight:900;color:rgba(2,6,23,.65);">${escapeHtml(e.note)}</div>` : ""}
+              </div>
+            `).join("")}
+          </div>
+        ` : `<div class="azCardSub">No events for this day.</div>`}
+      </div>
+    </div>
+  `;
+
+  return cal + details;
 }
-function ul(items) {
-  const list = Array.isArray(items) ? items : [];
-  if (!list.length) return "";
-  return `<ul class="ul" style="margin-top:8px;">${list.map(x => `<li>${escapeHtml(x)}</li>`).join("")}</ul>`;
+
+function renderSchedule(recordData, publicData) {
+  setPage("Schedule","",`${renderScheduleTabs("schedule")}${renderScheduleCalendar(recordData, publicData)}`);
+
+  const prev = document.getElementById("calPrev");
+  const next = document.getElementById("calNext");
+  if (prev) prev.onclick = () => {
+    const st = window.__calState;
+    let y = st.y, m = st.m - 1;
+    if (m < 0) { m = 11; y -= 1; }
+    window.__calState = { ...st, y, m };
+    navTo("#schedule");
+  };
+  if (next) next.onclick = () => {
+    const st = window.__calState;
+    let y = st.y, m = st.m + 1;
+    if (m > 11) { m = 0; y += 1; }
+    window.__calState = { ...st, y, m };
+    navTo("#schedule");
+  };
+
+  document.querySelectorAll(".azDay[data-date]").forEach(el => {
+    el.addEventListener("click", () => {
+      const date = el.getAttribute("data-date");
+      if (!date) return;
+      window.__calState = { ...(window.__calState || {}), sel: date };
+      navTo("#schedule");
+    }, { passive: true });
+  });
 }
-function azCard(title, sub, linkText, href) {
-  return `
+
+function renderTimecard(recordData) {
+  const punches = Array.isArray(recordData?.timecard) ? recordData.timecard : [];
+  const rows = punches.length ? punches : [
+    { type: "Clock In", time: "—" },
+    { type: "Meal Out", time: "—" },
+    { type: "Meal In", time: "—" },
+    { type: "Clock Out", time: "—" }
+  ];
+
+  setPage("Schedule","",`
+    ${renderScheduleTabs("schedule-timecard")}
     <div class="azCard">
-      <div class="azCardTitle">${escapeHtml(title)}</div>
-      <div class="azCardSub">${escapeHtml(sub)}</div>
-      ${href ? `
-        <a class="azCardLink" href="${escapeHtml(href)}">
-          <span>${escapeHtml(linkText || "Open")}</span>
-          ${azIcon("chevR")}
-        </a>
-      ` : `
-        <div class="azCardSub" style="margin-top:10px;">${escapeHtml(linkText || "")}</div>
-      `}
+      <div class="azCardTitle">Time Card</div>
+      <div class="azCardSub">Today’s punches (recorded by the system).</div>
+      <div style="margin-top:12px;">
+        ${rows.map(r => `
+          <div class="azPunchRow">
+            <div class="azPunchLeft">
+              <div class="azPunchType">${escapeHtml(r.type || "")}</div>
+              <div class="azPunchTime">${escapeHtml(r.time || "—")}</div>
+            </div>
+            <div class="muted small" style="font-weight:900;">${escapeHtml(safe(r.note,""))}</div>
+          </div>
+        `).join("")}
+      </div>
+      <div class="azCardSub" style="margin-top:12px;">If you believe your time is incorrect, submit a ticket within 48 hours.</div>
+      <a class="azCardLink" href="#help"><span>Open support</span>${azIcon("chevR")}</a>
     </div>
-  `;
+  `);
+}
+
+function renderFindShifts(recordData) {
+  const open = Array.isArray(recordData?.openShifts) ? recordData.openShifts : [
+    { date: nowISODate(), shift: "Morning", hours: "6:00 AM – 2:30 PM", spots: 6 },
+    { date: nowISODate(), shift: "Afternoon", hours: "2:00 PM – 10:30 PM", spots: 4 },
+    { date: nowISODate(), shift: "Night", hours: "10:00 PM – 6:30 AM", spots: 2 }
+  ];
+
+  setPage("Schedule","",`
+    ${renderScheduleTabs("schedule-findshifts")}
+    <div class="azCard">
+      <div class="azCardTitle">Find Shifts</div>
+      <div class="azCardSub">Available shifts depend on operational needs.</div>
+      <div style="margin-top:12px;">
+        ${open.map(s => `
+          <div class="azPunchRow">
+            <div class="azPunchLeft">
+              <div class="azPunchType">${escapeHtml(fmtDate(s.date))}</div>
+              <div class="azPunchTime">${escapeHtml(s.shift)} • ${escapeHtml(s.hours)}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="muted small" style="font-weight:900;">${escapeHtml(String(s.spots || 0))} spots</div>
+              <button class="btn sm" type="button" data-claim="${escapeHtml(s.date)}|${escapeHtml(s.shift)}">Request</button>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+      <div class="azCardSub" style="margin-top:12px;">Requests are reviewed by supervision based on staffing needs.</div>
+    </div>
+  `);
+
+  document.querySelectorAll("[data-claim]").forEach(btn => {
+    btn.addEventListener("click", () => uiToast("Request submitted."), { passive: true });
+  });
 }
 
 // ===============================
-// HOME
+// BASIC RENDERS (no locks, just "completed on first day")
 // ===============================
+function ul(items){
+  const list = Array.isArray(items) ? items : [];
+  if(!list.length) return "";
+  return `<ul class="ul" style="margin-top:8px;">${list.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul>`;
+}
+
 function statusBannerText(status) {
   const s = normalizeStatus(status);
-  if (s === EMPLOYEE_STATUS.APPLICANT) {
-    return "Status: Applicant. Review the portal for next steps. HR will contact you if additional information is needed.";
-  }
-  if (s === EMPLOYEE_STATUS.PRE_ONBOARDING) {
-    return "Status: Pre-onboarding. Confirm your shift preference and review first day requirements.";
-  }
-  if (s === EMPLOYEE_STATUS.FIRST_DAY_SCHEDULED) {
-    return "Status: First day scheduled. Review arrival instructions, I-9 requirements, and safety footwear policy.";
-  }
-  if (s === EMPLOYEE_STATUS.ACTIVE_EMPLOYEE) {
-    return "Status: Active employee. Review site policies, safety information, and HR support options.";
-  }
-  if (s === EMPLOYEE_STATUS.PAYROLL_ACTIVE) {
-    return "Status: Payroll active. Pay and pay stubs are available when posted by payroll.";
-  }
-  if (s === EMPLOYEE_STATUS.FULLY_ACTIVE) {
-    return "Status: Fully active. Full access to portal modules.";
-  }
+  if (s === EMPLOYEE_STATUS.APPLICANT) return "Status: Applicant. Review the portal for next steps. HR will contact you if additional information is needed.";
+  if (s === EMPLOYEE_STATUS.PRE_ONBOARDING) return "Status: Pre-onboarding. Confirm your shift preference and review first day requirements.";
+  if (s === EMPLOYEE_STATUS.FIRST_DAY_SCHEDULED) return "Status: First day scheduled. Review arrival instructions, I-9 requirements, and safety footwear policy.";
+  if (s === EMPLOYEE_STATUS.ACTIVE_EMPLOYEE) return "Status: Active employee. Review site policies, safety information, and HR support options.";
+  if (s === EMPLOYEE_STATUS.PAYROLL_ACTIVE) return "Status: Payroll active. Pay and pay stubs are available when posted by payroll.";
+  if (s === EMPLOYEE_STATUS.FULLY_ACTIVE) return "Status: Fully active. Full access to portal modules.";
   return "Status: Active.";
 }
 
-function renderHome(publicData, recordData, userData) {
+function renderHome(publicData, recordData, userData){
   const news = Array.isArray(publicData?.home?.news) ? publicData.home.news : defaultPublicContent().home.news;
-
-  const punches = Array.isArray(recordData?.punchesToday) ? recordData.punchesToday : [];
-  const punchesCount = punches.length;
 
   const maxHours = clamp(recordData?.maxHours?.max || 60, 1, 120);
   const scheduledMin = clamp(recordData?.maxHours?.scheduledMinutes || 0, 0, 100000);
   const remainingMin = Math.max(0, (maxHours * 60) - scheduledMin);
   const pct = clamp((scheduledMin / (maxHours * 60)) * 100, 0, 100);
 
+  const punches = Array.isArray(recordData?.punchesToday) ? recordData.punchesToday : [];
+  const punchesCount = punches.length;
+
   const userStatus = normalizeStatus(userData?.status);
 
-  setPage(
-    "Home",
-    "",
-    `
-      <div class="azTopRow">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="font-weight:1000;color:rgba(2,6,23,.75);">SunPower Portal</div>
-        </div>
-        <div class="azTopIcons">
-          <a class="azIconBtn" href="#help" aria-label="Help">${azIcon("chat")}</a>
-          <a class="azIconBtn" href="#notifications" aria-label="Notifications">${azIcon("bell")}</a>
+  setPage("Home","",`
+    <div class="azTopRow">
+      <div style="font-weight:1000;color:rgba(2,6,23,.75);">SunPower Portal</div>
+      <div class="azTopIcons">
+        <a class="azIconBtn" href="#help" aria-label="Help">${azIcon("chat")}</a>
+        <a class="azIconBtn" href="#notifications" aria-label="Notifications">${azIcon("bell")}</a>
+      </div>
+    </div>
+
+    <div class="azHero">
+      <div class="azHeroInner">
+        <div class="azHeroTitle">${escapeHtml(news?.[0]?.title || "SunPower Updates")}</div>
+        <div class="azHeroSub">${escapeHtml(news?.[0]?.subtitle || "Company announcements and HR updates")}</div>
+        <div class="azHeroPills">
+          <a class="azPill" href="#notifications"><span>${escapeHtml(news?.[0]?.linkText || "All notifications")}</span>${azIcon("chevR")}</a>
+          <a class="azPill" href="#company"><span>Company</span>${azIcon("chevR")}</a>
+          <a class="azPill" href="#policies"><span>Policies</span>${azIcon("chevR")}</a>
         </div>
       </div>
+    </div>
 
-      <div class="azHero">
-        <div class="azHeroInner">
-          <div class="azHeroTitle">${escapeHtml(news?.[0]?.title || "SunPower Updates")}</div>
-          <div class="azHeroSub">${escapeHtml(news?.[0]?.subtitle || "Company announcements and HR updates")}</div>
-          <div class="azHeroPills">
-            <a class="azPill" href="#notifications">
-              <span>${escapeHtml(news?.[0]?.linkText || "All notifications")}</span>
-              ${azIcon("chevR")}
-            </a>
-            <a class="azPill" href="#company"><span>Company</span>${azIcon("chevR")}</a>
-            <a class="azPill" href="#policies"><span>Policies</span>${azIcon("chevR")}</a>
-          </div>
-        </div>
+    <div class="azCard" style="margin-top:10px;">
+      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.home.title)}</div>
+      <div class="azCardSub" style="line-height:1.45;">${escapeHtml(statusBannerText(userStatus))}</div>
+      <div class="azCardSub" style="margin-top:10px;line-height:1.45;">
+        ${OFFICIAL_CONTENT.home.body.map(x => `<div style="margin-top:6px;">${escapeHtml(x)}</div>`).join("")}
       </div>
+      <a class="azCardLink" href="#progress"><span>View checklist</span>${azIcon("chevR")}</a>
+    </div>
 
-      <div style="height:10px"></div>
-
+    <div class="azRow2" style="margin-top:10px;">
       <div class="azCard">
-        <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.home.title)}</div>
-        <div class="azCardSub" style="line-height:1.45;">
-          ${escapeHtml(statusBannerText(userStatus))}
-        </div>
-        <div class="azCardSub" style="margin-top:10px;line-height:1.45;">
-          ${OFFICIAL_CONTENT.home.body.map(x => `<div style="margin-top:6px;">${escapeHtml(x)}</div>`).join("")}
-        </div>
-        <a class="azCardLink" href="#progress">
-          <span>View checklist</span>
-          ${azIcon("chevR")}
-        </a>
+        <div class="azCardTitle">First day info</div>
+        <div class="azCardSub">Arrival time, address, what to bring, and day 1 flow.</div>
+        <a class="azCardLink" href="#firstdayinfo"><span>Open</span>${azIcon("chevR")}</a>
       </div>
-
-      <div class="azWide">
-        <div class="azRow2">
-          ${azCard(
-            "First day info",
-            "Arrival time, address, what to bring, and day 1 flow.",
-            "Open",
-            "#firstdayinfo"
-          )}
-          ${azCard(
-            "Safety footwear",
-            "Required from Day 1. Shop approved footwear and review reimbursement rules.",
-            "Open",
-            "#footwearpolicy"
-          )}
-        </div>
+      <div class="azCard">
+        <div class="azCardTitle">Safety footwear</div>
+        <div class="azCardSub">Required from Day 1. Review reimbursement rules.</div>
+        <a class="azCardLink" href="#footwearpolicy"><span>Open</span>${azIcon("chevR")}</a>
       </div>
+    </div>
 
-      <div class="azWide">
-        <div class="azCard">
-          <div class="azCardTitle">${escapeHtml(String(maxHours))}h max</div>
-          <div class="azCardSub">
-            ${escapeHtml(Math.floor(scheduledMin / 60))}h ${escapeHtml(String(scheduledMin % 60).padStart(2,"0"))}m scheduled
-            &nbsp;&nbsp;•&nbsp;&nbsp;
-            ${escapeHtml(Math.floor(remainingMin / 60))}h ${escapeHtml(String(remainingMin % 60).padStart(2,"0"))}m remaining
-          </div>
-          <div class="azBar"><div style="width:${pct.toFixed(0)}%"></div></div>
-        </div>
+    <div class="azCard" style="margin-top:10px;">
+      <div class="azCardTitle">${escapeHtml(String(maxHours))}h max</div>
+      <div class="azCardSub">
+        ${escapeHtml(Math.floor(scheduledMin / 60))}h ${escapeHtml(String(scheduledMin % 60).padStart(2,"0"))}m scheduled
+        &nbsp;&nbsp;•&nbsp;&nbsp;
+        ${escapeHtml(Math.floor(remainingMin / 60))}h ${escapeHtml(String(remainingMin % 60).padStart(2,"0"))}m remaining
       </div>
+      <div class="azBar"><div style="width:${pct.toFixed(0)}%"></div></div>
+    </div>
 
-      <div class="azWide">
-        <div class="azCard">
-          <div class="azCardTitle">${escapeHtml(String(punchesCount))} punches today</div>
-          <div class="azCardSub">Last clocked in at ${escapeHtml(safe(recordData?.lastClockedIn, "—"))}</div>
-          <a class="azCardLink" href="#schedule-timecard">
-            <span>Open timecard</span>
-            ${azIcon("chevR")}
-          </a>
-        </div>
-      </div>
+    <div class="azCard" style="margin-top:10px;">
+      <div class="azCardTitle">${escapeHtml(String(punchesCount))} punches today</div>
+      <div class="azCardSub">Last clocked in at ${escapeHtml(safe(recordData?.lastClockedIn, "—"))}</div>
+      <a class="azCardLink" href="#schedule-timecard"><span>Open timecard</span>${azIcon("chevR")}</a>
+    </div>
 
-      <div class="azWide">
-        <div class="azCard">
-          <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.home.responsibilityTitle)}</div>
-          ${ul(OFFICIAL_CONTENT.home.responsibility)}
-        </div>
-      </div>
+    <div class="azCard" style="margin-top:10px;">
+      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.home.responsibilityTitle)}</div>
+      ${ul(OFFICIAL_CONTENT.home.responsibility)}
+    </div>
 
-      <div class="azWide">
-        <div class="azCard">
-          <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.home.confidentialityTitle)}</div>
-          ${ul(OFFICIAL_CONTENT.home.confidentiality)}
-        </div>
-      </div>
-
-      <div style="height:8px"></div>
-    `
-  );
+    <div class="azCard" style="margin-top:10px;">
+      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.home.confidentialityTitle)}</div>
+      ${ul(OFFICIAL_CONTENT.home.confidentiality)}
+    </div>
+  `);
 }
+
+function renderCompany(){
+  setPage("Company","",`
+    <div class="azCard">
+      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.company.name)}</div>
+      <div class="azCardSub">${escapeHtml(OFFICIAL_CONTENT.company.cityState)}</div>
+      <div class="azCardSub" style="margin-top:10px;">
+        Address: ${escapeHtml(OFFICIAL_CONTENT.company.address)}<br/>
+        HR: ${escapeHtml(OFFICIAL_CONTENT.company.hrPhone)}<br/>
+        Email: ${escapeHtml(OFFICIAL_CONTENT.company.hrEmail)}<br/>
+        Hours: ${escapeHtml(OFFICIAL_CONTENT.company.hrHours)}<br/>
+        Pay day: ${escapeHtml(OFFICIAL_CONTENT.company.payDay)}
+      </div>
+    </div>
+  `);
+}
+
+function renderPolicies(){
+  setPage("Policies","",`
+    <div class="azCard">
+      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.policies.title)}</div>
+      ${OFFICIAL_CONTENT.policies.sections.map(s=>`
+        <div style="margin-top:14px;">
+          <div class="azCardTitle">${escapeHtml(s.h)}</div>
+          ${ul(s.p)}
+        </div>
+      `).join("")}
+    </div>
+  `);
+}
+
+function renderFirstDayInfo(recordData){
+  const appt = recordData?.appointment || {};
+  setPage("First Day Info","",`
+    <div class="azCard">
+      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.firstDay.title)}</div>
+      <div class="azCardSub">${escapeHtml(OFFICIAL_CONTENT.firstDay.purpose)}</div>
+
+      <div style="margin-top:14px;">
+        <div class="azCardTitle">Arrival</div>
+        <div class="azCardSub">
+          Time: ${escapeHtml(safe(appt?.time, OFFICIAL_CONTENT.company.firstDayArrival))}<br/>
+          Address: ${escapeHtml(safe(appt?.address, OFFICIAL_CONTENT.company.address))}
+        </div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <div class="azCardTitle">Bring</div>
+        ${ul(OFFICIAL_CONTENT.firstDay.bring)}
+      </div>
+
+      <div style="margin-top:14px;">
+        <div class="azCardTitle">Day 1 flow</div>
+        ${ul(OFFICIAL_CONTENT.firstDay.flow)}
+      </div>
+    </div>
+  `);
+}
+
+function renderI9(){
+  setPage("I-9","",`
+    <div class="azCard">
+      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.i9.title)}</div>
+      <div class="azCardSub">${escapeHtml(OFFICIAL_CONTENT.i9.purpose)}</div>
+      <div style="margin-top:14px;">
+        <div class="azCardTitle">Accepted documents</div>
+        ${ul(OFFICIAL_CONTENT.i9.accepted)}
+      </div>
+      <div style="margin-top:14px;">
+        <div class="azCardTitle">Rules</div>
+        ${ul(OFFICIAL_CONTENT.i9.rules)}
+      </div>
+    </div>
+  `);
+}
+
+function renderFootwearPolicy(){
+  setPage("Footwear Policy","",`
+    <div class="azCard">
+      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.footwear.title)}</div>
+      <div style="margin-top:14px;">
+        <div class="azCardTitle">Purpose</div>
+        ${ul(OFFICIAL_CONTENT.footwear.purpose)}
+      </div>
+      <div style="margin-top:14px;">
+        <div class="azCardTitle">Required</div>
+        ${ul(OFFICIAL_CONTENT.footwear.required)}
+      </div>
+      <div style="margin-top:14px;">
+        <div class="azCardTitle">Specifications</div>
+        ${ul(OFFICIAL_CONTENT.footwear.specs)}
+      </div>
+      <div style="margin-top:14px;">
+        <div class="azCardTitle">Reimbursement</div>
+        ${ul(OFFICIAL_CONTENT.footwear.reimbursement)}
+        <div class="azCardSub" style="margin-top:10px;">
+          Cap: ${escapeHtml(OFFICIAL_CONTENT.company.footwearReimbursementCap)} • Shop: ${escapeHtml(OFFICIAL_CONTENT.company.footwearShop)}
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+function renderDocuments(){
+  setPage("Documents","",`
+    <div class="azCard">
+      <div class="azCardTitle">Documents</div>
+      <div class="azCardSub" style="line-height:1.45;">
+        Onboarding documents are completed on the first day in person with HR.
+      </div>
+    </div>
+  `);
+}
+
+function renderFirstDay(){
+  setPage("First Day","",`
+    <div class="azCard">
+      <div class="azCardTitle">First Day</div>
+      <div class="azCardSub" style="line-height:1.45;">
+        Your first day will be completed on site. Follow your supervisor and HR instructions.
+      </div>
+    </div>
+  `);
+}
+
+function renderTimeOff(){
+  setPage("Benefits","",`
+    <div class="azCard">
+      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.benefits.title)}</div>
+      <div class="azCardSub">${escapeHtml(OFFICIAL_CONTENT.benefits.note)}</div>
+      ${ul(OFFICIAL_CONTENT.benefits.list)}
+    </div>
+  `);
+}
+
+function renderHours(recordData){
+  const wk = Array.isArray(recordData?.weeklyHours) ? recordData.weeklyHours : [];
+  setPage("My Hours","",`
+    <div class="azCard">
+      <div class="azCardTitle">Weekly summary</div>
+      <div class="azCardSub">Recorded hours (view only).</div>
+      <div style="margin-top:12px;">
+        ${wk.length ? wk.map(x=>`
+          <div class="azPunchRow">
+            <div class="azPunchLeft">
+              <div class="azPunchType">${escapeHtml(safe(x.week,"Week"))}</div>
+              <div class="azPunchTime">${escapeHtml(String(safe(x.hours,0)))} hours</div>
+            </div>
+          </div>
+        `).join("") : `<div class="azCardSub">No hours posted yet.</div>`}
+      </div>
+    </div>
+  `);
+}
+
+function renderDeposit(){
+  setPage("Direct Deposit","",`
+    <div class="azCard">
+      <div class="azCardTitle">Direct Deposit</div>
+      <div class="azCardSub">View only. Changes are completed with HR.</div>
+    </div>
+  `);
+}
+
+function renderLegal(){
+  setPage("Legal","",`
+    <div class="azCard">
+      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.legal.title)}</div>
+      ${ul(OFFICIAL_CONTENT.legal.bullets)}
+    </div>
+  `);
+}
+
+function renderHelp(publicData){
+  const phone = publicData?.help?.phone || OFFICIAL_CONTENT.company.hrPhone;
+  const email = publicData?.help?.email || OFFICIAL_CONTENT.company.hrEmail;
+  setPage("Help","",`
+    <div class="azCard">
+      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.help.title)}</div>
+      ${ul(OFFICIAL_CONTENT.help.body)}
+      <div class="azCardSub" style="margin-top:12px;">
+        Phone: ${escapeHtml(phone)}<br/>
+        Email: ${escapeHtml(email)}
+      </div>
+
+      <div style="margin-top:14px;">
+        <div class="azCardTitle">Support Ticket</div>
+        <div class="azCardSub">Creates a formal record.</div>
+        <textarea id="ticketText" class="input" rows="4" placeholder="Describe your request..."></textarea>
+        <button class="btn" id="btnTicket" type="button" style="margin-top:10px;">Submit ticket</button>
+      </div>
+    </div>
+  `);
+}
+
+function renderNotifications(publicData, userData){
+  const global = Array.isArray(publicData?.globalNotifications) ? publicData.globalNotifications : [];
+  const personal = Array.isArray(userData?.notifications) ? userData.notifications : [];
+  const all = [...personal, ...global].slice(0, 50);
+
+  setPage("Notifications","",`
+    <div class="azCard">
+      <div class="azCardTitle">Notifications</div>
+      <div style="margin-top:12px;">
+        ${all.length ? all.map(n=>`
+          <div class="azPunchRow">
+            <div class="azPunchLeft">
+              <div class="azPunchType">${escapeHtml(safe(n.title,"Update"))}</div>
+              <div class="azPunchTime">${escapeHtml(safe(n.body,""))}</div>
+            </div>
+          </div>
+        `).join("") : `<div class="azCardSub">No notifications.</div>`}
+      </div>
+    </div>
+  `);
+}
+
+// ===============================
+// SHIFT SELECTION (choose -> approved -> step done)
+// ===============================
+async function saveShiftSelection(user, empId, shiftLabel){
+  if(!isFirebaseConfigured()) return;
+
+  const userRef = doc(db,"users",user.uid);
+  const recRef = RECORD_DOC(empId);
+
+  // mark approved + step done
+  const userSnap = await getDoc(userRef);
+  const u = userSnap.exists() ? userSnap.data() : {};
+  const steps = setStepDoneLocal(u, "shift_selection", true);
+
+  await setDoc(userRef, {
+    shift: { ...(u.shift || {}), shift: shiftLabel, approved: true },
+    steps,
+    updatedAt: serverTimestamp()
+  }, { merge:true });
+
+  await setDoc(recRef, {
+    shift: { shift: shiftLabel, approved: true, approvedAt: serverTimestamp() }
+  }, { merge:true });
+
+  uiToast("Shift approved.");
+}
+
+function renderShiftSelection(user, empId, userData){
+  const current = safe(userData?.shift?.shift,"");
+  setPage("Shift Selection","",`
+    <div class="azCard">
+      <div class="azCardTitle">Choose your shift</div>
+      <div class="azCardSub">Selecting a shift marks it as approved in your profile.</div>
+
+      <div style="margin-top:12px;">
+        ${OFFICIAL_CONTENT.company.shifts.map(s=>`
+          <button class="btn" type="button" data-shift="${escapeHtml(s.label)}" style="width:100%;margin-top:10px;">
+            ${escapeHtml(s.label)} • ${escapeHtml(s.hours)} ${current===s.label ? "(Selected)" : ""}
+          </button>
+        `).join("")}
+      </div>
+    </div>
+  `);
+
+  document.querySelectorAll("[data-shift]").forEach(btn=>{
+    btn.addEventListener("click", async ()=>{
+      const label = btn.getAttribute("data-shift");
+      if(!label) return;
+      await saveShiftSelection(user, empId, label);
+      navTo("#progress");
+    });
+  });
+}
+
+// ===============================
+// PROGRESS PAGE
+// ===============================
+function renderProgress(userData){
+  const steps = Array.isArray(userData?.steps) ? userData.steps : [];
+  const doneCount = steps.filter(s=>s.done).length;
+  const pct = steps.length ? Math.round((doneCount/steps.length)*100) : 0;
+
+  setPage("Progress","",`
+    <div class="azCard">
+      <div class="azCardTitle">Onboarding checklist</div>
+      <div class="azCardSub">${escapeHtml(String(pct))}% complete</div>
+
+      <div class="azBar" style="margin-top:12px;"><div style="width:${pct}%"></div></div>
+
+      <div style="margin-top:14px;">
+        ${steps.map(s=>`
+          <div class="azPunchRow">
+            <div class="azPunchLeft">
+              <div class="azPunchType">${escapeHtml(s.label || "")}</div>
+              <div class="azPunchTime">${s.done ? "Completed" : "Pending"}</div>
+            </div>
+            <div>
+              ${s.id === "shift_selection" ? `<a class="azCardLink" href="#shift_selection"><span>Open</span>${azIcon("chevR")}</a>` : ""}
+              ${s.id === "footwear" ? `<a class="azCardLink" href="#footwearpolicy"><span>Open</span>${azIcon("chevR")}</a>` : ""}
+              ${s.id === "i9" ? `<a class="azCardLink" href="#i9"><span>Open</span>${azIcon("chevR")}</a>` : ""}
+              ${s.id === "documents" ? `<a class="azCardLink" href="#documents"><span>Info</span>${azIcon("chevR")}</a>` : ""}
+              ${s.id === "firstday" ? `<a class="azCardLink" href="#firstdayinfo"><span>Open</span>${azIcon("chevR")}</a>` : ""}
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `);
+}
+
+// ===============================
+// ROUTER
+// ===============================
+function routeRender(route, publicData, recordData, userData, user, empId){
+  if(route === "home") return renderHome(publicData, recordData, userData);
+  if(route === "progress") return renderProgress(userData);
+  if(route === "schedule") return renderSchedule(recordData, publicData);
+  if(route === "schedule-timecard") return renderTimecard(recordData);
+  if(route === "schedule-findshifts") return renderFindShifts(recordData);
+  if(route === "timeoff") return renderTimeOff();
+  if(route === "hours") return renderHours(recordData);
+  if(route === "deposit") return renderDeposit();
+  if(route === "company") return renderCompany();
+  if(route === "policies") return renderPolicies();
+  if(route === "firstdayinfo") return renderFirstDayInfo(recordData);
+  if(route === "footwearpolicy") return renderFootwearPolicy();
+  if(route === "footwear") return renderFootwearPolicy();
+  if(route === "i9") return renderI9();
+  if(route === "documents") return renderDocuments();
+  if(route === "firstday") return renderFirstDay();
+  if(route === "legal") return renderLegal();
+  if(route === "notifications") return renderNotifications(publicData, userData);
+  if(route === "help") return renderHelp(publicData);
+  if(route === "shift_selection") return renderShiftSelection(user, empId, userData);
+
+  // default
+  return renderHome(publicData, recordData, userData);
+}
+
+// ===============================
+// APP START
+// ===============================
+let unsubPublic = null;
+let unsubRecord = null;
+let unsubUser = null;
+
+function cleanupSubs(){
+  try { if(unsubPublic) unsubPublic(); } catch {}
+  try { if(unsubRecord) unsubRecord(); } catch {}
+  try { if(unsubUser) unsubUser(); } catch {}
+  unsubPublic = unsubRecord = unsubUser = null;
+}
+
+onAuth(async (user)=>{
+  cleanupSubs();
+
+  if(!user){
+    setPage("Sign in","",`<div class="azCard"><div class="azCardTitle">Please sign in.</div></div>`);
+    return;
+  }
+
+  try{
+    ensureChromeOnce();
+    await ensureUserDocExists(user);
+
+    const empId = await ensureEmployeeId(user);
+
+    const userRef = doc(db,"users",user.uid);
+    const pubRef = PUBLIC_DOC();
+    const recRef = RECORD_DOC(empId);
+
+    // live data
+    unsubPublic = onSnapshot(pubRef, (snap)=>{
+      window.__publicData = snap.exists() ? (snap.data()||{}) : defaultPublicContent();
+      window.dispatchEvent(new Event("spData"));
+    });
+
+    unsubRecord = onSnapshot(recRef, (snap)=>{
+      window.__recordData = snap.exists() ? (snap.data()||{}) : {};
+      window.dispatchEvent(new Event("spData"));
+    });
+
+    unsubUser = onSnapshot(userRef, (snap)=>{
+      window.__userData = snap.exists() ? (snap.data()||{}) : defaultUserDoc(user);
+      window.dispatchEvent(new Event("spData"));
+    });
+
+    const rerender = ()=>{
+      const publicData = window.__publicData || defaultPublicContent();
+      const recordData = window.__recordData || {};
+      const userData = window.__userData || defaultUserDoc(user);
+
+      const status = normalizeStatus(userData?.status);
+      const requested = routeName();
+      const redirect = routeGuardRedirect(requested, status);
+      if(redirect) return navTo(redirect);
+
+      setActiveTabsAndSidebar(status);
+      routeRender(requested, publicData, recordData, userData, user, empId);
+
+      // help ticket wiring
+      const btn = document.getElementById("btnTicket");
+      if(btn){
+        btn.onclick = async ()=>{
+          const txt = (document.getElementById("ticketText")?.value || "").trim();
+          if(!txt) return uiToast("Write your request.");
+          await addDoc(TICKETS_COL(), {
+            uid: user.uid,
+            empId,
+            text: txt,
+            createdAt: serverTimestamp()
+          });
+          uiToast("Ticket submitted.");
+          const ta = document.getElementById("ticketText");
+          if(ta) ta.value = "";
+        };
+      }
+    };
+
+    window.addEventListener("hashchange", rerender);
+    window.addEventListener("spData", rerender);
+
+    // first render
+    rerender();
+
+  }catch(e){
+    console.error(e);
+    setPage("Error","",`<div class="azCard"><div class="azCardTitle">Access error</div><div class="azCardSub">${escapeHtml(String(e?.message||e))}</div></div>`);
+  }
+});
