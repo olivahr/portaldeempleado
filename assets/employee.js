@@ -1,14 +1,14 @@
 // ===============================
 // Employee Portal (SUNPOWER STYLE, NO EMOJIS)
-// ✅ Bottom Tab Bar mobile: Home / Schedule / Benefits / More (4 tabs)
-// ✅ Desktop keeps sidebar
-// ✅ No "amazon a to z" text anywhere
-// ✅ No "Ask A to Z" button anywhere
-// ✅ iPhone/Android tap fix: buttons + JS navigation + safe-area padding (CSS in app.css)
-// ✅ Schedule tabs + real calendar month grid
+// ✅ Uses YOUR app.css + YOUR HTML (NO CSS injected here)
+// ✅ NO duplicate tab bars / NO injected bottom bars
+// ✅ Works with existing .nav-item + bottomnav in HTML
+// ✅ iPhone/Android taps: real click wiring for nav items
+// ✅ Schedule calendar month grid + tabs
 // ✅ Uses employeeRecords/{SP###} + portal/public + users/{uid}
 // ✅ Employee ID gate allowedEmployees/{SP###} + optional range auto-allow
 // ✅ Employee STATUS visibility rules (APPLICANT → FULLY ACTIVE)
+// ✅ Shift selection => approved + step done
 // ===============================
 
 import { uiSetText, uiToast, escapeHtml } from "./ui.js";
@@ -16,7 +16,7 @@ import { db, isFirebaseConfigured } from "./firebase.js";
 import { onAuth } from "./auth.js";
 
 import {
-  doc, getDoc, setDoc, updateDoc, onSnapshot,
+  doc, getDoc, setDoc, onSnapshot,
   serverTimestamp, collection, addDoc
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
@@ -54,13 +54,7 @@ function normalizeStatus(s) {
   const v = String(s || "").trim().toUpperCase();
   return STATUS_ORDER.find(x => x.toUpperCase() === v) || EMPLOYEE_STATUS.APPLICANT;
 }
-function statusAtLeast(current, required) {
-  const a = STATUS_ORDER.indexOf(normalizeStatus(current));
-  const b = STATUS_ORDER.indexOf(normalizeStatus(required));
-  return a >= b;
-}
 
-// Route access rules
 function canAccessRoute(route, status) {
   const s = normalizeStatus(status);
 
@@ -71,15 +65,16 @@ function canAccessRoute(route, status) {
   }
 
   if (s === EMPLOYEE_STATUS.PRE_ONBOARDING) {
-    return ["home","progress","shift","shift_selection","firstdayinfo","help","notifications","company"].includes(route);
+    return ["home","progress","shift_selection","firstdayinfo","help","notifications","company"].includes(route);
   }
 
   if (s === EMPLOYEE_STATUS.FIRST_DAY_SCHEDULED) {
     return [
-      "home","progress","shift","shift_selection",
+      "home","progress","shift_selection",
       "firstday","firstdayinfo","i9",
-      "footwear","footwearshop","footwearpolicy",
-      "help","notifications","company"
+      "footwear","footwearpolicy",
+      "help","notifications","company",
+      "documents"
     ].includes(route);
   }
 
@@ -89,11 +84,13 @@ function canAccessRoute(route, status) {
       "schedule","schedule-timecard","schedule-findshifts",
       "hours","timeoff","deposit",
       "help","notifications",
-      "footwear","footwearshop","i9","firstday","firstdayinfo",
-      "documents"
+      "footwear","i9","firstday","firstdayinfo",
+      "documents",
+      "shift_selection"
     ].includes(route);
   }
 
+  // payroll + fully active can see all
   if (s === EMPLOYEE_STATUS.PAYROLL_ACTIVE) return true;
   if (s === EMPLOYEE_STATUS.FULLY_ACTIVE) return true;
 
@@ -155,8 +152,7 @@ const OFFICIAL_CONTENT = {
     title: "First Day",
     purpose: "Ensure a legal, safe, and organized start.",
     bring: ["Valid ID","I-9 documents","Approved safety footwear","Appropriate work clothing"],
-    flow: ["Arrive 15–20 minutes early","HR check-in","Identity confirmation","I-9 verification","Safety video","Risk overview","Evacuation routes","Restricted areas","Supervisor introduction","Guided first tasks"],
-    evaluation: ["Punctuality","Safety attention","Attitude","Ability to follow instructions"]
+    flow: ["Arrive 15–20 minutes early","HR check-in","Identity confirmation","I-9 verification","Safety video","Risk overview","Evacuation routes","Restricted areas","Supervisor introduction","Guided first tasks"]
   },
 
   i9: {
@@ -173,16 +169,7 @@ const OFFICIAL_CONTENT = {
     whereBuy: ["Purchase only through company-authorized store","Footwear from non-authorized stores is not accepted"],
     specs: ["Steel/composite toe","Slip-resistant","Certified","Good condition"],
     reimbursement: ["Employee buys approved footwear","Employee submits receipt","Safety validates","Reimbursement included in first payroll"],
-    reimbursementRules: ["One-time only","First payroll only","Receipt required","Must be purchased through authorized store"],
-    inspections: ["Safety may inspect at any time","Damaged footwear must be replaced"]
-  },
-
-  payroll: {
-    title: "Payroll",
-    how: ["Pay is based on recorded hours","Cycle: Work → Time recorded → Supervisor approval → Processing → Direct deposit"],
-    firstPay: ["First pay occurs after completing the payroll cycle","It may take 1–2 weeks depending on the start date and cycle cutoff"],
-    errors: ["Report pay errors within 48 hours"],
-    payStubs: { title: "Pay Stubs", include: ["Hours","Rate","Deductions","Net pay"], note: "Available after the first payroll is processed." }
+    reimbursementRules: ["One-time only","First payroll only","Receipt required","Must be purchased through authorized store"]
   },
 
   benefits: {
@@ -202,7 +189,6 @@ const OFFICIAL_CONTENT = {
   },
 
   company: {
-    title: "Company Information",
     name: "SunPower Corporation",
     cityState: "Louisville, KY",
     address: "13051 Plantside Dr, Louisville, KY 40299",
@@ -221,25 +207,37 @@ const OFFICIAL_CONTENT = {
   }
 };
 
-// ---------- Route helpers ----------
+// ===============================
+// HELPERS / DOM SAFE
+// ===============================
+function qs(id){ return document.getElementById(id); }
+
+function setPage(title, sub, html) {
+  // Support multiple HTML variants (if you renamed IDs)
+  const t = qs("pageTitle") || document.querySelector(".page-head h1") || qs("title");
+  const s = qs("pageSub") || document.querySelector(".page-head .subhead") || qs("subhead");
+  const b = qs("pageBody") || document.querySelector(".content") || qs("body");
+
+  if (t) uiSetText(t, title);
+  if (s) uiSetText(s, sub || "");
+  if (b) b.innerHTML = html;
+}
+
+function safe(v, fallback = "—") {
+  return (v === undefined || v === null || v === "") ? fallback : v;
+}
+
 function routeName() {
   const h = (location.hash || "#home").replace("#", "").trim().toLowerCase();
   return h || "home";
 }
+
 function navTo(hash) {
   const h = (hash || "#home").startsWith("#") ? hash : `#${hash}`;
   if (location.hash === h) window.dispatchEvent(new HashChangeEvent("hashchange"));
   else location.hash = h;
 }
-function setPage(title, sub, html) {
-  uiSetText(document.getElementById("pageTitle"), title);
-  uiSetText(document.getElementById("pageSub"), sub);
-  const body = document.getElementById("pageBody");
-  if (body) body.innerHTML = html;
-}
-function safe(v, fallback = "—") {
-  return (v === undefined || v === null || v === "") ? fallback : v;
-}
+
 function normalizeEmpId(input) {
   if (!input) return "";
   let v = input.toString().toUpperCase().trim();
@@ -249,22 +247,19 @@ function normalizeEmpId(input) {
   if (!/^\d+$/.test(nums)) return "";
   return "SP" + nums;
 }
+
 function empIdToNumber(empId) {
   const m = String(empId || "").toUpperCase().match(/^SP(\d{1,6})$/);
   if (!m) return null;
   return Number(m[1]);
 }
-function fmtDate(d) {
-  try {
-    const x = new Date(d);
-    if (isNaN(x.getTime())) return String(d || "");
-    return x.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
-  } catch { return String(d || ""); }
+
+function clamp(n, a, b) {
+  n = Number(n);
+  if (isNaN(n)) return a;
+  return Math.max(a, Math.min(b, n));
 }
-function fmtMonthTitle(year, monthIndex) {
-  const d = new Date(year, monthIndex, 1);
-  return d.toLocaleDateString(undefined, { month: "long", year: "numeric" });
-}
+
 function nowISODate() {
   const d = new Date();
   const y = d.getFullYear();
@@ -272,6 +267,7 @@ function nowISODate() {
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
+
 function ymd(d) {
   try {
     const x = (d instanceof Date) ? d : new Date(d);
@@ -282,13 +278,29 @@ function ymd(d) {
     return `${y}-${m}-${day}`;
   } catch { return ""; }
 }
-function clamp(n, a, b) {
-  n = Number(n);
-  if (isNaN(n)) return a;
-  return Math.max(a, Math.min(b, n));
+
+function fmtDate(d) {
+  try {
+    const x = new Date(d);
+    if (isNaN(x.getTime())) return String(d || "");
+    return x.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  } catch { return String(d || ""); }
 }
 
-// ---------- Default docs ----------
+function fmtMonthTitle(year, monthIndex) {
+  const d = new Date(year, monthIndex, 1);
+  return d.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+}
+
+function ul(items){
+  const list = Array.isArray(items) ? items : [];
+  if(!list.length) return "";
+  return `<ul class="ul" style="margin-top:8px;">${list.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul>`;
+}
+
+// ===============================
+// DEFAULT DOCS
+// ===============================
 function defaultPublicContent() {
   return {
     brand: { name: "SunPower", logoText: "sunpower", accent: "#2563eb" },
@@ -336,8 +348,6 @@ function defaultUserDoc(user) {
       { id: "firstday", label: "First Day Preparation", done: false }
     ],
     shift: { position: "", shift: "", approved: false },
-    footwear: { ack1: false, ack2: false, ack3: false, ack4: false, ack5: false },
-    i9: { ack: false },
     employeeId: "",
     notifications: [],
     createdAt: serverTimestamp(),
@@ -348,6 +358,7 @@ function defaultUserDoc(user) {
 
 async function ensureUserDocExists(user) {
   if (!isFirebaseConfigured()) return;
+
   const ref = doc(db, "users", user.uid);
   const snap = await getDoc(ref);
 
@@ -401,226 +412,65 @@ async function ensureEmployeeId(user) {
 }
 
 // ===============================
-// ICONS (NO AMAZON TEXT ANYWHERE)
+// NAV / HEADER SYNC (NO NEW BARS)
 // ===============================
-function azIcon(name) {
-  const common = `width="18" height="18" viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`;
-  const icons = {
-    home: `<svg ${common}><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/></svg>`,
-    schedule: `<svg ${common}><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M8 2v4M16 2v4"/><path d="M3 10h18"/></svg>`,
-    benefits: `<svg ${common}><path d="M12 22s7-4 7-10V6l-7-3-7 3v6c0 6 7 10 7 10Z"/></svg>`,
-    more: `<svg ${common}><path d="M4 6h16M4 12h16M4 18h16"/></svg>`,
-    bell: `<svg ${common}><path d="M18 8a6 6 0 10-12 0c0 7-3 7-3 7h18s-3 0-3-7"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>`,
-    chat: `<svg ${common}><path d="M21 15a4 4 0 01-4 4H8l-5 3V7a4 4 0 014-4h10a4 4 0 014 4z"/></svg>`,
-    chevR: `<svg ${common}><path d="M9 18l6-6-6-6"/></svg>`,
-    chevL: `<svg ${common}><path d="M15 18l-6-6 6-6"/></svg>`,
-    clock: `<svg ${common}><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg>`
-  };
-  return icons[name] || icons.more;
-}
-
-// ===============================
-// MOBILE TABS + MORE SHEET (JS ONLY)
-// ===============================
-function isMobile() {
-  return window.matchMedia("(max-width: 920px)").matches;
-}
-
-function killOldDuplicateBars() {
-  // remove old injected style bars or template bars
-  ["azTabs","azMoreOverlay","azMoreSheet","spTabs","spMoreOverlay","spMoreSheet","bottomNav","bottomTabs","mobileTabs","tabbar","footerNav"].forEach(id=>{
-    const el = document.getElementById(id);
-    if (el) el.remove();
-  });
-  document.querySelectorAll(".bottom-nav,.bottom-tabs,.mobile-tabs,.tabbar,.footer-nav").forEach(el=>el.remove());
-}
-
-function ensureChromeOnce() {
-  killOldDuplicateBars();
-
-  const btnMenu = document.getElementById("btnMenu");
-  if (btnMenu) btnMenu.style.display = "none";
-
-  const sidebar = document.getElementById("sidebar");
-  if (sidebar) sidebar.style.display = isMobile() ? "none" : "";
-
-  if (document.getElementById("spTabs")) return;
-
-  // Bottom tabs container
-  const tabs = document.createElement("div");
-  tabs.id = "spTabs";
-  tabs.innerHTML = `
-    <div class="spTabsWrap">
-      <button class="spTab" data-route="home" type="button">
-        <div class="spIco">${azIcon("home")}</div>
-        <div class="spLbl">Home</div>
-      </button>
-
-      <button class="spTab" data-route="schedule" type="button">
-        <div class="spIco">${azIcon("schedule")}</div>
-        <div class="spLbl">Schedule</div>
-      </button>
-
-      <button class="spTab" data-route="timeoff" type="button">
-        <div class="spIco">${azIcon("benefits")}</div>
-        <div class="spLbl">Benefits</div>
-      </button>
-
-      <button class="spTab" id="spMoreBtn" data-route="more" type="button">
-        <div class="spIco">${azIcon("more")}</div>
-        <div class="spLbl">More</div>
-      </button>
-    </div>
-  `;
-  document.body.appendChild(tabs);
-
-  // More overlay + sheet
-  const overlay = document.createElement("div");
-  overlay.id = "spMoreOverlay";
-  overlay.style.display = "none";
-  document.body.appendChild(overlay);
-
-  const sheet = document.createElement("div");
-  sheet.id = "spMoreSheet";
-  sheet.className = "spMoreSheet";
-  sheet.innerHTML = `
-    <div class="spMoreHead">
-      <div>
-        <div class="spMoreTitle">More</div>
-        <div class="spMoreSub">All portal modules</div>
-      </div>
-      <button class="spMoreClose" id="spMoreClose" type="button">Close</button>
-    </div>
-
-    <div class="spMoreGrid">
-      ${moreItem("progress","Progress","Onboarding checklist")}
-      ${moreItem("company","Company","Site and HR info")}
-      ${moreItem("policies","Policies","Warehouse rules")}
-      ${moreItem("firstdayinfo","First Day Info","Arrival and requirements")}
-      ${moreItem("shift_selection","Shift Selection","Choose your preference")}
-      ${moreItem("footwearpolicy","Footwear Policy","Rules and reimbursement")}
-      ${moreItem("footwear","Safety Footwear","Program acknowledgement")}
-      ${moreItem("i9","I-9","Bring original documents")}
-      ${moreItem("documents","Documents","Completed on first day")}
-      ${moreItem("firstday","First Day","Check-in details")}
-      ${moreItem("hours","My Hours","Weekly summary")}
-      ${moreItem("deposit","Direct Deposit","View only")}
-      ${moreItem("notifications","Notifications","Company and HR")}
-      ${moreItem("legal","Legal","At-will and policies")}
-      ${moreItem("help","Help & Support","Call, email, or ticket")}
-    </div>
-  `;
-  document.body.appendChild(sheet);
-
-  function moreItem(route, title, sub) {
-    return `
-      <button class="spMoreItem" type="button" data-route="${escapeHtml(route)}">
-        <div>
-          <div class="spMoreItemTitle">${escapeHtml(title)}</div>
-          <div class="spMoreItemSub">${escapeHtml(sub)}</div>
-        </div>
-        <div class="spMoreArrow">${azIcon("chevR")}</div>
-      </button>
-    `;
-  }
-
-  const openMore = () => {
-    overlay.style.display = "block";
-    sheet.classList.add("open");
-  };
-  const closeMore = () => {
-    overlay.style.display = "none";
-    sheet.classList.remove("open");
-  };
-
-  document.getElementById("spMoreBtn").addEventListener("click", openMore);
-  document.getElementById("spMoreClose").addEventListener("click", closeMore);
-  overlay.addEventListener("click", closeMore);
-
-  // Bottom tabs tap wiring (iPhone/Android safe)
-  tabs.querySelectorAll("button.spTab").forEach(btn => {
-    const r = btn.getAttribute("data-route");
+function wireExistingNav() {
+  // Makes any .nav-item clickable by route
+  const items = Array.from(document.querySelectorAll(".nav-item"));
+  items.forEach(a => {
+    const r = (a.getAttribute("data-route") || "").trim();
     if (!r) return;
-    if (r === "more") return;
-    btn.addEventListener("click", () => navTo(`#${r}`), { passive: true });
-  });
 
-  // More sheet items wiring
-  sheet.querySelectorAll("button[data-route]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const r = btn.getAttribute("data-route") || "home";
-      closeMore();
+    // Ensure href exists so mobile taps are consistent
+    if (!a.getAttribute("href")) a.setAttribute("href", `#${r}`);
+
+    a.addEventListener("click", (ev) => {
+      ev.preventDefault();
       navTo(`#${r}`);
-    }, { passive: true });
-  });
-
-  applyChromeVisibility();
-  window.addEventListener("resize", applyChromeVisibility);
-}
-
-function applyChromeVisibility() {
-  const tabs = document.getElementById("spTabs");
-  if (!tabs) return;
-
-  const sidebar = document.getElementById("sidebar");
-  if (sidebar) sidebar.style.display = isMobile() ? "none" : "";
-
-  if (isMobile()) {
-    tabs.style.display = "block";
-    document.body.classList.add("has-tabs");
-  } else {
-    tabs.style.display = "none";
-    document.body.classList.remove("has-tabs");
-    const overlay = document.getElementById("spMoreOverlay");
-    const sheet = document.getElementById("spMoreSheet");
-    if (overlay) overlay.style.display = "none";
-    if (sheet) sheet.classList.remove("open");
-  }
-}
-
-function applyMoreVisibility(status) {
-  const s = normalizeStatus(status);
-  const sheet = document.getElementById("spMoreSheet");
-  if (!sheet) return;
-
-  sheet.querySelectorAll("[data-route]").forEach(btn => {
-    const r = (btn.getAttribute("data-route") || "").trim().toLowerCase();
-    const ok = canAccessRoute(r, s);
-    btn.style.display = ok ? "" : "none";
+    });
   });
 }
 
-function setActiveTabsAndSidebar(statusForGate = EMPLOYEE_STATUS.FULLY_ACTIVE) {
+function setActiveNav(statusForGate) {
   const r = routeName();
-  const tabKey =
-    (r === "home" || r === "progress") ? "home" :
-    (r.startsWith("schedule")) ? "schedule" :
-    (r === "timeoff") ? "timeoff" :
-    "more";
-
-  document.querySelectorAll("#spTabs .spTab").forEach(el => {
-    const key = el.getAttribute("data-route");
-    if (!key) return;
-    el.classList.toggle("active", key === tabKey);
-  });
-
   document.querySelectorAll(".nav-item").forEach(a => {
     const rr = (a.getAttribute("data-route") || "").toLowerCase();
     a.classList.toggle("active", rr === r);
-  });
 
-  applyMoreVisibility(statusForGate);
+    // hide items that user cannot access (prevents “tap does nothing”)
+    if (statusForGate) {
+      const ok = canAccessRoute(rr, statusForGate);
+      a.style.display = ok ? "" : "none";
+    }
+  });
+}
+
+function syncTopbar(empId, userData) {
+  // Supports multiple possible IDs in your HTML (so you don’t have to rename)
+  const status = normalizeStatus(userData?.status);
+
+  const empEls = [
+    qs("empId"),
+    qs("empIdLabel"),
+    qs("topEmpId"),
+    qs("employeeIdTop"),
+    document.querySelector("[data-bind='empId']")
+  ].filter(Boolean);
+
+  empEls.forEach(el => uiSetText(el, empId ? `Employee ID: ${empId}` : ""));
+
+  const statusEls = [
+    qs("statusChip"),
+    qs("statusLabel"),
+    document.querySelector("[data-bind='status']")
+  ].filter(Boolean);
+
+  statusEls.forEach(el => uiSetText(el, status));
 }
 
 // ===============================
 // PROGRESS (CHECKLIST)
 // ===============================
-function stepDone(userData, stepId) {
-  const steps = Array.isArray(userData?.steps) ? userData.steps : [];
-  const s = steps.find(x => x.id === stepId);
-  return !!s?.done;
-}
 function setStepDoneLocal(userData, stepId, done) {
   const steps = Array.isArray(userData?.steps) ? userData.steps : [];
   const idx = steps.findIndex(x => x.id === stepId);
@@ -629,7 +479,7 @@ function setStepDoneLocal(userData, stepId, done) {
 }
 
 // ===============================
-// SCHEDULE / CALENDAR + MODULES
+// SCHEDULE / CALENDAR
 // ===============================
 function renderScheduleTabs(active) {
   const tabs = [
@@ -670,8 +520,8 @@ function renderScheduleCalendar(recordData, publicData) {
 
   const shifts = Array.isArray(publicData?.company?.shifts) ? publicData.company.shifts : OFFICIAL_CONTENT.company.shifts;
   const appt = recordData?.appointment || {};
-
   const events = Array.isArray(recordData?.scheduleEvents) ? recordData.scheduleEvents : [];
+
   const eventMap = {};
   events.forEach(ev => {
     const k = ymd(ev?.date);
@@ -692,8 +542,8 @@ function renderScheduleCalendar(recordData, publicData) {
       <div class="azCalHead">
         <div class="azCalMonth">${escapeHtml(fmtMonthTitle(state.y, state.m))}</div>
         <div class="azCalNav">
-          <button class="azCalBtn" id="calPrev" type="button" aria-label="Previous">${azIcon("chevL")}</button>
-          <button class="azCalBtn" id="calNext" type="button" aria-label="Next">${azIcon("chevR")}</button>
+          <button class="azCalBtn" id="calPrev" type="button" aria-label="Previous">&#x2039;</button>
+          <button class="azCalBtn" id="calNext" type="button" aria-label="Next">&#x203A;</button>
         </div>
       </div>
 
@@ -725,42 +575,38 @@ function renderScheduleCalendar(recordData, publicData) {
   `;
 
   const details = `
-    <div class="azCard" style="margin-top:12px;">
-      <div class="azCardTitle">Selected day</div>
-      <div class="azCardSub">${escapeHtml(fmtDate(selKey))}</div>
+    <div class="card" style="margin-top:12px;">
+      <div class="card-title">Selected day</div>
+      <div class="card-sub">${escapeHtml(fmtDate(selKey))}</div>
 
       ${hasAppt && apptKey === selKey ? `
-        <div style="margin-top:12px;border-top:1px solid rgba(229,234,242,.95);padding-top:12px;">
-          <div class="azCardTitle">First day appointment</div>
-          <div class="azCardSub">
-            Time: ${escapeHtml(safe(appt?.time, OFFICIAL_CONTENT.company.firstDayArrival))}<br/>
-            Address: ${escapeHtml(safe(appt?.address, OFFICIAL_CONTENT.company.address))}
-          </div>
-          ${appt?.notes ? `<div class="azCardSub" style="margin-top:8px;">${escapeHtml(appt.notes)}</div>` : ""}
+        <div class="divider"></div>
+        <div class="card-title">First day appointment</div>
+        <div class="card-sub">
+          Time: ${escapeHtml(safe(appt?.time, OFFICIAL_CONTENT.company.firstDayArrival))}<br/>
+          Address: ${escapeHtml(safe(appt?.address, OFFICIAL_CONTENT.company.address))}
         </div>
       ` : ""}
 
-      <div style="margin-top:12px;border-top:1px solid rgba(229,234,242,.95);padding-top:12px;">
-        <div class="azCardTitle">Shift information</div>
-        <div class="azCardSub">
-          ${shifts.map(s => `<div style="margin-top:6px;">${escapeHtml(s.label)}: ${escapeHtml(s.hours)}</div>`).join("")}
-        </div>
+      <div class="divider"></div>
+      <div class="card-title">Shift information</div>
+      <div class="card-sub">
+        ${shifts.map(s => `<div style="margin-top:6px;">${escapeHtml(s.label)}: ${escapeHtml(s.hours)}</div>`).join("")}
       </div>
 
-      <div style="margin-top:12px;border-top:1px solid rgba(229,234,242,.95);padding-top:12px;">
-        <div class="azCardTitle">Events</div>
-        ${selEvents.length ? `
-          <div class="azCardSub">
-            ${selEvents.map(e => `
-              <div style="margin-top:10px;">
-                <div style="font-weight:1000;">${escapeHtml(e.title || "Event")}</div>
-                <div class="muted small" style="margin-top:3px;font-weight:900;">${escapeHtml(safe(e.time,""))} ${escapeHtml(safe(e.location,""))}</div>
-                ${e.note ? `<div class="small" style="margin-top:4px;font-weight:900;color:rgba(2,6,23,.65);">${escapeHtml(e.note)}</div>` : ""}
-              </div>
-            `).join("")}
-          </div>
-        ` : `<div class="azCardSub">No events for this day.</div>`}
-      </div>
+      <div class="divider"></div>
+      <div class="card-title">Events</div>
+      ${selEvents.length ? `
+        <div class="card-sub">
+          ${selEvents.map(e => `
+            <div style="margin-top:10px;">
+              <div style="font-weight:1000;">${escapeHtml(e.title || "Event")}</div>
+              <div class="small muted" style="margin-top:3px;font-weight:900;">${escapeHtml(safe(e.time,""))} ${escapeHtml(safe(e.location,""))}</div>
+              ${e.note ? `<div class="small" style="margin-top:4px;font-weight:900;color:rgba(2,6,23,.65);">${escapeHtml(e.note)}</div>` : ""}
+            </div>
+          `).join("")}
+        </div>
+      ` : `<div class="card-sub">No events for this day.</div>`}
     </div>
   `;
 
@@ -768,10 +614,16 @@ function renderScheduleCalendar(recordData, publicData) {
 }
 
 function renderSchedule(recordData, publicData) {
-  setPage("Schedule","",`${renderScheduleTabs("schedule")}${renderScheduleCalendar(recordData, publicData)}`);
+  setPage("Schedule","",`
+    <div class="card">
+      ${renderScheduleTabs("schedule")}
+      ${renderScheduleCalendar(recordData, publicData)}
+    </div>
+  `);
 
-  const prev = document.getElementById("calPrev");
-  const next = document.getElementById("calNext");
+  const prev = qs("calPrev");
+  const next = qs("calNext");
+
   if (prev) prev.onclick = () => {
     const st = window.__calState;
     let y = st.y, m = st.m - 1;
@@ -779,6 +631,7 @@ function renderSchedule(recordData, publicData) {
     window.__calState = { ...st, y, m };
     navTo("#schedule");
   };
+
   if (next) next.onclick = () => {
     const st = window.__calState;
     let y = st.y, m = st.m + 1;
@@ -793,7 +646,7 @@ function renderSchedule(recordData, publicData) {
       if (!date) return;
       window.__calState = { ...(window.__calState || {}), sel: date };
       navTo("#schedule");
-    }, { passive: true });
+    });
   });
 }
 
@@ -807,23 +660,25 @@ function renderTimecard(recordData) {
   ];
 
   setPage("Schedule","",`
-    ${renderScheduleTabs("schedule-timecard")}
-    <div class="azCard">
-      <div class="azCardTitle">Time Card</div>
-      <div class="azCardSub">Today’s punches (recorded by the system).</div>
-      <div style="margin-top:12px;">
+    <div class="card">
+      ${renderScheduleTabs("schedule-timecard")}
+      <div class="card-title">Time Card</div>
+      <div class="card-sub">Today’s punches (recorded by the system).</div>
+
+      <div class="stack">
         ${rows.map(r => `
-          <div class="azPunchRow">
-            <div class="azPunchLeft">
-              <div class="azPunchType">${escapeHtml(r.type || "")}</div>
-              <div class="azPunchTime">${escapeHtml(r.time || "—")}</div>
+          <div class="list-item">
+            <div>
+              <div class="li-title">${escapeHtml(r.type || "")}</div>
+              <div class="li-sub">${escapeHtml(r.time || "—")}</div>
             </div>
-            <div class="muted small" style="font-weight:900;">${escapeHtml(safe(r.note,""))}</div>
+            <div class="small muted" style="font-weight:900;">${escapeHtml(safe(r.note,""))}</div>
           </div>
         `).join("")}
       </div>
-      <div class="azCardSub" style="margin-top:12px;">If you believe your time is incorrect, submit a ticket within 48 hours.</div>
-      <a class="azCardLink" href="#help"><span>Open support</span>${azIcon("chevR")}</a>
+
+      <div class="alert info">If you believe your time is incorrect, submit a ticket within 48 hours.</div>
+      <a class="tile-link" href="#help">Open support</a>
     </div>
   `);
 }
@@ -836,42 +691,35 @@ function renderFindShifts(recordData) {
   ];
 
   setPage("Schedule","",`
-    ${renderScheduleTabs("schedule-findshifts")}
-    <div class="azCard">
-      <div class="azCardTitle">Find Shifts</div>
-      <div class="azCardSub">Available shifts depend on operational needs.</div>
-      <div style="margin-top:12px;">
+    <div class="card">
+      ${renderScheduleTabs("schedule-findshifts")}
+      <div class="card-title">Find Shifts</div>
+      <div class="card-sub">Available shifts depend on operational needs.</div>
+
+      <div class="stack">
         ${open.map(s => `
-          <div class="azPunchRow">
-            <div class="azPunchLeft">
-              <div class="azPunchType">${escapeHtml(fmtDate(s.date))}</div>
-              <div class="azPunchTime">${escapeHtml(s.shift)} • ${escapeHtml(s.hours)}</div>
+          <div class="list-item">
+            <div>
+              <div class="li-title">${escapeHtml(fmtDate(s.date))} • ${escapeHtml(s.shift)}</div>
+              <div class="li-sub">${escapeHtml(s.hours)} • ${escapeHtml(String(s.spots || 0))} spots</div>
             </div>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <div class="muted small" style="font-weight:900;">${escapeHtml(String(s.spots || 0))} spots</div>
-              <button class="btn sm" type="button" data-claim="${escapeHtml(s.date)}|${escapeHtml(s.shift)}">Request</button>
-            </div>
+            <button class="btn sm" type="button" data-claim="${escapeHtml(s.date)}|${escapeHtml(s.shift)}">Request</button>
           </div>
         `).join("")}
       </div>
-      <div class="azCardSub" style="margin-top:12px;">Requests are reviewed by supervision based on staffing needs.</div>
+
+      <div class="alert info">Requests are reviewed by supervision based on staffing needs.</div>
     </div>
   `);
 
   document.querySelectorAll("[data-claim]").forEach(btn => {
-    btn.addEventListener("click", () => uiToast("Request submitted."), { passive: true });
+    btn.addEventListener("click", () => uiToast("Request submitted."));
   });
 }
 
 // ===============================
-// BASIC RENDERS (no locks, just "completed on first day")
+// PAGES
 // ===============================
-function ul(items){
-  const list = Array.isArray(items) ? items : [];
-  if(!list.length) return "";
-  return `<ul class="ul" style="margin-top:8px;">${list.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul>`;
-}
-
 function statusBannerText(status) {
   const s = normalizeStatus(status);
   if (s === EMPLOYEE_STATUS.APPLICANT) return "Status: Applicant. Review the portal for next steps. HR will contact you if additional information is needed.";
@@ -897,87 +745,110 @@ function renderHome(publicData, recordData, userData){
   const userStatus = normalizeStatus(userData?.status);
 
   setPage("Home","",`
-    <div class="azTopRow">
-      <div style="font-weight:1000;color:rgba(2,6,23,.75);">SunPower Portal</div>
-      <div class="azTopIcons">
-        <a class="azIconBtn" href="#help" aria-label="Help">${azIcon("chat")}</a>
-        <a class="azIconBtn" href="#notifications" aria-label="Notifications">${azIcon("bell")}</a>
-      </div>
-    </div>
+    <div class="dash-grid">
+      <div class="card">
+        <div class="card-title">${escapeHtml(news?.[0]?.title || "SunPower Updates")}</div>
+        <div class="card-sub">${escapeHtml(news?.[0]?.subtitle || "Company announcements and HR updates")}</div>
 
-    <div class="azHero">
-      <div class="azHeroInner">
-        <div class="azHeroTitle">${escapeHtml(news?.[0]?.title || "SunPower Updates")}</div>
-        <div class="azHeroSub">${escapeHtml(news?.[0]?.subtitle || "Company announcements and HR updates")}</div>
-        <div class="azHeroPills">
-          <a class="azPill" href="#notifications"><span>${escapeHtml(news?.[0]?.linkText || "All notifications")}</span>${azIcon("chevR")}</a>
-          <a class="azPill" href="#company"><span>Company</span>${azIcon("chevR")}</a>
-          <a class="azPill" href="#policies"><span>Policies</span>${azIcon("chevR")}</a>
+        <div class="divider"></div>
+
+        <div class="card-title">${escapeHtml(OFFICIAL_CONTENT.home.title)}</div>
+        <div class="card-sub" style="line-height:1.45;">${escapeHtml(statusBannerText(userStatus))}</div>
+
+        <div class="stack">
+          ${OFFICIAL_CONTENT.home.body.map(x => `<div class="card-sub" style="margin-top:6px;line-height:1.45;">${escapeHtml(x)}</div>`).join("")}
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="tile-grid">
+          <a class="tile" href="#progress">
+            <div class="tile-title">Checklist</div>
+            <div class="tile-sub">Onboarding progress</div>
+            <div class="tile-link">Open</div>
+          </a>
+
+          <a class="tile" href="#firstdayinfo">
+            <div class="tile-title">First day info</div>
+            <div class="tile-sub">Arrival time, address, what to bring</div>
+            <div class="tile-link">Open</div>
+          </a>
+
+          <a class="tile" href="#footwearpolicy">
+            <div class="tile-title">Safety footwear</div>
+            <div class="tile-sub">Required Day 1 • Reimbursement rules</div>
+            <div class="tile-link">Open</div>
+          </a>
+
+          <a class="tile" href="#schedule">
+            <div class="tile-title">Schedule</div>
+            <div class="tile-sub">Calendar and time card</div>
+            <div class="tile-link">Open</div>
+          </a>
         </div>
       </div>
-    </div>
 
-    <div class="azCard" style="margin-top:10px;">
-      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.home.title)}</div>
-      <div class="azCardSub" style="line-height:1.45;">${escapeHtml(statusBannerText(userStatus))}</div>
-      <div class="azCardSub" style="margin-top:10px;line-height:1.45;">
-        ${OFFICIAL_CONTENT.home.body.map(x => `<div style="margin-top:6px;">${escapeHtml(x)}</div>`).join("")}
+      <div class="card">
+        <div class="card-title">Quick status</div>
+        <div class="card-sub">Operational metrics (view only).</div>
+
+        <div class="divider"></div>
+
+        <div class="kpi-grid">
+          <div class="kpi">
+            <div class="kpi-top">
+              <div class="kpi-title">Max hours</div>
+            </div>
+            <div class="kpi-val">${escapeHtml(String(maxHours))}h</div>
+            <div class="kpi-sub">Company policy cap</div>
+          </div>
+
+          <div class="kpi">
+            <div class="kpi-top">
+              <div class="kpi-title">Scheduled</div>
+            </div>
+            <div class="kpi-val">${escapeHtml(String(Math.floor(scheduledMin/60)))}h</div>
+            <div class="kpi-sub">${escapeHtml(String(scheduledMin%60).padStart(2,"0"))}m minutes</div>
+          </div>
+
+          <div class="kpi">
+            <div class="kpi-top">
+              <div class="kpi-title">Remaining</div>
+            </div>
+            <div class="kpi-val">${escapeHtml(String(Math.floor(remainingMin/60)))}h</div>
+            <div class="kpi-sub">${escapeHtml(String(remainingMin%60).padStart(2,"0"))}m minutes</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="card-title">Progress</div>
+        <div class="progress" style="margin-top:10px;">
+          <span style="width:${pct.toFixed(0)}%"></span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="card-title">${escapeHtml(String(punchesCount))} punches today</div>
+        <div class="card-sub">Last clocked in at ${escapeHtml(safe(recordData?.lastClockedIn, "—"))}</div>
+        <a class="tile-link" href="#schedule-timecard">Open timecard</a>
       </div>
-      <a class="azCardLink" href="#progress"><span>View checklist</span>${azIcon("chevR")}</a>
-    </div>
-
-    <div class="azRow2" style="margin-top:10px;">
-      <div class="azCard">
-        <div class="azCardTitle">First day info</div>
-        <div class="azCardSub">Arrival time, address, what to bring, and day 1 flow.</div>
-        <a class="azCardLink" href="#firstdayinfo"><span>Open</span>${azIcon("chevR")}</a>
-      </div>
-      <div class="azCard">
-        <div class="azCardTitle">Safety footwear</div>
-        <div class="azCardSub">Required from Day 1. Review reimbursement rules.</div>
-        <a class="azCardLink" href="#footwearpolicy"><span>Open</span>${azIcon("chevR")}</a>
-      </div>
-    </div>
-
-    <div class="azCard" style="margin-top:10px;">
-      <div class="azCardTitle">${escapeHtml(String(maxHours))}h max</div>
-      <div class="azCardSub">
-        ${escapeHtml(Math.floor(scheduledMin / 60))}h ${escapeHtml(String(scheduledMin % 60).padStart(2,"0"))}m scheduled
-        &nbsp;&nbsp;•&nbsp;&nbsp;
-        ${escapeHtml(Math.floor(remainingMin / 60))}h ${escapeHtml(String(remainingMin % 60).padStart(2,"0"))}m remaining
-      </div>
-      <div class="azBar"><div style="width:${pct.toFixed(0)}%"></div></div>
-    </div>
-
-    <div class="azCard" style="margin-top:10px;">
-      <div class="azCardTitle">${escapeHtml(String(punchesCount))} punches today</div>
-      <div class="azCardSub">Last clocked in at ${escapeHtml(safe(recordData?.lastClockedIn, "—"))}</div>
-      <a class="azCardLink" href="#schedule-timecard"><span>Open timecard</span>${azIcon("chevR")}</a>
-    </div>
-
-    <div class="azCard" style="margin-top:10px;">
-      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.home.responsibilityTitle)}</div>
-      ${ul(OFFICIAL_CONTENT.home.responsibility)}
-    </div>
-
-    <div class="azCard" style="margin-top:10px;">
-      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.home.confidentialityTitle)}</div>
-      ${ul(OFFICIAL_CONTENT.home.confidentiality)}
     </div>
   `);
 }
 
 function renderCompany(){
   setPage("Company","",`
-    <div class="azCard">
-      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.company.name)}</div>
-      <div class="azCardSub">${escapeHtml(OFFICIAL_CONTENT.company.cityState)}</div>
-      <div class="azCardSub" style="margin-top:10px;">
-        Address: ${escapeHtml(OFFICIAL_CONTENT.company.address)}<br/>
-        HR: ${escapeHtml(OFFICIAL_CONTENT.company.hrPhone)}<br/>
-        Email: ${escapeHtml(OFFICIAL_CONTENT.company.hrEmail)}<br/>
-        Hours: ${escapeHtml(OFFICIAL_CONTENT.company.hrHours)}<br/>
-        Pay day: ${escapeHtml(OFFICIAL_CONTENT.company.payDay)}
+    <div class="card">
+      <div class="card-title">${escapeHtml(OFFICIAL_CONTENT.company.name)}</div>
+      <div class="card-sub">${escapeHtml(OFFICIAL_CONTENT.company.cityState)}</div>
+      <div class="divider"></div>
+      <div class="kv">
+        <div class="k">Address</div><div class="v">${escapeHtml(OFFICIAL_CONTENT.company.address)}</div>
+        <div class="k">HR Phone</div><div class="v">${escapeHtml(OFFICIAL_CONTENT.company.hrPhone)}</div>
+        <div class="k">HR Email</div><div class="v">${escapeHtml(OFFICIAL_CONTENT.company.hrEmail)}</div>
+        <div class="k">Hours</div><div class="v">${escapeHtml(OFFICIAL_CONTENT.company.hrHours)}</div>
+        <div class="k">Pay day</div><div class="v">${escapeHtml(OFFICIAL_CONTENT.company.payDay)}</div>
       </div>
     </div>
   `);
@@ -985,13 +856,12 @@ function renderCompany(){
 
 function renderPolicies(){
   setPage("Policies","",`
-    <div class="azCard">
-      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.policies.title)}</div>
+    <div class="card">
+      <div class="card-title">${escapeHtml(OFFICIAL_CONTENT.policies.title)}</div>
       ${OFFICIAL_CONTENT.policies.sections.map(s=>`
-        <div style="margin-top:14px;">
-          <div class="azCardTitle">${escapeHtml(s.h)}</div>
-          ${ul(s.p)}
-        </div>
+        <div class="divider"></div>
+        <div class="card-title">${escapeHtml(s.h)}</div>
+        ${ul(s.p)}
       `).join("")}
     </div>
   `);
@@ -1000,70 +870,67 @@ function renderPolicies(){
 function renderFirstDayInfo(recordData){
   const appt = recordData?.appointment || {};
   setPage("First Day Info","",`
-    <div class="azCard">
-      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.firstDay.title)}</div>
-      <div class="azCardSub">${escapeHtml(OFFICIAL_CONTENT.firstDay.purpose)}</div>
+    <div class="card">
+      <div class="card-title">${escapeHtml(OFFICIAL_CONTENT.firstDay.title)}</div>
+      <div class="card-sub">${escapeHtml(OFFICIAL_CONTENT.firstDay.purpose)}</div>
 
-      <div style="margin-top:14px;">
-        <div class="azCardTitle">Arrival</div>
-        <div class="azCardSub">
-          Time: ${escapeHtml(safe(appt?.time, OFFICIAL_CONTENT.company.firstDayArrival))}<br/>
-          Address: ${escapeHtml(safe(appt?.address, OFFICIAL_CONTENT.company.address))}
-        </div>
+      <div class="divider"></div>
+      <div class="card-title">Arrival</div>
+      <div class="card-sub">
+        Time: ${escapeHtml(safe(appt?.time, OFFICIAL_CONTENT.company.firstDayArrival))}<br/>
+        Address: ${escapeHtml(safe(appt?.address, OFFICIAL_CONTENT.company.address))}
       </div>
 
-      <div style="margin-top:14px;">
-        <div class="azCardTitle">Bring</div>
-        ${ul(OFFICIAL_CONTENT.firstDay.bring)}
-      </div>
+      <div class="divider"></div>
+      <div class="card-title">Bring</div>
+      ${ul(OFFICIAL_CONTENT.firstDay.bring)}
 
-      <div style="margin-top:14px;">
-        <div class="azCardTitle">Day 1 flow</div>
-        ${ul(OFFICIAL_CONTENT.firstDay.flow)}
-      </div>
+      <div class="divider"></div>
+      <div class="card-title">Day 1 flow</div>
+      ${ul(OFFICIAL_CONTENT.firstDay.flow)}
     </div>
   `);
 }
 
 function renderI9(){
   setPage("I-9","",`
-    <div class="azCard">
-      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.i9.title)}</div>
-      <div class="azCardSub">${escapeHtml(OFFICIAL_CONTENT.i9.purpose)}</div>
-      <div style="margin-top:14px;">
-        <div class="azCardTitle">Accepted documents</div>
-        ${ul(OFFICIAL_CONTENT.i9.accepted)}
-      </div>
-      <div style="margin-top:14px;">
-        <div class="azCardTitle">Rules</div>
-        ${ul(OFFICIAL_CONTENT.i9.rules)}
-      </div>
+    <div class="card">
+      <div class="card-title">${escapeHtml(OFFICIAL_CONTENT.i9.title)}</div>
+      <div class="card-sub">${escapeHtml(OFFICIAL_CONTENT.i9.purpose)}</div>
+
+      <div class="divider"></div>
+      <div class="card-title">Accepted documents</div>
+      ${ul(OFFICIAL_CONTENT.i9.accepted)}
+
+      <div class="divider"></div>
+      <div class="card-title">Rules</div>
+      ${ul(OFFICIAL_CONTENT.i9.rules)}
     </div>
   `);
 }
 
 function renderFootwearPolicy(){
   setPage("Footwear Policy","",`
-    <div class="azCard">
-      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.footwear.title)}</div>
-      <div style="margin-top:14px;">
-        <div class="azCardTitle">Purpose</div>
-        ${ul(OFFICIAL_CONTENT.footwear.purpose)}
-      </div>
-      <div style="margin-top:14px;">
-        <div class="azCardTitle">Required</div>
-        ${ul(OFFICIAL_CONTENT.footwear.required)}
-      </div>
-      <div style="margin-top:14px;">
-        <div class="azCardTitle">Specifications</div>
-        ${ul(OFFICIAL_CONTENT.footwear.specs)}
-      </div>
-      <div style="margin-top:14px;">
-        <div class="azCardTitle">Reimbursement</div>
-        ${ul(OFFICIAL_CONTENT.footwear.reimbursement)}
-        <div class="azCardSub" style="margin-top:10px;">
-          Cap: ${escapeHtml(OFFICIAL_CONTENT.company.footwearReimbursementCap)} • Shop: ${escapeHtml(OFFICIAL_CONTENT.company.footwearShop)}
-        </div>
+    <div class="card">
+      <div class="card-title">${escapeHtml(OFFICIAL_CONTENT.footwear.title)}</div>
+
+      <div class="divider"></div>
+      <div class="card-title">Purpose</div>
+      ${ul(OFFICIAL_CONTENT.footwear.purpose)}
+
+      <div class="divider"></div>
+      <div class="card-title">Required</div>
+      ${ul(OFFICIAL_CONTENT.footwear.required)}
+
+      <div class="divider"></div>
+      <div class="card-title">Specifications</div>
+      ${ul(OFFICIAL_CONTENT.footwear.specs)}
+
+      <div class="divider"></div>
+      <div class="card-title">Reimbursement</div>
+      ${ul(OFFICIAL_CONTENT.footwear.reimbursement)}
+      <div class="card-sub" style="margin-top:10px;">
+        Cap: ${escapeHtml(OFFICIAL_CONTENT.company.footwearReimbursementCap)} • Shop: ${escapeHtml(OFFICIAL_CONTENT.company.footwearShop)}
       </div>
     </div>
   `);
@@ -1071,9 +938,9 @@ function renderFootwearPolicy(){
 
 function renderDocuments(){
   setPage("Documents","",`
-    <div class="azCard">
-      <div class="azCardTitle">Documents</div>
-      <div class="azCardSub" style="line-height:1.45;">
+    <div class="card">
+      <div class="card-title">Documents</div>
+      <div class="card-sub" style="line-height:1.45;">
         Onboarding documents are completed on the first day in person with HR.
       </div>
     </div>
@@ -1082,9 +949,9 @@ function renderDocuments(){
 
 function renderFirstDay(){
   setPage("First Day","",`
-    <div class="azCard">
-      <div class="azCardTitle">First Day</div>
-      <div class="azCardSub" style="line-height:1.45;">
+    <div class="card">
+      <div class="card-title">First Day</div>
+      <div class="card-sub" style="line-height:1.45;">
         Your first day will be completed on site. Follow your supervisor and HR instructions.
       </div>
     </div>
@@ -1093,9 +960,9 @@ function renderFirstDay(){
 
 function renderTimeOff(){
   setPage("Benefits","",`
-    <div class="azCard">
-      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.benefits.title)}</div>
-      <div class="azCardSub">${escapeHtml(OFFICIAL_CONTENT.benefits.note)}</div>
+    <div class="card">
+      <div class="card-title">${escapeHtml(OFFICIAL_CONTENT.benefits.title)}</div>
+      <div class="card-sub">${escapeHtml(OFFICIAL_CONTENT.benefits.note)}</div>
       ${ul(OFFICIAL_CONTENT.benefits.list)}
     </div>
   `);
@@ -1104,18 +971,19 @@ function renderTimeOff(){
 function renderHours(recordData){
   const wk = Array.isArray(recordData?.weeklyHours) ? recordData.weeklyHours : [];
   setPage("My Hours","",`
-    <div class="azCard">
-      <div class="azCardTitle">Weekly summary</div>
-      <div class="azCardSub">Recorded hours (view only).</div>
-      <div style="margin-top:12px;">
+    <div class="card">
+      <div class="card-title">Weekly summary</div>
+      <div class="card-sub">Recorded hours (view only).</div>
+
+      <div class="stack">
         ${wk.length ? wk.map(x=>`
-          <div class="azPunchRow">
-            <div class="azPunchLeft">
-              <div class="azPunchType">${escapeHtml(safe(x.week,"Week"))}</div>
-              <div class="azPunchTime">${escapeHtml(String(safe(x.hours,0)))} hours</div>
+          <div class="list-item">
+            <div>
+              <div class="li-title">${escapeHtml(safe(x.week,"Week"))}</div>
+              <div class="li-sub">${escapeHtml(String(safe(x.hours,0)))} hours</div>
             </div>
           </div>
-        `).join("") : `<div class="azCardSub">No hours posted yet.</div>`}
+        `).join("") : `<div class="empty">No hours posted yet.</div>`}
       </div>
     </div>
   `);
@@ -1123,17 +991,17 @@ function renderHours(recordData){
 
 function renderDeposit(){
   setPage("Direct Deposit","",`
-    <div class="azCard">
-      <div class="azCardTitle">Direct Deposit</div>
-      <div class="azCardSub">View only. Changes are completed with HR.</div>
+    <div class="card">
+      <div class="card-title">Direct Deposit</div>
+      <div class="card-sub">View only. Changes are completed with HR.</div>
     </div>
   `);
 }
 
 function renderLegal(){
   setPage("Legal","",`
-    <div class="azCard">
-      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.legal.title)}</div>
+    <div class="card">
+      <div class="card-title">${escapeHtml(OFFICIAL_CONTENT.legal.title)}</div>
       ${ul(OFFICIAL_CONTENT.legal.bullets)}
     </div>
   `);
@@ -1142,21 +1010,23 @@ function renderLegal(){
 function renderHelp(publicData){
   const phone = publicData?.help?.phone || OFFICIAL_CONTENT.company.hrPhone;
   const email = publicData?.help?.email || OFFICIAL_CONTENT.company.hrEmail;
+
   setPage("Help","",`
-    <div class="azCard">
-      <div class="azCardTitle">${escapeHtml(OFFICIAL_CONTENT.help.title)}</div>
+    <div class="card">
+      <div class="card-title">${escapeHtml(OFFICIAL_CONTENT.help.title)}</div>
       ${ul(OFFICIAL_CONTENT.help.body)}
-      <div class="azCardSub" style="margin-top:12px;">
-        Phone: ${escapeHtml(phone)}<br/>
-        Email: ${escapeHtml(email)}
+
+      <div class="divider"></div>
+      <div class="kv">
+        <div class="k">Phone</div><div class="v">${escapeHtml(phone)}</div>
+        <div class="k">Email</div><div class="v">${escapeHtml(email)}</div>
       </div>
 
-      <div style="margin-top:14px;">
-        <div class="azCardTitle">Support Ticket</div>
-        <div class="azCardSub">Creates a formal record.</div>
-        <textarea id="ticketText" class="input" rows="4" placeholder="Describe your request..."></textarea>
-        <button class="btn" id="btnTicket" type="button" style="margin-top:10px;">Submit ticket</button>
-      </div>
+      <div class="divider"></div>
+      <div class="card-title">Support Ticket</div>
+      <div class="card-sub">Creates a formal record.</div>
+      <textarea id="ticketText" class="inp" rows="4" placeholder="Describe your request..."></textarea>
+      <button class="btn" id="btnTicket" type="button">Submit ticket</button>
     </div>
   `);
 }
@@ -1167,17 +1037,17 @@ function renderNotifications(publicData, userData){
   const all = [...personal, ...global].slice(0, 50);
 
   setPage("Notifications","",`
-    <div class="azCard">
-      <div class="azCardTitle">Notifications</div>
-      <div style="margin-top:12px;">
+    <div class="card">
+      <div class="card-title">Notifications</div>
+      <div class="stack">
         ${all.length ? all.map(n=>`
-          <div class="azPunchRow">
-            <div class="azPunchLeft">
-              <div class="azPunchType">${escapeHtml(safe(n.title,"Update"))}</div>
-              <div class="azPunchTime">${escapeHtml(safe(n.body,""))}</div>
+          <div class="list-item">
+            <div>
+              <div class="li-title">${escapeHtml(safe(n.title,"Update"))}</div>
+              <div class="li-sub">${escapeHtml(safe(n.body,""))}</div>
             </div>
           </div>
-        `).join("") : `<div class="azCardSub">No notifications.</div>`}
+        `).join("") : `<div class="empty">No notifications.</div>`}
       </div>
     </div>
   `);
@@ -1192,7 +1062,6 @@ async function saveShiftSelection(user, empId, shiftLabel){
   const userRef = doc(db,"users",user.uid);
   const recRef = RECORD_DOC(empId);
 
-  // mark approved + step done
   const userSnap = await getDoc(userRef);
   const u = userSnap.exists() ? userSnap.data() : {};
   const steps = setStepDoneLocal(u, "shift_selection", true);
@@ -1212,14 +1081,15 @@ async function saveShiftSelection(user, empId, shiftLabel){
 
 function renderShiftSelection(user, empId, userData){
   const current = safe(userData?.shift?.shift,"");
-  setPage("Shift Selection","",`
-    <div class="azCard">
-      <div class="azCardTitle">Choose your shift</div>
-      <div class="azCardSub">Selecting a shift marks it as approved in your profile.</div>
 
-      <div style="margin-top:12px;">
+  setPage("Shift Selection","",`
+    <div class="card">
+      <div class="card-title">Choose your shift</div>
+      <div class="card-sub">Selecting a shift marks it as approved in your profile.</div>
+
+      <div class="stack">
         ${OFFICIAL_CONTENT.company.shifts.map(s=>`
-          <button class="btn" type="button" data-shift="${escapeHtml(s.label)}" style="width:100%;margin-top:10px;">
+          <button class="btn" type="button" data-shift="${escapeHtml(s.label)}" style="width:100%;">
             ${escapeHtml(s.label)} • ${escapeHtml(s.hours)} ${current===s.label ? "(Selected)" : ""}
           </button>
         `).join("")}
@@ -1246,25 +1116,27 @@ function renderProgress(userData){
   const pct = steps.length ? Math.round((doneCount/steps.length)*100) : 0;
 
   setPage("Progress","",`
-    <div class="azCard">
-      <div class="azCardTitle">Onboarding checklist</div>
-      <div class="azCardSub">${escapeHtml(String(pct))}% complete</div>
+    <div class="card">
+      <div class="card-title">Onboarding checklist</div>
+      <div class="card-sub">${escapeHtml(String(pct))}% complete</div>
 
-      <div class="azBar" style="margin-top:12px;"><div style="width:${pct}%"></div></div>
+      <div class="progress" style="margin-top:12px;"><span style="width:${pct}%"></span></div>
 
-      <div style="margin-top:14px;">
+      <div class="divider"></div>
+
+      <div class="stack">
         ${steps.map(s=>`
-          <div class="azPunchRow">
-            <div class="azPunchLeft">
-              <div class="azPunchType">${escapeHtml(s.label || "")}</div>
-              <div class="azPunchTime">${s.done ? "Completed" : "Pending"}</div>
+          <div class="list-item">
+            <div>
+              <div class="li-title">${escapeHtml(s.label || "")}</div>
+              <div class="li-sub">${s.done ? "Completed" : "Pending"}</div>
             </div>
             <div>
-              ${s.id === "shift_selection" ? `<a class="azCardLink" href="#shift_selection"><span>Open</span>${azIcon("chevR")}</a>` : ""}
-              ${s.id === "footwear" ? `<a class="azCardLink" href="#footwearpolicy"><span>Open</span>${azIcon("chevR")}</a>` : ""}
-              ${s.id === "i9" ? `<a class="azCardLink" href="#i9"><span>Open</span>${azIcon("chevR")}</a>` : ""}
-              ${s.id === "documents" ? `<a class="azCardLink" href="#documents"><span>Info</span>${azIcon("chevR")}</a>` : ""}
-              ${s.id === "firstday" ? `<a class="azCardLink" href="#firstdayinfo"><span>Open</span>${azIcon("chevR")}</a>` : ""}
+              ${s.id === "shift_selection" ? `<a class="tile-link" href="#shift_selection">Open</a>` : ""}
+              ${s.id === "footwear" ? `<a class="tile-link" href="#footwearpolicy">Open</a>` : ""}
+              ${s.id === "i9" ? `<a class="tile-link" href="#i9">Open</a>` : ""}
+              ${s.id === "documents" ? `<a class="tile-link" href="#documents">Info</a>` : ""}
+              ${s.id === "firstday" ? `<a class="tile-link" href="#firstdayinfo">Open</a>` : ""}
             </div>
           </div>
         `).join("")}
@@ -1272,7 +1144,6 @@ function renderProgress(userData){
     </div>
   `);
 }
-
 // ===============================
 // ROUTER
 // ===============================
@@ -1298,7 +1169,6 @@ function routeRender(route, publicData, recordData, userData, user, empId){
   if(route === "help") return renderHelp(publicData);
   if(route === "shift_selection") return renderShiftSelection(user, empId, userData);
 
-  // default
   return renderHome(publicData, recordData, userData);
 }
 
@@ -1320,12 +1190,12 @@ onAuth(async (user)=>{
   cleanupSubs();
 
   if(!user){
-    setPage("Sign in","",`<div class="azCard"><div class="azCardTitle">Please sign in.</div></div>`);
+    setPage("Sign in","",`<div class="card"><div class="card-title">Please sign in.</div><div class="card-sub">Use the login screen to access the portal.</div></div>`);
     return;
   }
 
   try{
-    ensureChromeOnce();
+    wireExistingNav();
     await ensureUserDocExists(user);
 
     const empId = await ensureEmployeeId(user);
@@ -1334,7 +1204,6 @@ onAuth(async (user)=>{
     const pubRef = PUBLIC_DOC();
     const recRef = RECORD_DOC(empId);
 
-    // live data
     unsubPublic = onSnapshot(pubRef, (snap)=>{
       window.__publicData = snap.exists() ? (snap.data()||{}) : defaultPublicContent();
       window.dispatchEvent(new Event("spData"));
@@ -1360,14 +1229,17 @@ onAuth(async (user)=>{
       const redirect = routeGuardRedirect(requested, status);
       if(redirect) return navTo(redirect);
 
-      setActiveTabsAndSidebar(status);
+      // Make nav visible + active + gated
+      setActiveNav(status);
+      syncTopbar(empId, userData);
+
       routeRender(requested, publicData, recordData, userData, user, empId);
 
       // help ticket wiring
-      const btn = document.getElementById("btnTicket");
+      const btn = qs("btnTicket");
       if(btn){
         btn.onclick = async ()=>{
-          const txt = (document.getElementById("ticketText")?.value || "").trim();
+          const txt = (qs("ticketText")?.value || "").trim();
           if(!txt) return uiToast("Write your request.");
           await addDoc(TICKETS_COL(), {
             uid: user.uid,
@@ -1376,7 +1248,7 @@ onAuth(async (user)=>{
             createdAt: serverTimestamp()
           });
           uiToast("Ticket submitted.");
-          const ta = document.getElementById("ticketText");
+          const ta = qs("ticketText");
           if(ta) ta.value = "";
         };
       }
@@ -1390,6 +1262,11 @@ onAuth(async (user)=>{
 
   }catch(e){
     console.error(e);
-    setPage("Error","",`<div class="azCard"><div class="azCardTitle">Access error</div><div class="azCardSub">${escapeHtml(String(e?.message||e))}</div></div>`);
+    setPage("Error","",`
+      <div class="card">
+        <div class="card-title">Access error</div>
+        <div class="card-sub">${escapeHtml(String(e?.message||e))}</div>
+      </div>
+    `);
   }
 });
