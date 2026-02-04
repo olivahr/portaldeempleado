@@ -388,4 +388,33 @@ export function uiSectionHeader(title, right = "") {
       ${right ? `<div class="small muted" style="font-weight:900;">${escapeHtml(right)}</div>` : ""}
     </div>
   `;
+/* ✅ FORCE NAV: si tocaste un botón, cambia hash y llama al router */
+(function forceBottomNav() {
+  const nav = document.getElementById("bottomNav");
+  if (!nav) return;
+
+  // Captura taps/clicks incluso si algo intenta bloquear
+  nav.addEventListener("click", (e) => {
+    const a = e.target.closest("a[data-route]");
+    if (!a) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const route = (a.dataset.route || "").trim();
+    if (!route) return;
+
+    // 1) Cambia el hash sí o sí
+    window.location.hash = route;
+
+    // 2) Si tienes router global, lo llamamos si existe
+    if (typeof window.navigate === "function") {
+      window.navigate(route);
+    }
+
+    // 3) Dispara hashchange manual por si tu app no lo escucha bien
+    window.dispatchEvent(new Event("hashchange"));
+  }, true);
+})();
+
 }
