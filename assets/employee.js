@@ -1,18 +1,12 @@
-     // ===============================
-// Employee Portal (AMAZON A to Z STYLE - MOBILE TABS)
-// ✅ NO hamburger on mobile (no 3 lines)
+ // ===============================
+// Employee Portal (A-to-Z STYLE, NO EMOJIS)
 // ✅ Bottom Tab Bar on mobile: Home / Schedule / Pay / Benefits / More
-// ✅ Desktop keeps sidebar nav (enterprise)
-// ✅ Stagebar only on #progress
-// ✅ Clean router (no duplicate switches)
-// ✅ Read employeeRecords/{SP###} for appointment/contacts/notifications + modules
-// ✅ Keep users/{uid} for onboarding progress (shift/footwear/i9/steps)
-// ✅ Global company content from portal/public
-// ✅ Require Employee ID from allowedEmployees/{id} (range auto-allow optional)
-// ✅ Hide Admin button unless user is admin
-// ✅ Help & Support (big actions + ticket)
-// ✅ Safety Footwear (5 checks + embedded shop route)
-// ✅ Schedule list (A to Z feel)
+// ✅ Desktop keeps sidebar
+// ✅ A-to-Z Home cards (no blanks)
+// ✅ Schedule tabs + real calendar month grid (neutral colors)
+// ✅ Timecard grid + punch list (A-to-Z feel)
+// ✅ Uses employeeRecords/{SP###} + portal/public + users/{uid}
+// ✅ Employee ID gate allowedEmployees/{SP###} + optional range auto-allow
 // ===============================
 
 import { uiSetText, uiToast, escapeHtml } from "./ui.js";
@@ -24,22 +18,19 @@ import {
   serverTimestamp, collection, addDoc
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-// Global company content doc (admin updates -> all employees see)
+// ---------- Firestore refs ----------
 const PUBLIC_DOC = () => doc(db, "portal", "public");
-
-// Employee record keyed by empId (admin sets data before user registers)
 const RECORD_DOC = (empId) => doc(db, "employeeRecords", empId);
-
-// Tickets collection
 const TICKETS_COL = () => collection(db, "supportTickets");
 
-// ✅ Range auto-allow (so you don't add 180 IDs by hand)
+// ✅ Range auto-allow (avoid adding 180 IDs by hand)
 const EMP_ID_RANGE = { min: 23, max: 200 };
 const AUTO_CREATE_ALLOWED_ID = true;
 
-// ---------- Helpers ----------
+// ---------- Route helpers ----------
 function routeName() {
-  return (location.hash || "#progress").replace("#", "").trim().toLowerCase();
+  const h = (location.hash || "#home").replace("#", "").trim().toLowerCase();
+  return h || "home";
 }
 
 function setPage(title, sub, html) {
@@ -52,13 +43,13 @@ function safe(v, fallback = "—") {
   return (v === undefined || v === null || v === "") ? fallback : v;
 }
 
-function normalizeEmpId(input){
-  if(!input) return "";
+function normalizeEmpId(input) {
+  if (!input) return "";
   let v = input.toString().toUpperCase().trim();
-  v = v.replace(/[\s-_]/g,"");
-  if(!v.startsWith("SP")) return "";
+  v = v.replace(/[\s-_]/g, "");
+  if (!v.startsWith("SP")) return "";
   const nums = v.slice(2);
-  if(!/^\d+$/.test(nums)) return "";
+  if (!/^\d+$/.test(nums)) return "";
   return "SP" + nums;
 }
 
@@ -71,18 +62,82 @@ function empIdToNumber(empId) {
 function fmtDate(d) {
   try {
     const x = new Date(d);
-    if (isNaN(x.getTime())) return d;
-    return x.toLocaleDateString(undefined, { weekday:"short", month:"short", day:"numeric" });
-  } catch { return d; }
+    if (isNaN(x.getTime())) return String(d || "");
+    return x.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  } catch {
+    return String(d || "");
+  }
 }
 
-// ✅ Build safe tel: link from "(502) 555-0148" etc
+function fmtMonthTitle(year, monthIndex) {
+  const d = new Date(year, monthIndex, 1);
+  return d.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+}
+
 function telLink(phone) {
   const digits = String(phone || "").replace(/[^\d+]/g, "");
   return digits ? `tel:${digits}` : "tel:0";
 }
 
-// ---------- Default user doc (UI defaults only; we DO NOT overwrite) ----------
+function clamp(n, a, b) {
+  n = Number(n);
+  if (isNaN(n)) return a;
+  return Math.max(a, Math.min(b, n));
+}
+
+function nowISODate() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function ymd(d) {
+  // Accept Date or string ISO
+  try {
+    const x = (d instanceof Date) ? d : new Date(d);
+    if (isNaN(x.getTime())) return "";
+    const y = x.getFullYear();
+    const m = String(x.getMonth() + 1).padStart(2, "0");
+    const day = String(x.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  } catch {
+    return "";
+  }
+}
+
+// ---------- Default docs ----------
+function defaultPublicContent() {
+  return {
+    brand: {
+      name: "SunPowerC",
+      logoText: "sunpowerc",
+      accent: "#2563eb"
+    },
+    help: {
+      phone: "(502) 555-0148",
+      email: "hr@sunpowerc.energy",
+      text: "We’re here to help. Choose an option below and we’ll get you taken care of."
+    },
+    site: {
+      managerPhone: "(502) 555-0122",
+      safetyPhone: "(502) 555-0172",
+      address: ""
+    },
+    home: {
+      news: [
+        { title: "SunPowerC updates", subtitle: "Company news and updates", linkText: "All news", route: "notifications" }
+      ]
+    },
+    footwear: {
+      programTitle: "Safety Footwear Program",
+      shopUrl: "https://example.com"
+    },
+    globalNotifications: []
+  };
+}
+
 function defaultUserDoc(user) {
   return {
     email: user?.email || "",
@@ -90,26 +145,20 @@ function defaultUserDoc(user) {
     role: "employee",
     status: "active",
     stage: "shift_selection",
-
-    // compat only (real appt source = employeeRecords)
     appointment: { date: "", time: "", address: "", notes: "" },
 
-    // ✅ Use route-aligned step ids (documents / firstday)
     steps: [
       { id: "application", label: "Application", done: true },
       { id: "shift_selection", label: "Shift Selection", done: false },
       { id: "footwear", label: "Safety Footwear", done: false },
       { id: "i9", label: "I-9 Documents", done: false },
-      { id: "documents", label: "Complete Onboarding Documents", done: false }, // 🔒 in person
-      { id: "firstday", label: "First Day Preparation", done: false }           // 🔒 in person
+      { id: "documents", label: "Complete Onboarding Documents", done: false }, // in person
+      { id: "firstday", label: "First Day Preparation", done: false }           // in person
     ],
 
     shift: { position: "", shift: "" },
-
-    // ✅ footwear now 5 acks
-    footwear: { ack1:false, ack2:false, ack3:false, ack4:false, ack5:false },
-
-    i9: { ack:false },
+    footwear: { ack1: false, ack2: false, ack3: false, ack4: false, ack5: false },
+    i9: { ack: false },
 
     employeeId: "",
     notifications: [],
@@ -120,11 +169,6 @@ function defaultUserDoc(user) {
   };
 }
 
-/**
- * ✅ CRITICAL:
- * Does NOT overwrite steps/appointment/etc.
- * Only ensures doc exists + updates login stamps.
- */
 async function ensureUserDocExists(user) {
   if (!isFirebaseConfigured()) return;
 
@@ -139,18 +183,12 @@ async function ensureUserDocExists(user) {
   };
 
   if (!snap.exists()) {
-    await setDoc(ref, {
-      ...patch,
-      role: "employee",
-      status: "active",
-      createdAt: serverTimestamp()
-    }, { merge: true });
+    await setDoc(ref, { ...patch, role: "employee", status: "active", createdAt: serverTimestamp() }, { merge: true });
   } else {
     await setDoc(ref, patch, { merge: true });
   }
 }
 
-// ---------- Admin check ----------
 async function isAdminUser(user) {
   if (!isFirebaseConfigured()) return false;
   try {
@@ -163,7 +201,6 @@ async function isAdminUser(user) {
   }
 }
 
-// ---------- Employee ID Gate ----------
 async function ensureEmployeeId(user) {
   if (!isFirebaseConfigured()) return "PREVIEW";
 
@@ -202,60 +239,69 @@ async function ensureEmployeeId(user) {
 }
 
 // ===============================
-// ✅ MOBILE A to Z CHROME (NO HAMBURGER)
-// - On mobile: hide sidebar + add bottom tabs
-// - On desktop: keep sidebar
+// A-to-Z CHROME (NO HAMBURGER, NO EMOJIS)
 // ===============================
 function isMobile() {
   return window.matchMedia("(max-width: 920px)").matches;
 }
 
+function azIcon(name) {
+  const common = `width="18" height="18" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`;
+  const icons = {
+    home: `<svg ${common}><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/></svg>`,
+    schedule: `<svg ${common}><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M8 2v4M16 2v4"/><path d="M3 10h18"/></svg>`,
+    pay: `<svg ${common}><rect x="3" y="7" width="18" height="14" rx="3"/><path d="M3 11h18"/><path d="M7 15h4"/></svg>`,
+    benefits: `<svg ${common}><path d="M12 22s7-4 7-10V6l-7-3-7 3v6c0 6 7 10 7 10Z"/></svg>`,
+    more: `<svg ${common}><path d="M4 6h16M4 12h16M4 18h16"/></svg>`,
+    bell: `<svg ${common}><path d="M18 8a6 6 0 10-12 0c0 7-3 7-3 7h18s-3 0-3-7"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>`,
+    chat: `<svg ${common}><path d="M21 15a4 4 0 01-4 4H8l-5 3V7a4 4 0 014-4h10a4 4 0 014 4z"/></svg>`,
+    chevR: `<svg ${common}><path d="M9 18l6-6-6-6"/></svg>`,
+    chevL: `<svg ${common}><path d="M15 18l-6-6 6-6"/></svg>`,
+    dots: `<svg ${common}><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg>`,
+    search: `<svg ${common}><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>`,
+    clock: `<svg ${common}><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg>`
+  };
+  return icons[name] || icons.dots;
+}
+
 function ensureChromeOnce() {
-  // Hide any hamburger button if present (we don't want 3 lines)
+  // Hide hamburger if exists
   const btnMenu = document.getElementById("btnMenu");
   if (btnMenu) btnMenu.style.display = "none";
 
-  // On mobile, hide sidebar completely (A to Z feel)
+  // Sidebar visible only on desktop
   const sidebar = document.getElementById("sidebar");
-  if (sidebar) {
-    if (isMobile()) sidebar.style.display = "none";
-    else sidebar.style.display = "";
-  }
+  if (sidebar) sidebar.style.display = isMobile() ? "none" : "";
 
-  // Create bottom tabs once
   if (document.getElementById("azTabs")) return;
 
   const style = document.createElement("style");
-  style.id = "azTabsStyle";
+  style.id = "azStyle";
   style.textContent = `
-    /* Bottom Tabs (Amazon A to Z vibe) */
+    /* A-to-Z base spacing */
+    body.portal.has-tabs .content{ padding-bottom: 92px; }
     #azTabs{
-      position:fixed;
-      left:0; right:0; bottom:0;
-      height:72px;
-      background:rgba(255,255,255,.96);
+      position:fixed; left:0; right:0; bottom:0;
+      height:72px; z-index:5000;
+      background: rgba(255,255,255,.98);
       border-top:1px solid rgba(229,234,242,.95);
       display:none;
-      z-index:5000;
       padding-bottom: env(safe-area-inset-bottom);
       backdrop-filter: blur(10px);
     }
     #azTabs .az-wrap{
-      max-width:980px;
-      margin:0 auto;
+      max-width:980px; margin:0 auto;
       height:72px;
       display:grid;
       grid-template-columns: repeat(5, 1fr);
       align-items:center;
-      gap:4px;
+      gap:6px;
       padding:8px 10px;
     }
     .az-tab{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap:4px;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:6px;
       border-radius:14px;
       padding:8px 6px;
       border:1px solid transparent;
@@ -263,42 +309,32 @@ function ensureChromeOnce() {
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
       color: rgba(11,18,32,.85);
-      font-weight:950;
+      font-weight:900;
       font-size:11px;
+      background:transparent;
     }
     .az-ico{
-      width:26px;height:26px;
-      border-radius:12px;
+      width:28px;height:28px;
+      border-radius:999px;
       display:flex;align-items:center;justify-content:center;
-      background: rgba(29,78,216,.08);
-      font-size:16px;
+      background: rgba(2,6,23,.04);
+      color: rgba(2,6,23,.78);
     }
+    .az-ico svg{ width:18px; height:18px; }
     .az-tab.active{
-      background: linear-gradient(90deg, rgba(29,78,216,.10), rgba(14,165,233,.08));
-      border-color: rgba(29,78,216,.16);
-      color: var(--blue);
+      color: rgba(29,78,216,1);
     }
     .az-tab.active .az-ico{
-      background: rgba(29,78,216,.14);
-    }
-    /* Give content room for tabs */
-    body.portal.has-tabs .content{
-      padding-bottom: 90px;
+      background: rgba(29,78,216,.10);
+      color: rgba(29,78,216,1);
     }
 
     /* More sheet */
-    #azMoreOverlay{
-      position:fixed; inset:0;
-      background:rgba(0,0,0,.45);
-      display:none;
-      z-index:6000;
-    }
+    #azMoreOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; z-index:6000; }
     #azMoreSheet{
-      position:fixed;
-      left:0; right:0; bottom:0;
+      position:fixed; left:0; right:0; bottom:0;
       background:rgba(255,255,255,.98);
-      border-top-left-radius:20px;
-      border-top-right-radius:20px;
+      border-top-left-radius:20px; border-top-right-radius:20px;
       border:1px solid rgba(229,234,242,.95);
       box-shadow: 0 18px 55px rgba(2,6,23,.18);
       transform: translateY(110%);
@@ -319,12 +355,7 @@ function ensureChromeOnce() {
       z-index:1;
     }
     .azMoreTitle{ font-weight:1000; font-size:14px; }
-    .azMoreGrid{
-      padding:12px 14px 16px;
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
-    }
+    .azMoreGrid{ padding:12px 14px 16px; display:grid; grid-template-columns: 1fr; gap:10px; }
     .azMoreItem{
       display:flex; align-items:center; justify-content:space-between;
       gap:10px;
@@ -335,45 +366,300 @@ function ensureChromeOnce() {
       box-shadow: 0 10px 24px rgba(15,23,42,.05);
       font-weight:1000;
     }
-    .azMoreItem .sub{ font-size:12px; font-weight:900; color: var(--muted); margin-top:4px; }
+    .azMoreItem .sub{ font-size:12px; font-weight:800; color: var(--muted); margin-top:4px; }
+    .azMoreArrow{ display:flex; align-items:center; justify-content:center; width:18px; height:18px; color: rgba(2,6,23,.45); }
+    .azMoreArrow svg{ width:18px; height:18px; }
+
+    /* Home top bar row (icons) */
+    .azTopRow{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px; margin-bottom:10px;
+    }
+    .azTopIcons{ display:flex; gap:10px; }
+    .azIconBtn{
+      width:34px; height:34px;
+      border-radius:999px;
+      border:1px solid rgba(229,234,242,.95);
+      background:#fff;
+      display:flex;align-items:center;justify-content:center;
+      box-shadow: 0 10px 22px rgba(15,23,42,.05);
+      color: rgba(2,6,23,.70);
+    }
+    .azIconBtn svg{ width:18px; height:18px; }
+
+    /* Home hero */
+    .azHero{
+      border-radius:18px;
+      overflow:hidden;
+      border:1px solid rgba(229,234,242,.95);
+      background: linear-gradient(180deg, rgba(2,6,23,.06), rgba(2,6,23,.02));
+      box-shadow: 0 14px 30px rgba(15,23,42,.06);
+    }
+    .azHeroInner{ padding:12px; }
+    .azHeroTitle{ font-weight:1000; font-size:13px; color: rgba(2,6,23,.78); }
+    .azHeroSub{ margin-top:6px; font-weight:900; font-size:12px; color: rgba(2,6,23,.55); }
+    .azHeroPills{ display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+    .azPill{
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(229,234,242,.95);
+      background: rgba(255,255,255,.92);
+      font-weight:900;
+      font-size:12px;
+      color: rgba(2,6,23,.72);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    /* Two-card row like A-to-Z */
+    .azRow2{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    .azCard{
+      border-radius:16px;
+      border:1px solid rgba(229,234,242,.95);
+      background:#fff;
+      box-shadow: 0 14px 30px rgba(15,23,42,.06);
+      padding:12px;
+    }
+    .azCardTitle{ font-weight:1000; font-size:13px; }
+    .azCardSub{ margin-top:6px; font-weight:900; font-size:12px; color: var(--muted); line-height:1.25; }
+    .azCardLink{
+      margin-top:10px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-weight:1000;
+      font-size:12px;
+      color: rgba(29,78,216,1);
+      text-decoration:none;
+    }
+    .azCardLink svg{ width:16px; height:16px; }
+
+    /* Single wide card */
+    .azWide{ margin-top:10px; }
+    .azBar{
+      height:10px; border-radius:999px;
+      background: rgba(2,6,23,.08);
+      overflow:hidden;
+      border:1px solid rgba(229,234,242,.95);
+      margin-top:10px;
+    }
+    .azBar > div{
+      height:100%;
+      background: rgba(29,78,216,.45);
+      width:0%;
+    }
+    .azDots{
+      display:flex; gap:6px; align-items:center; margin-top:8px;
+      color: rgba(2,6,23,.55);
+      font-weight:900;
+      font-size:12px;
+    }
+    .azDot{ width:6px; height:6px; border-radius:99px; background: rgba(2,6,23,.25); }
+
+    /* Ask A-to-Z button (bottom-right inside page, like screenshot) */
+    .azAsk{
+      position:fixed;
+      right:16px;
+      bottom:92px;
+      z-index:4500;
+      border-radius:999px;
+      padding:12px 14px;
+      border:1px solid rgba(229,234,242,.95);
+      background: linear-gradient(90deg, rgba(124,58,237,.95), rgba(147,51,234,.92));
+      color:#fff;
+      font-weight:1000;
+      box-shadow: 0 18px 38px rgba(15,23,42,.18);
+      display:none;
+      align-items:center;
+      gap:10px;
+    }
+    .azAsk .spark{
+      width:18px; height:18px;
+      display:flex; align-items:center; justify-content:center;
+      background: rgba(255,255,255,.18);
+      border-radius:999px;
+      font-weight:1100;
+    }
+
+    /* Schedule top tabs (My Schedule / Timecard / Find Shifts) */
+    .azTabsTop{
+      display:flex; gap:18px; align-items:center;
+      border-bottom:1px solid rgba(229,234,242,.95);
+      margin: 4px 0 12px;
+      padding-bottom:8px;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .azTabsTop a{
+      text-decoration:none;
+      font-weight:1000;
+      font-size:13px;
+      color: rgba(2,6,23,.55);
+      padding:8px 0;
+      border-bottom:3px solid transparent;
+      white-space:nowrap;
+    }
+    .azTabsTop a.active{
+      color: rgba(2,6,23,.85);
+      border-bottom-color: rgba(29,78,216,.85);
+    }
+
+    /* Calendar */
+    .azCalWrap{
+      border-radius:16px;
+      border:1px solid rgba(229,234,242,.95);
+      background:#fff;
+      box-shadow: 0 14px 30px rgba(15,23,42,.06);
+      overflow:hidden;
+    }
+    .azCalHead{
+      display:flex; justify-content:space-between; align-items:center;
+      padding:12px;
+      border-bottom:1px solid rgba(229,234,242,.95);
+    }
+    .azCalMonth{ font-weight:1000; font-size:14px; }
+    .azCalNav{ display:flex; gap:8px; }
+    .azCalBtn{
+      width:34px;height:34px;border-radius:999px;
+      border:1px solid rgba(229,234,242,.95);
+      background:#fff;
+      display:flex;align-items:center;justify-content:center;
+      color: rgba(2,6,23,.70);
+      box-shadow: 0 10px 22px rgba(15,23,42,.05);
+    }
+    .azCalGrid{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap:0;
+      padding:10px;
+    }
+    .azCalDow{
+      font-weight:1000;
+      font-size:11px;
+      color: rgba(2,6,23,.45);
+      padding:8px 6px;
+      text-align:center;
+    }
+    .azDay{
+      height:44px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+      font-weight:1000;
+      font-size:12px;
+      color: rgba(2,6,23,.75);
+      border-radius:10px;
+      margin:2px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .azDay.muted{ color: rgba(2,6,23,.28); font-weight:900; }
+    .azDay.sel{ outline:2px solid rgba(29,78,216,.65); outline-offset:1px; }
+    .azDay.today{ border:1px solid rgba(2,6,23,.18); }
+    .azDay .dot{
+      position:absolute; bottom:6px; left:50%; transform:translateX(-50%);
+      width:5px;height:5px;border-radius:99px;background: rgba(2,6,23,.25);
+    }
+    .azLegend{
+      display:flex; gap:14px; flex-wrap:wrap;
+      padding:10px 12px 12px;
+      border-top:1px solid rgba(229,234,242,.95);
+      color: rgba(2,6,23,.55);
+      font-weight:900;
+      font-size:12px;
+    }
+    .azKey{ display:flex; align-items:center; gap:8px; }
+    .azKeyBox{ width:10px; height:10px; border-radius:3px; background: rgba(2,6,23,.18); }
+
+    /* Timecard quick grid */
+    .azQuickGrid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:10px;
+      margin-top:10px;
+    }
+    .azQuick{
+      border-radius:14px;
+      border:1px solid rgba(229,234,242,.95);
+      background:#fff;
+      box-shadow: 0 10px 22px rgba(15,23,42,.05);
+      padding:12px;
+      font-weight:1000;
+      min-height:70px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      color: rgba(2,6,23,.82);
+      text-decoration:none;
+    }
+    .azQuickTop{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .azQuickIcon{
+      width:34px;height:34px;border-radius:12px;
+      background: rgba(2,6,23,.05);
+      display:flex;align-items:center;justify-content:center;
+      color: rgba(2,6,23,.70);
+    }
+    .azQuickIcon svg{ width:18px;height:18px; }
+    .azQuickSub{ margin-top:8px; font-weight:900; font-size:12px; color: rgba(2,6,23,.50); }
+
+    /* Punch list row */
+    .azPunchRow{
+      display:flex; justify-content:space-between; align-items:center;
+      padding:10px 0;
+      border-top:1px solid rgba(229,234,242,.95);
+      font-weight:1000;
+    }
+    .azPunchRow:first-child{ border-top:none; }
+    .azPunchLeft{ display:flex; flex-direction:column; gap:4px; }
+    .azPunchType{ font-size:12px; color: rgba(2,6,23,.65); }
+    .azPunchTime{ font-size:14px; color: rgba(2,6,23,.85); }
+
+    @media (max-width: 420px){
+      .azRow2{ grid-template-columns: 1fr; }
+      .azQuickGrid{ grid-template-columns: repeat(2,1fr); }
+    }
   `;
   document.head.appendChild(style);
 
+  // Bottom tabs
   const tabs = document.createElement("div");
   tabs.id = "azTabs";
   tabs.innerHTML = `
     <div class="az-wrap">
-      <a class="az-tab" data-route="progress" href="#progress">
-        <div class="az-ico">🏠</div>
+      <a class="az-tab" data-route="home" href="#home">
+        <div class="az-ico">${azIcon("home")}</div>
         <div>Home</div>
       </a>
       <a class="az-tab" data-route="schedule" href="#schedule">
-        <div class="az-ico">📅</div>
+        <div class="az-ico">${azIcon("schedule")}</div>
         <div>Schedule</div>
       </a>
       <a class="az-tab" data-route="payroll" href="#payroll">
-        <div class="az-ico">💳</div>
+        <div class="az-ico">${azIcon("pay")}</div>
         <div>Pay</div>
       </a>
       <a class="az-tab" data-route="timeoff" href="#timeoff">
-        <div class="az-ico">🛡️</div>
+        <div class="az-ico">${azIcon("benefits")}</div>
         <div>Benefits</div>
       </a>
       <button class="az-tab" id="azMoreBtn" type="button">
-        <div class="az-ico">☰</div>
+        <div class="az-ico">${azIcon("more")}</div>
         <div>More</div>
       </button>
     </div>
   `;
   document.body.appendChild(tabs);
 
-  const moreOverlay = document.createElement("div");
-  moreOverlay.id = "azMoreOverlay";
-  document.body.appendChild(moreOverlay);
+  // More sheet
+  const overlay = document.createElement("div");
+  overlay.id = "azMoreOverlay";
+  document.body.appendChild(overlay);
 
-  const moreSheet = document.createElement("div");
-  moreSheet.id = "azMoreSheet";
-  moreSheet.innerHTML = `
+  const sheet = document.createElement("div");
+  sheet.id = "azMoreSheet";
+  sheet.innerHTML = `
     <div class="azMoreHead">
       <div>
         <div class="azMoreTitle">More</div>
@@ -383,12 +669,20 @@ function ensureChromeOnce() {
     </div>
 
     <div class="azMoreGrid">
+      <a class="azMoreItem" href="#progress">
+        <div>
+          <div>Progress</div>
+          <div class="sub">Onboarding checklist</div>
+        </div>
+        <div class="azMoreArrow">${azIcon("chevR")}</div>
+      </a>
+
       <a class="azMoreItem" href="#shift">
         <div>
           <div>Shift Selection</div>
           <div class="sub">Choose your preference</div>
         </div>
-        <div class="small muted">›</div>
+        <div class="azMoreArrow">${azIcon("chevR")}</div>
       </a>
 
       <a class="azMoreItem" href="#footwear">
@@ -396,7 +690,7 @@ function ensureChromeOnce() {
           <div>Safety Footwear</div>
           <div class="sub">Program + acknowledgement</div>
         </div>
-        <div class="small muted">›</div>
+        <div class="azMoreArrow">${azIcon("chevR")}</div>
       </a>
 
       <a class="azMoreItem" href="#i9">
@@ -404,7 +698,7 @@ function ensureChromeOnce() {
           <div>I-9</div>
           <div class="sub">Bring documents on day 1</div>
         </div>
-        <div class="small muted">›</div>
+        <div class="azMoreArrow">${azIcon("chevR")}</div>
       </a>
 
       <a class="azMoreItem" href="#documents">
@@ -412,7 +706,7 @@ function ensureChromeOnce() {
           <div>Documents</div>
           <div class="sub">Completed in person</div>
         </div>
-        <div class="small muted">›</div>
+        <div class="azMoreArrow">${azIcon("chevR")}</div>
       </a>
 
       <a class="azMoreItem" href="#firstday">
@@ -420,7 +714,7 @@ function ensureChromeOnce() {
           <div>First Day</div>
           <div class="sub">Check-in instructions</div>
         </div>
-        <div class="small muted">›</div>
+        <div class="azMoreArrow">${azIcon("chevR")}</div>
       </a>
 
       <a class="azMoreItem" href="#hours">
@@ -428,7 +722,7 @@ function ensureChromeOnce() {
           <div>My Hours</div>
           <div class="sub">Weekly summary</div>
         </div>
-        <div class="small muted">›</div>
+        <div class="azMoreArrow">${azIcon("chevR")}</div>
       </a>
 
       <a class="azMoreItem" href="#deposit">
@@ -436,7 +730,7 @@ function ensureChromeOnce() {
           <div>Direct Deposit</div>
           <div class="sub">View only</div>
         </div>
-        <div class="small muted">›</div>
+        <div class="azMoreArrow">${azIcon("chevR")}</div>
       </a>
 
       <a class="azMoreItem" href="#notifications">
@@ -444,7 +738,7 @@ function ensureChromeOnce() {
           <div>Notifications</div>
           <div class="sub">Company + HR + personal</div>
         </div>
-        <div class="small muted">›</div>
+        <div class="azMoreArrow">${azIcon("chevR")}</div>
       </a>
 
       <a class="azMoreItem" href="#help">
@@ -452,51 +746,47 @@ function ensureChromeOnce() {
           <div>Help & Support</div>
           <div class="sub">Call / Email / Ticket</div>
         </div>
-        <div class="small muted">›</div>
+        <div class="azMoreArrow">${azIcon("chevR")}</div>
       </a>
     </div>
   `;
-  document.body.appendChild(moreSheet);
+  document.body.appendChild(sheet);
 
-  // Wire "More" once
+  // Ask A to Z floating button
+  const ask = document.createElement("button");
+  ask.id = "azAskBtn";
+  ask.type = "button";
+  ask.className = "azAsk";
+  ask.innerHTML = `<span class="spark">✦</span><span>Ask A to Z</span>`;
+  ask.onclick = () => {
+    uiToast("Ask A to Z is not enabled in this portal yet.");
+  };
+  document.body.appendChild(ask);
+
   const openMore = () => {
-    moreOverlay.style.display = "block";
-    moreSheet.classList.add("open");
+    overlay.style.display = "block";
+    sheet.classList.add("open");
   };
   const closeMore = () => {
-    moreOverlay.style.display = "none";
-    moreSheet.classList.remove("open");
+    overlay.style.display = "none";
+    sheet.classList.remove("open");
   };
 
   const moreBtn = document.getElementById("azMoreBtn");
-  if (moreBtn && moreBtn.dataset.wired !== "1") {
-    moreBtn.dataset.wired = "1";
-    moreBtn.addEventListener("click", openMore);
-  }
+  moreBtn.addEventListener("click", openMore);
 
-  const moreClose = document.getElementById("azMoreClose");
-  if (moreClose && moreClose.dataset.wired !== "1") {
-    moreClose.dataset.wired = "1";
-    moreClose.addEventListener("click", closeMore);
-  }
+  document.getElementById("azMoreClose").addEventListener("click", closeMore);
+  overlay.addEventListener("click", closeMore);
 
-  if (moreOverlay && moreOverlay.dataset.wired !== "1") {
-    moreOverlay.dataset.wired = "1";
-    moreOverlay.addEventListener("click", closeMore);
-  }
+  sheet.querySelectorAll("a").forEach(a => a.addEventListener("click", closeMore));
 
-  // Close more when clicking any link inside it
-  moreSheet.querySelectorAll("a").forEach(a => {
-    a.addEventListener("click", closeMore);
-  });
-
-  // Initial responsive apply
   applyChromeVisibility();
   window.addEventListener("resize", applyChromeVisibility);
 }
 
 function applyChromeVisibility() {
   const tabs = document.getElementById("azTabs");
+  const ask = document.getElementById("azAskBtn");
   if (!tabs) return;
 
   const sidebar = document.getElementById("sidebar");
@@ -505,10 +795,12 @@ function applyChromeVisibility() {
   if (isMobile()) {
     tabs.style.display = "block";
     document.body.classList.add("has-tabs");
+    if (ask) ask.style.display = "inline-flex";
   } else {
     tabs.style.display = "none";
     document.body.classList.remove("has-tabs");
-    // also close more sheet if open
+    if (ask) ask.style.display = "none";
+
     const overlay = document.getElementById("azMoreOverlay");
     const sheet = document.getElementById("azMoreSheet");
     if (overlay) overlay.style.display = "none";
@@ -519,27 +811,27 @@ function applyChromeVisibility() {
 function setActiveTabsAndSidebar() {
   const r = routeName();
 
-  // Bottom tabs: map aliases to the same tab
   const tabKey =
-    (r === "progress") ? "progress" :
-    (r === "schedule") ? "schedule" :
+    (r === "home" || r === "progress") ? "home" :
+    (r.startsWith("schedule")) ? "schedule" :
     (r === "payroll") ? "payroll" :
     (r === "timeoff") ? "timeoff" :
-    "more"; // anything else -> More
+    "more";
 
   document.querySelectorAll("#azTabs .az-tab").forEach(el => {
     const key = el.getAttribute("data-route");
     if (key) el.classList.toggle("active", key === tabKey);
   });
 
-  // Sidebar active highlight (desktop)
   document.querySelectorAll(".nav-item").forEach(a => {
     const rr = (a.getAttribute("data-route") || "").toLowerCase();
     a.classList.toggle("active", rr === r);
   });
 }
 
-// ---------- Stagebar (ONLY Progress) ----------
+// ===============================
+// STAGEBAR (ONLY Progress)
+// ===============================
 function renderStagebar(userData) {
   const el = document.getElementById("stagebar");
   if (!el) return;
@@ -550,11 +842,11 @@ function renderStagebar(userData) {
   const firstPendingIndex = steps.findIndex(s => !s.done);
   const currentIndex = firstPendingIndex === -1 ? steps.length - 1 : firstPendingIndex;
 
-  const shift = steps.map((s, i) => {
+  const chips = steps.map((s, i) => {
     const done = !!s.done;
     const locked = i > currentIndex;
     const cls = done ? "sb-chip ok" : locked ? "sb-chip lock" : "sb-chip warn";
-    const icon = done ? "✓" : locked ? "🔒" : "•";
+    const icon = done ? "✓" : locked ? "•" : "•";
     return `
       <div class="${cls}">
         <span class="sb-ico">${icon}</span>
@@ -575,79 +867,539 @@ function renderStagebar(userData) {
       }
       .sb-chip.ok{border-color:rgba(22,163,74,.25);background:rgba(22,163,74,.08);color:var(--good);}
       .sb-chip.warn{border-color:rgba(245,158,11,.25);background:rgba(245,158,11,.08);color:#92400e;}
-      .sb-chip.lock{opacity:.6}
+      .sb-chip.lock{opacity:.55}
       .sb-ico{width:18px;display:inline-flex;justify-content:center;}
     </style>
-    <div class="sb-wrap">${shift}</div>
+    <div class="sb-wrap">${chips}</div>
   `;
 }
 
-// ---------- Defaults for global company content ----------
-function defaultPublicContent() {
-  return {
-    footwear: {
-      programTitle: "Safety Footwear Program",
-      shopUrl: "https://example.com"
-    },
-    help: {
-      phone: "(502) 555-0148",
-      email: "hr@sunpowerc.energy",
-      text: "We’re here to help. Choose an option below and we’ll get you taken care of."
-    },
-    site: {
-      managerPhone: "(502) 555-0122",
-      safetyPhone: "(502) 555-0172",
-      address: ""
-    },
-    globalNotifications: []
-  };
-}
-
 // ===============================
-// RENDERERS (APP FEEL)
+// UI blocks (A-to-Z feel)
 // ===============================
 function sectionHeader(title, right = "") {
   return `
-    <div style="
-      display:flex;justify-content:space-between;align-items:center;
-      gap:10px; flex-wrap:wrap; margin-bottom:10px;
-    ">
-      <div style="font-weight:1000;font-size:14px;letter-spacing:.2px;">
-        ${escapeHtml(title)}
-      </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+      <div style="font-weight:1000;font-size:14px;letter-spacing:.2px;">${escapeHtml(title)}</div>
       ${right ? `<div class="small muted" style="font-weight:900;">${escapeHtml(right)}</div>` : ""}
     </div>
   `;
 }
 
-function bigActionButton(href, label, sub, emoji = "🟦") {
+function azCard(title, sub, linkText, href) {
   return `
-    <a class="btn ghost" href="${escapeHtml(href)}"
-      style="
-        display:flex;justify-content:space-between;align-items:center;
-        width:100%; padding:14px 14px;
-        border-radius:16px;
-        border:1px solid var(--line);
-        box-shadow: 0 10px 24px rgba(15,23,42,.06);
-        margin-top:10px;
-      ">
-      <div style="display:flex;gap:12px;align-items:center;">
-        <div style="
-          width:38px;height:38px;border-radius:14px;
-          display:flex;align-items:center;justify-content:center;
-          background:rgba(29,78,216,.10);
-          font-size:18px;
-        ">${emoji}</div>
-        <div>
-          <div style="font-weight:1000;font-size:14px;">${escapeHtml(label)}</div>
-          <div class="small muted" style="margin-top:4px;line-height:1.25;">${escapeHtml(sub || "")}</div>
-        </div>
-      </div>
-      <div class="small muted" style="font-weight:1000;">›</div>
-    </a>
+    <div class="azCard">
+      <div class="azCardTitle">${escapeHtml(title)}</div>
+      <div class="azCardSub">${escapeHtml(sub)}</div>
+      ${href ? `
+        <a class="azCardLink" href="${escapeHtml(href)}">
+          <span>${escapeHtml(linkText || "View more")}</span>
+          ${azIcon("chevR")}
+        </a>
+      ` : `
+        <div class="azCardSub" style="margin-top:10px;">${escapeHtml(linkText || "")}</div>
+      `}
+    </div>
   `;
 }
 
+// ===============================
+// HOME (A-to-Z cards)
+// ===============================
+function renderHome(publicData, recordData, userData) {
+  const news = Array.isArray(publicData?.home?.news) ? publicData.home.news : defaultPublicContent().home.news;
+
+  const punches = Array.isArray(recordData?.punchesToday) ? recordData.punchesToday : [];
+  const punchesCount = punches.length;
+
+  const maxHours = clamp(recordData?.maxHours?.max || 60, 1, 120);
+  const scheduledMin = clamp(recordData?.maxHours?.scheduledMinutes || 0, 0, 100000);
+  const remainingMin = Math.max(0, (maxHours * 60) - scheduledMin);
+
+  const pct = clamp((scheduledMin / (maxHours * 60)) * 100, 0, 100);
+
+  setPage(
+    "Home",
+    "",
+    `
+      <div class="azTopRow">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-weight:1000;color:rgba(2,6,23,.75);">amazon a to z</div>
+        </div>
+        <div class="azTopIcons">
+          <a class="azIconBtn" href="#help" aria-label="Help">${azIcon("chat")}</a>
+          <a class="azIconBtn" href="#notifications" aria-label="Notifications">${azIcon("bell")}</a>
+        </div>
+      </div>
+
+      <div class="azHero">
+        <div class="azHeroInner">
+          <div class="azHeroTitle">${escapeHtml(news?.[0]?.title || "A to Z news")}</div>
+          <div class="azHeroSub">${escapeHtml(news?.[0]?.subtitle || "Company updates and announcements")}</div>
+          <div class="azHeroPills">
+            <a class="azPill" href="#notifications">
+              <span>All news</span>
+              ${azIcon("chevR")}
+            </a>
+            <span class="azPill">Updates</span>
+            <span class="azPill">Resources</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+
+      <div class="azRow2">
+        ${azCard(
+          "Find shifts",
+          safe(recordData?.findShiftsText, "No shifts available at the moment"),
+          "View more",
+          "#schedule-findshifts"
+        )}
+        ${azCard(
+          "VTO",
+          safe(recordData?.vtoText, "No VTO available at the moment"),
+          "",
+          ""
+        )}
+      </div>
+
+      <div class="azWide">
+        <div class="azCard">
+          <div class="azCardTitle">Time off & leave</div>
+          <div class="azCardSub">Manage your time off & leave requests</div>
+          <a class="azCardLink" href="#timeoff">
+            <span>Open</span>
+            ${azIcon("chevR")}
+          </a>
+        </div>
+      </div>
+
+      <div class="azWide">
+        <div class="azCard">
+          <div class="azCardTitle">Max. ${escapeHtml(String(maxHours))}h</div>
+          <div class="azCardSub">
+            ${escapeHtml(Math.floor(scheduledMin / 60))}h ${escapeHtml(String(scheduledMin % 60).padStart(2,"0"))}m scheduled
+            &nbsp;&nbsp;•&nbsp;&nbsp;
+            ${escapeHtml(Math.floor(remainingMin / 60))}h ${escapeHtml(String(remainingMin % 60).padStart(2,"0"))}m to max. hours
+          </div>
+          <div class="azBar"><div style="width:${pct.toFixed(0)}%"></div></div>
+        </div>
+      </div>
+
+      <div class="azWide">
+        <div class="azCard">
+          <div class="azCardTitle">${escapeHtml(String(punchesCount))} punches today</div>
+          <div class="azCardSub">Last clocked in at ${escapeHtml(safe(recordData?.lastClockedIn, "—"))}</div>
+          <a class="azCardLink" href="#schedule-timecard">
+            <span>Open timecard</span>
+            ${azIcon("chevR")}
+          </a>
+        </div>
+      </div>
+
+      <div class="azWide">
+        <div class="azCard" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+          <div>
+            <div class="azCardTitle">Explore trainings</div>
+            <div class="azCardSub">Browse trainings offered by SunPowerC</div>
+          </div>
+          <div class="azIconBtn" style="width:44px;height:44px;border-radius:16px;">
+            ${azIcon("chevR")}
+          </div>
+        </div>
+      </div>
+
+      <div style="height:8px"></div>
+    `
+  );
+}
+
+// ===============================
+// SCHEDULE: Tabs + Calendar + Detail section
+// ===============================
+function scheduleSubtabFromRoute(r) {
+  // schedule, schedule-timecard, schedule-findshifts
+  if (r === "schedule-timecard") return "timecard";
+  if (r === "schedule-findshifts") return "findshifts";
+  return "myschedule";
+}
+
+function scheduleTopTabsHtml(active) {
+  const tab = (key, label, href) => `
+    <a href="${href}" class="${active === key ? "active" : ""}">
+      ${escapeHtml(label)}
+    </a>
+  `;
+  return `
+    <div class="azTabsTop">
+      ${tab("myschedule","My Schedule","#schedule")}
+      ${tab("timecard","Timecard","#schedule-timecard")}
+      ${tab("findshifts","Find Shifts","#schedule-findshifts")}
+    </div>
+  `;
+}
+
+function buildEventsIndex(recordData) {
+  const events = Array.isArray(recordData?.scheduleEvents) ? recordData.scheduleEvents : [];
+  const idx = new Map(); // ymd -> events[]
+  for (const ev of events) {
+    const key = ymd(ev?.date);
+    if (!key) continue;
+    if (!idx.has(key)) idx.set(key, []);
+    idx.get(key).push(ev);
+  }
+  return idx;
+}
+
+function renderCalendarMonth(recordData, state) {
+  // state: { y, m, selectedYmd }
+  const y = state.y;
+  const m = state.m;
+  const selected = state.selectedYmd;
+
+  const first = new Date(y, m, 1);
+  const startDow = first.getDay(); // 0 Sun
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+
+  const prevDays = startDow; // days from prev month shown
+  const totalCells = 42; // 6 weeks
+  const prevMonthDays = new Date(y, m, 0).getDate();
+
+  const today = ymd(new Date());
+
+  const eventsIdx = buildEventsIndex(recordData);
+
+  const cells = [];
+  for (let i = 0; i < totalCells; i++) {
+    const dayNum = i - prevDays + 1;
+    let cellDate;
+    let label;
+    let muted = false;
+
+    if (dayNum <= 0) {
+      // prev month
+      const d = prevMonthDays + dayNum;
+      cellDate = new Date(y, m - 1, d);
+      label = d;
+      muted = true;
+    } else if (dayNum > daysInMonth) {
+      // next month
+      const d = dayNum - daysInMonth;
+      cellDate = new Date(y, m + 1, d);
+      label = d;
+      muted = true;
+    } else {
+      // current month
+      cellDate = new Date(y, m, dayNum);
+      label = dayNum;
+    }
+
+    const key = ymd(cellDate);
+    const hasEvent = eventsIdx.has(key);
+
+    const isSel = (key && key === selected);
+    const isToday = (key && key === today);
+
+    cells.push(`
+      <div class="azDay ${muted ? "muted" : ""} ${isSel ? "sel" : ""} ${isToday ? "today" : ""}"
+           data-ymd="${escapeHtml(key)}">
+        ${escapeHtml(String(label))}
+        ${hasEvent ? `<span class="dot"></span>` : ``}
+      </div>
+    `);
+  }
+
+  const dow = ["SUN","MON","TUE","WED","THU","FRI","SAT"].map(x => `<div class="azCalDow">${x}</div>`).join("");
+
+  return `
+    <div class="azCalWrap">
+      <div class="azCalHead">
+        <div class="azCalMonth">${escapeHtml(fmtMonthTitle(y,m))}</div>
+        <div class="azCalNav">
+          <button class="azCalBtn" id="calPrev" type="button" aria-label="Previous month">${azIcon("chevL")}</button>
+          <button class="azCalBtn" id="calNext" type="button" aria-label="Next month">${azIcon("chevR")}</button>
+        </div>
+      </div>
+
+      <div class="azCalGrid">
+        ${dow}
+        ${cells.join("")}
+      </div>
+
+      <div class="azLegend">
+        <div class="azKey"><span class="azKeyBox"></span><span>Punches</span></div>
+        <div class="azKey"><span class="azKeyBox"></span><span>Attention</span></div>
+        <div class="azKey"><span class="azKeyBox"></span><span>Scheduled shifts</span></div>
+        <div class="azKey"><span style="width:10px;height:10px;border-radius:999px;background:rgba(2,6,23,.25);display:inline-block;"></span><span>Day has data</span></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderMySchedule(recordData) {
+  // default state: current month, today selected
+  const today = new Date();
+  const state = {
+    y: today.getFullYear(),
+    m: today.getMonth(),
+    selectedYmd: ymd(today)
+  };
+
+  setPage(
+    "Schedule",
+    "",
+    `
+      ${scheduleTopTabsHtml("myschedule")}
+
+      ${renderCalendarMonth(recordData, state)}
+
+      <div style="height:12px"></div>
+
+      <div class="azCard" id="dayDetailsCard">
+        <div class="azCardTitle">Day details</div>
+        <div class="azCardSub" id="dayDetailsSub">Select a day to view details.</div>
+        <div id="dayDetailsBody" style="margin-top:10px;"></div>
+      </div>
+    `
+  );
+
+  const eventsIdx = buildEventsIndex(recordData);
+
+  function renderDayDetails(key) {
+    const cardSub = document.getElementById("dayDetailsSub");
+    const body = document.getElementById("dayDetailsBody");
+    if (!cardSub || !body) return;
+
+    const list = eventsIdx.get(key) || [];
+    uiSetText(cardSub, key ? fmtDate(key) : "Select a day to view details.");
+
+    if (!key) {
+      body.innerHTML = `<div class="muted">No day selected.</div>`;
+      return;
+    }
+
+    if (!list.length) {
+      body.innerHTML = `
+        <div class="muted" style="line-height:1.45;">
+          There are no scheduled shifts for this day.
+          Check back later or search another day.
+        </div>
+      `;
+      return;
+    }
+
+    body.innerHTML = list.map(ev => {
+      const start = safe(ev.start, "—");
+      const end = safe(ev.end, "—");
+      const loc = safe(ev.location, "");
+      const site = safe(ev.site, "");
+      const role = safe(ev.role, "");
+      const status = safe(ev.status, "Scheduled");
+      return `
+        <div class="azCard" style="box-shadow:none;border-radius:14px;margin-top:10px;">
+          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+            <div>
+              <div class="azCardTitle">${escapeHtml(`${start} - ${end}`)}</div>
+              <div class="azCardSub">${escapeHtml([role, site].filter(Boolean).join(" • ") || "Scheduled shift")}</div>
+              ${loc ? `<div class="azCardSub" style="margin-top:8px;">${escapeHtml(loc)}</div>` : ""}
+            </div>
+            <div class="azCardSub" style="font-weight:1000;color:rgba(2,6,23,.60);">${escapeHtml(status)}</div>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+            <button class="btn ghost" type="button" disabled style="border-radius:999px;min-width:120px;">View Details</button>
+            <button class="btn ghost" type="button" disabled style="border-radius:999px;min-width:120px;">Actions</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  // Wire month nav + day select
+  const calPrev = document.getElementById("calPrev");
+  const calNext = document.getElementById("calNext");
+  const wrap = document.querySelector(".azCalWrap");
+
+  function rerenderCalendar() {
+    // replace calendar HTML in-place
+    const newHtml = renderCalendarMonth(recordData, state);
+    const old = document.querySelector(".azCalWrap");
+    if (old) old.outerHTML = newHtml;
+
+    // rewire after replace
+    wireCalendar();
+    renderDayDetails(state.selectedYmd);
+  }
+
+  function wireCalendar() {
+    const prev = document.getElementById("calPrev");
+    const next = document.getElementById("calNext");
+    if (prev) prev.onclick = () => {
+      state.m -= 1;
+      if (state.m < 0) { state.m = 11; state.y -= 1; }
+      rerenderCalendar();
+    };
+    if (next) next.onclick = () => {
+      state.m += 1;
+      if (state.m > 11) { state.m = 0; state.y += 1; }
+      rerenderCalendar();
+    };
+
+    document.querySelectorAll(".azDay").forEach(el => {
+      el.addEventListener("click", () => {
+        const key = el.getAttribute("data-ymd") || "";
+        state.selectedYmd = key;
+
+        // toggle selection
+        document.querySelectorAll(".azDay").forEach(x => x.classList.remove("sel"));
+        el.classList.add("sel");
+
+        renderDayDetails(key);
+      });
+    });
+  }
+
+  wireCalendar();
+  renderDayDetails(state.selectedYmd);
+}
+
+function renderTimecard(recordData) {
+  const punches = Array.isArray(recordData?.punches) ? recordData.punches : [];
+  const missedPunch = !!recordData?.missedPunch;
+
+  setPage(
+    "Schedule",
+    "",
+    `
+      ${scheduleTopTabsHtml("timecard")}
+
+      <div class="azQuickGrid">
+        ${quickTile("Guide Me", "guide")}
+        ${quickTile("Attendance", "clock")}
+        ${quickTile("Time off & leave", "benefits")}
+        ${quickTile("Task List", "dots")}
+        ${quickTile("Report Absence", "schedule")}
+        ${quickTile("Correct Punches", "pay")}
+        ${quickTile("More", "more")}
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="azCard">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;">
+          <div>
+            <div class="azCardTitle">Today</div>
+            <div class="azCardSub">${escapeHtml(fmtDate(nowISODate()))}</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <button class="azCalBtn" type="button" disabled aria-label="Prev">${azIcon("chevL")}</button>
+            <button class="azCalBtn" type="button" disabled aria-label="Next">${azIcon("chevR")}</button>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;">
+          <div class="azCardTitle" style="font-size:13px;">Punch times (${escapeHtml(String(punches.length))})</div>
+          <a class="azCardLink" href="#help" style="margin-top:0;">
+            <span>Missed a punch?</span>
+            ${azIcon("chevR")}
+          </a>
+        </div>
+
+        ${missedPunch ? `
+          <div class="alert warn" style="margin-top:10px;">
+            Missed Punch
+          </div>
+        ` : ``}
+
+        <div style="margin-top:10px;">
+          ${punches.length ? punches.map(p => `
+            <div class="azPunchRow">
+              <div class="azPunchLeft">
+                <div class="azPunchType">${escapeHtml(safe(p.type, "In"))}</div>
+                <div class="azPunchType">${escapeHtml(safe(p.date, nowISODate()))}</div>
+              </div>
+              <div class="azPunchTime">${escapeHtml(safe(p.time, "—"))}</div>
+            </div>
+          `).join("") : `
+            <div class="muted" style="line-height:1.45;">
+              No punches recorded yet.
+            </div>
+          `}
+        </div>
+      </div>
+    `
+  );
+
+  function quickTile(title, iconKey) {
+    const icon =
+      iconKey === "guide" ? azIcon("search") :
+      iconKey === "clock" ? azIcon("clock") :
+      iconKey === "benefits" ? azIcon("benefits") :
+      iconKey === "pay" ? azIcon("pay") :
+      iconKey === "schedule" ? azIcon("schedule") :
+      azIcon("dots");
+
+    return `
+      <a class="azQuick" href="#help">
+        <div class="azQuickTop">
+          <div class="azQuickIcon">${icon}</div>
+          <div style="color:rgba(2,6,23,.40);">${azIcon("chevR")}</div>
+        </div>
+        <div>
+          <div>${escapeHtml(title)}</div>
+          <div class="azQuickSub">Open</div>
+        </div>
+      </a>
+    `;
+  }
+}
+
+function renderFindShifts(recordData) {
+  const list = Array.isArray(recordData?.availableShifts) ? recordData.availableShifts : [];
+
+  setPage(
+    "Schedule",
+    "",
+    `
+      ${scheduleTopTabsHtml("findshifts")}
+
+      <div class="azCard">
+        <div class="azCardTitle">Find shifts</div>
+        <div class="azCardSub">Search and view opportunities posted by HR.</div>
+
+        <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+          <div class="azCardSub" style="display:flex;align-items:center;gap:8px;">
+            <span style="display:flex;align-items:center;">${azIcon("search")}</span>
+            <span>Filters (${escapeHtml(String(recordData?.filtersCount ?? 0))})</span>
+          </div>
+          <button class="btn ghost" type="button" disabled style="border-radius:999px;">Filters</button>
+        </div>
+
+        <div style="margin-top:12px;">
+          ${list.length ? list.map(s => `
+            <div class="azCard" style="box-shadow:none;border-radius:14px;margin-top:10px;">
+              <div class="azCardTitle">${escapeHtml(safe(s.timeRange, "Shift"))}</div>
+              <div class="azCardSub">${escapeHtml(safe(s.site, safe(s.location, "Site pending")))}</div>
+              <div style="margin-top:10px;display:flex;gap:10px;">
+                <button class="btn ghost" type="button" disabled style="border-radius:999px;min-width:120px;">View Details</button>
+                <button class="btn ghost" type="button" disabled style="border-radius:999px;min-width:120px;">Actions</button>
+              </div>
+            </div>
+          `).join("") : `
+            <div class="muted" style="margin-top:10px;line-height:1.45;">
+              There aren't any available shifts. Check back later or search another day.
+            </div>
+          `}
+        </div>
+      </div>
+    `
+  );
+}
+
+// ===============================
+// PROGRESS + ONBOARDING (kept, no blanks)
+// ===============================
 function renderProgress(userData, recordData) {
   const steps = Array.isArray(userData?.steps) ? userData.steps : [];
   const appt = recordData?.appointment || userData?.appointment || {};
@@ -656,17 +1408,11 @@ function renderProgress(userData, recordData) {
   const nextLabel = next?.label ? `Next: ${next.label}` : "All steps completed";
 
   const stepsHtml = steps.map(s => `
-    <div class="card" style="
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:12px;
-      margin-top:10px;
-      box-shadow: 0 10px 24px rgba(15,23,42,.05);
-    ">
+    <div class="azCard" style="box-shadow:none;margin-top:10px;">
       <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;">
-        <div style="font-weight:1000;">${escapeHtml(s.label || "")}</div>
-        <div class="small muted" style="font-weight:1000;">
-          ${s.done ? "Completed ✓" : "Pending •"}
+        <div class="azCardTitle">${escapeHtml(s.label || "")}</div>
+        <div class="azCardSub" style="margin-top:0;font-weight:1000;color:rgba(2,6,23,.55);">
+          ${s.done ? "Completed" : "Pending"}
         </div>
       </div>
     </div>
@@ -676,14 +1422,14 @@ function renderProgress(userData, recordData) {
     "Progress",
     nextLabel,
     `
-      <div class="card" style="border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
+      <div class="azCard">
         ${sectionHeader("Your checklist")}
         ${stepsHtml || `<div class="muted">No steps yet.</div>`}
       </div>
 
       <div style="height:12px"></div>
 
-      <div class="card" style="border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
+      <div class="azCard">
         ${sectionHeader("Appointment")}
         <div class="kv" style="margin-top:0;">
           <div class="k">Date</div><div class="v">${escapeHtml(safe(appt.date, "Pending"))}</div>
@@ -705,7 +1451,7 @@ function renderShiftSelection(userData, saveUserPatch) {
     "Shift Selection",
     "Choose your preferences (HR will confirm).",
     `
-      <div class="card" style="border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
+      <div class="azCard">
         ${sectionHeader("Position Preference")}
         <div style="display:flex;flex-direction:column;gap:10px;">
           ${posCard("assembler","Solar Panel Assembler","Hands-on assembly of solar panels.","$18–$23/hr",pos)}
@@ -733,43 +1479,41 @@ function renderShiftSelection(userData, saveUserPatch) {
     `
   );
 
-  function posCard(key, title, desc, pay, selectedKey){
+  function posCard(key, title, desc, pay, selectedKey) {
     const selected = selectedKey === key;
     return `
-      <label class="card" style="
-        border:1px solid ${selected ? "rgba(22,163,74,.35)" : "var(--line)"};
-        border-radius:16px;padding:12px;
+      <label class="azCard" style="
+        box-shadow:none;
+        border:1px solid ${selected ? "rgba(22,163,74,.30)" : "rgba(229,234,242,.95)"};
         background:${selected ? "rgba(22,163,74,.06)" : "#fff"};
-        cursor:pointer;
-        box-shadow: 0 10px 24px rgba(15,23,42,.05);
+        margin:0;
       ">
         <div style="display:flex;gap:10px;align-items:flex-start;">
-          <input type="radio" name="pos" value="${escapeHtml(key)}" ${selected ? "checked":""} style="margin-top:3px;"/>
+          <input type="radio" name="pos" value="${escapeHtml(key)}" ${selected ? "checked" : ""} style="margin-top:3px;"/>
           <div style="flex:1;">
-            <div style="font-weight:1000;">${escapeHtml(title)}</div>
-            <div class="muted" style="margin-top:6px;line-height:1.4;">${escapeHtml(desc)}</div>
-            <div class="small muted" style="margin-top:8px;font-weight:1000;">Pay Range: ${escapeHtml(pay)}</div>
+            <div class="azCardTitle">${escapeHtml(title)}</div>
+            <div class="azCardSub" style="margin-top:6px;line-height:1.4;">${escapeHtml(desc)}</div>
+            <div class="azCardSub" style="margin-top:8px;font-weight:1000;">Pay Range: ${escapeHtml(pay)}</div>
           </div>
         </div>
       </label>
     `;
   }
 
-  function shiftCard(key, title, hours, selectedKey){
+  function shiftCard(key, title, hours, selectedKey) {
     const selected = selectedKey === key;
     return `
-      <label class="card" style="
-        border:1px solid ${selected ? "rgba(22,163,74,.35)" : "var(--line)"};
-        border-radius:16px;padding:12px;
+      <label class="azCard" style="
+        box-shadow:none;
+        border:1px solid ${selected ? "rgba(22,163,74,.30)" : "rgba(229,234,242,.95)"};
         background:${selected ? "rgba(22,163,74,.06)" : "#fff"};
-        cursor:pointer;
-        box-shadow: 0 10px 24px rgba(15,23,42,.05);
+        margin:0;
       ">
         <div style="display:flex;gap:10px;align-items:flex-start;">
-          <input type="radio" name="shift" value="${escapeHtml(key)}" ${selected ? "checked":""} style="margin-top:3px;"/>
+          <input type="radio" name="shift" value="${escapeHtml(key)}" ${selected ? "checked" : ""} style="margin-top:3px;"/>
           <div style="flex:1;">
-            <div style="font-weight:1000;">${escapeHtml(title)}</div>
-            <div class="muted" style="margin-top:6px;">${escapeHtml(hours)}</div>
+            <div class="azCardTitle">${escapeHtml(title)}</div>
+            <div class="azCardSub" style="margin-top:6px;">${escapeHtml(hours)}</div>
           </div>
         </div>
       </label>
@@ -799,13 +1543,13 @@ function renderI9(userData, saveUserPatch) {
     "I-9 Documents",
     "Bring original, unexpired documents on your first day.",
     `
-      <div class="card" style="border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
+      <div class="azCard">
         <div class="alert info" style="margin-top:0;">
           You must bring original, unexpired documents on your first day.
         </div>
 
         <label class="checkrow" style="display:flex;gap:10px;align-items:flex-start;margin-top:12px;">
-          <input type="checkbox" id="i9Ack" ${i9.ack ? "checked":""}/>
+          <input type="checkbox" id="i9Ack" ${i9.ack ? "checked" : ""}/>
           <span style="font-size:13px;line-height:1.35;">
             I understand I must bring valid original documents on my first day of work to complete I-9 verification.
           </span>
@@ -829,11 +1573,10 @@ function renderI9(userData, saveUserPatch) {
 
     await saveUserPatch({ i9: { ack: true }, steps });
     uiToast("I-9 confirmed.");
-    location.hash = "#progress";
+    location.hash = "#home";
   };
 }
 
-// ---- Safety Footwear (Amazon-level + 5 checks + embedded shop route) ----
 function renderFootwear(userData, saveUserPatch, publicData) {
   const fwPublic = publicData?.footwear || defaultPublicContent().footwear;
   const fw = userData?.footwear || {};
@@ -844,11 +1587,10 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     fwPublic.programTitle || "Safety Footwear Program",
     "Safety footwear is required for warehouse and production roles.",
     `
-      <div class="card" style="border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
+      <div class="azCard">
         ${sectionHeader("Policy & Requirements")}
         <div class="muted" style="line-height:1.5;">
           Approved protective footwear is mandatory for all warehouse and production employees.
-          Footwear must be:
           <ul class="ul" style="margin-top:8px;">
             <li>Closed-toe / closed-heel</li>
             <li>Slip-resistant soles</li>
@@ -861,17 +1603,8 @@ function renderFootwear(userData, saveUserPatch, publicData) {
 
         ${sectionHeader("Reimbursement")}
         <div class="muted" style="line-height:1.5;">
-          SunPowerC supports workplace safety through a footwear reimbursement program.
-          Reimbursement is processed after verification and will be included in your first paycheck after approval.
+          Reimbursement is processed after verification and may be included in your first paycheck after approval.
           Purchases must be made through the designated store to qualify.
-        </div>
-
-        <div style="height:12px"></div>
-
-        ${sectionHeader("Employee Responsibilities")}
-        <div class="muted" style="line-height:1.5;">
-          Employees must arrive with approved footwear before being allowed on the production floor.
-          Non-compliance may delay start date or site access.
         </div>
 
         <div style="height:14px"></div>
@@ -907,12 +1640,11 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     return `
       <label class="checkrow" style="
         display:flex;gap:10px;align-items:flex-start;
-        padding:12px;border:1px solid var(--line);
+        padding:12px;border:1px solid rgba(229,234,242,.95);
         border-radius:16px;margin-top:10px;
         background:#fff;
-        box-shadow: 0 10px 24px rgba(15,23,42,.04);
       ">
-        <input type="checkbox" id="${escapeHtml(id)}" ${checked ? "checked":""}/>
+        <input type="checkbox" id="${escapeHtml(id)}" ${checked ? "checked" : ""}/>
         <span style="font-size:13px;line-height:1.35;">${escapeHtml(text)}</span>
       </label>
     `;
@@ -927,13 +1659,11 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     const a4 = document.getElementById("fwAck4")?.checked;
     const a5 = document.getElementById("fwAck5")?.checked;
     const all = !!(a1 && a2 && a3 && a4 && a5);
-    if (btn) {
-      btn.disabled = !all;
-      btn.style.opacity = all ? "1" : ".75";
-    }
+    btn.disabled = !all;
+    btn.style.opacity = all ? "1" : ".75";
   };
 
-  ["fwAck1","fwAck2","fwAck3","fwAck4","fwAck5"].forEach(x => {
+  ["fwAck1", "fwAck2", "fwAck3", "fwAck4", "fwAck5"].forEach(x => {
     const el = document.getElementById(x);
     if (el) el.addEventListener("change", syncBtn);
   });
@@ -953,7 +1683,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     );
 
     await saveUserPatch({
-      footwear: { ack1:a1, ack2:a2, ack3:a3, ack4:a4, ack5:a5 },
+      footwear: { ack1: a1, ack2: a2, ack3: a3, ack4: a4, ack5: a5 },
       steps: newSteps,
       stage: "i9"
     });
@@ -971,7 +1701,7 @@ function renderFootwearShop(publicData) {
     "Safety Footwear Shop",
     "In-app store view.",
     `
-      <div class="card" style="border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
+      <div class="azCard">
         ${sectionHeader("Shop Approved Footwear", "Secure")}
         <div class="muted" style="line-height:1.45;">
           If the in-app view is blocked by the store’s security settings, use “Open in Browser”.
@@ -980,7 +1710,7 @@ function renderFootwearShop(publicData) {
         <div style="height:12px"></div>
 
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <a class="btn ghost" href="#footwear" style="border-radius:14px;">← Back</a>
+          <a class="btn ghost" href="#footwear" style="border-radius:14px;">Back</a>
           ${url ? `
             <a class="btn primary" href="${escapeHtml(url)}" target="_blank" rel="noreferrer" style="border-radius:14px;">
               Open in Browser
@@ -991,14 +1721,7 @@ function renderFootwearShop(publicData) {
         <div style="height:12px"></div>
 
         ${url ? `
-          <div style="
-            border:1px solid var(--line);
-            border-radius:18px;
-            overflow:hidden;
-            height:70vh;
-            box-shadow: 0 14px 30px rgba(15,23,42,.06);
-            background:#fff;
-          ">
+          <div style="border:1px solid rgba(229,234,242,.95);border-radius:18px;overflow:hidden;height:70vh;background:#fff;">
             <iframe
               src="${escapeHtml(url)}"
               style="width:100%;height:100%;border:0;"
@@ -1019,9 +1742,9 @@ function renderDocumentsLocked() {
     "Documents",
     "Completed in person on your first day.",
     `
-      <div class="card" style="border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
+      <div class="azCard">
         <div class="alert warn" style="margin-top:0;">
-          🔒 This step is completed in person on your first day.
+          This step is completed in person on your first day.
         </div>
         <div class="muted" style="line-height:1.45;">
           HR will review and finalize onboarding documents at the warehouse.
@@ -1037,7 +1760,7 @@ function renderFirstDayLocked(userData, recordData) {
     "First Day",
     "Check-in details and instructions.",
     `
-      <div class="card" style="border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
+      <div class="azCard">
         ${sectionHeader("Check-In Information")}
         <div class="kv" style="margin-top:0;">
           <div class="k">Start Date</div><div class="v">${escapeHtml(safe(appt.date, "To be provided by HR"))}</div>
@@ -1048,152 +1771,49 @@ function renderFirstDayLocked(userData, recordData) {
 
         <div style="height:12px"></div>
         <div class="alert warn" style="margin-top:0;">
-          🔒 First Day Preparation is completed in person.
+          First Day Preparation is completed in person.
         </div>
       </div>
     `
   );
 }
 
-// ---------- WORK MODULES (A to Z FEEL) ----------
-function renderSchedule(recordData) {
-  const events = Array.isArray(recordData?.scheduleEvents) ? recordData.scheduleEvents : [];
-  const weekly = recordData?.schedule || {};
-
-  const listEvents = events.map(ev => {
-    const date = ev.date || "";
-    const start = ev.start || "";
-    const end = ev.end || "";
-    const role = ev.role || "";
-    const loc = ev.location || "";
-    const status = ev.status || "Scheduled";
-
-    return `
-      <div class="card" style="
-        border-radius:18px; padding:14px;
-        border:1px solid var(--line);
-        box-shadow: 0 14px 30px rgba(15,23,42,.06);
-        margin-top:12px;
-      ">
-        <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;">
-          <div>
-            <div style="font-weight:1100;font-size:14px;">${escapeHtml(fmtDate(date) || "Upcoming Shift")}</div>
-            <div class="muted" style="margin-top:6px;font-size:13px;">
-              ${escapeHtml((start && end) ? `${start} – ${end}` : "Time pending")}
-              ${role ? " • " + escapeHtml(role) : ""}
-            </div>
-            ${loc ? `<div class="small muted" style="margin-top:8px;font-weight:900;">${escapeHtml(loc)}</div>` : ""}
-          </div>
-
-          <div class="small muted" style="
-            font-weight:1100;
-            padding:8px 10px;border-radius:999px;
-            border:1px solid var(--line);
-            background:rgba(29,78,216,.06);
-          ">
-            ${escapeHtml(status)}
-          </div>
-        </div>
-      </div>
-    `;
-  }).join("");
-
-  const weekRow = (dayKey, label) => {
-    const d = weekly?.[dayKey] || {};
-    const type = d.type || "";
-    const start = d.start || "";
-    const end = d.end || "";
-
-    const badge =
-      type === "work" ? "Work" :
-      type === "holiday" ? "Holiday" :
-      type === "off" ? "Day Off" :
-      "Pending";
-
-    const line =
-      (start && end) ? `${start} – ${end}` :
-      (type === "off") ? "Day Off" :
-      "Pending";
-
-    return `
-      <div style="
-        display:flex;justify-content:space-between;gap:10px;
-        padding:12px;border-radius:16px;
-        border:1px solid var(--line);
-        background:#fff;
-        box-shadow: 0 10px 24px rgba(15,23,42,.04);
-        margin-top:10px;
-      ">
-        <div>
-          <div style="font-weight:1100;">${escapeHtml(label)}</div>
-          <div class="muted" style="margin-top:6px;">${escapeHtml(line)}</div>
-        </div>
-        <div class="small muted" style="font-weight:1100;">${escapeHtml(badge)}</div>
-      </div>
-    `;
-  };
-
-  setPage(
-    "Schedule",
-    "Your upcoming shifts and weekly overview.",
-    `
-      <div class="card" style="border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
-        ${sectionHeader("Upcoming Shifts")}
-        <div class="muted" style="line-height:1.45;">
-          This is your official schedule once assigned by HR.
-        </div>
-        ${listEvents || `<div style="margin-top:12px;" class="muted">No scheduled shifts yet.</div>`}
-      </div>
-
-      <div style="height:12px"></div>
-
-      <div class="card" style="border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
-        ${sectionHeader("Weekly Overview")}
-        ${weekRow("monday","Monday")}
-        ${weekRow("tuesday","Tuesday")}
-        ${weekRow("wednesday","Wednesday")}
-        ${weekRow("thursday","Thursday")}
-        ${weekRow("friday","Friday")}
-        ${weekRow("saturday","Saturday")}
-        ${weekRow("sunday","Sunday")}
-      </div>
-    `
-  );
-}
-
+// ===============================
+// PAY / BENEFITS / HOURS / DEPOSIT / NOTIFS / HELP
+// (kept full, no blanks)
+// ===============================
 function renderPayroll(recordData) {
   const items = Array.isArray(recordData?.payroll) ? recordData.payroll : [];
-
-  const list = items.map(p => `
-    <div class="card" style="
-      border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:12px;
-      box-shadow: 0 14px 30px rgba(15,23,42,.06);
-    ">
-      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-        <div style="font-weight:1100;">Pay Date: ${escapeHtml(p.payDate || "—")}</div>
-        <div class="small muted" style="font-weight:1100;">${escapeHtml(p.status || "stub")}</div>
-      </div>
-      <div class="muted" style="margin-top:8px;">
-        Period: ${escapeHtml((p.periodStart||"—") + " → " + (p.periodEnd||"—"))}
-      </div>
-
-      <button class="btn ghost" type="button" disabled
-        style="margin-top:12px;width:100%;border-radius:16px;">
-        View Pay Stub (enabled by HR)
-      </button>
-    </div>
-  `).join("");
 
   setPage(
     "Payroll",
     "Pay stubs and pay periods.",
     `
-      <div class="card" style="border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
+      <div class="azCard">
         ${sectionHeader("Pay Stubs")}
         <div class="muted" style="line-height:1.45;">
           Pay stubs will appear here once uploaded by payroll.
         </div>
-        ${list || `<div style="margin-top:12px;" class="muted">No pay stubs yet.</div>`}
+
+        <div style="margin-top:10px;">
+          ${items.length ? items.map(p => `
+            <div class="azCard" style="box-shadow:none;border-radius:14px;margin-top:10px;">
+              <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                <div class="azCardTitle">Pay Date: ${escapeHtml(p.payDate || "—")}</div>
+                <div class="azCardSub" style="margin-top:0;font-weight:1000;">${escapeHtml(p.status || "stub")}</div>
+              </div>
+              <div class="azCardSub" style="margin-top:8px;">
+                Period: ${escapeHtml((p.periodStart || "—") + " → " + (p.periodEnd || "—"))}
+              </div>
+
+              <button class="btn ghost" type="button" disabled style="margin-top:12px;width:100%;border-radius:16px;">
+                View Pay Stub (enabled by HR)
+              </button>
+            </div>
+          `).join("") : `
+            <div class="muted" style="margin-top:12px;">No pay stubs yet.</div>
+          `}
+        </div>
       </div>
     `
   );
@@ -1202,32 +1822,32 @@ function renderPayroll(recordData) {
 function renderTimeOff(recordData) {
   const reqs = Array.isArray(recordData?.timeOffRequests) ? recordData.timeOffRequests : [];
 
-  const list = reqs.map(r => `
-    <div class="card" style="
-      border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:12px;
-      box-shadow: 0 14px 30px rgba(15,23,42,.06);
-    ">
-      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-        <div style="font-weight:1100;">${escapeHtml(r.type || "Time Off")}</div>
-        <div class="small muted" style="font-weight:1100;">${escapeHtml(r.status || "pending")}</div>
-      </div>
-      <div class="muted" style="margin-top:8px;">
-        ${escapeHtml((r.startDate||"—") + " → " + (r.endDate||"—"))}
-      </div>
-      ${r.reason ? `<div class="small muted" style="margin-top:8px;line-height:1.35;">${escapeHtml(r.reason)}</div>` : ""}
-    </div>
-  `).join("");
-
   setPage(
-    "Time Off",
+    "Time Off & Leave",
     "Requests and approvals.",
     `
-      <div class="card" style="border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
+      <div class="azCard">
         ${sectionHeader("Your Requests")}
         <div class="muted" style="line-height:1.45;">
           Requests will appear here with status (pending/approved/denied).
         </div>
-        ${list || `<div style="margin-top:12px;" class="muted">No requests yet.</div>`}
+
+        <div style="margin-top:10px;">
+          ${reqs.length ? reqs.map(r => `
+            <div class="azCard" style="box-shadow:none;border-radius:14px;margin-top:10px;">
+              <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                <div class="azCardTitle">${escapeHtml(r.type || "Time Off")}</div>
+                <div class="azCardSub" style="margin-top:0;font-weight:1000;">${escapeHtml(r.status || "pending")}</div>
+              </div>
+              <div class="azCardSub" style="margin-top:8px;">
+                ${escapeHtml((r.startDate || "—") + " → " + (r.endDate || "—"))}
+              </div>
+              ${r.reason ? `<div class="azCardSub" style="margin-top:8px;line-height:1.35;">${escapeHtml(r.reason)}</div>` : ""}
+            </div>
+          `).join("") : `
+            <div class="muted" style="margin-top:12px;">No requests yet.</div>
+          `}
+        </div>
       </div>
     `
   );
@@ -1235,30 +1855,29 @@ function renderTimeOff(recordData) {
 
 function renderHours(recordData) {
   const items = Array.isArray(recordData?.hours) ? recordData.hours : [];
-
-  const list = items.map(h => `
-    <div class="card" style="
-      border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:12px;
-      box-shadow: 0 14px 30px rgba(15,23,42,.06);
-    ">
-      <div style="font-weight:1100;">Week of ${escapeHtml(h.weekStart || "—")}</div>
-      <div class="muted" style="margin-top:8px;">
-        Total: ${escapeHtml(String(h.totalHours ?? "—"))}
-        • Overtime: ${escapeHtml(String(h.overtime ?? "—"))}
-      </div>
-    </div>
-  `).join("");
-
   setPage(
     "My Hours",
     "Weekly summary.",
     `
-      <div class="card" style="border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
+      <div class="azCard">
         ${sectionHeader("Weekly Hours")}
         <div class="muted" style="line-height:1.45;">
           Your posted hours will appear here.
         </div>
-        ${list || `<div style="margin-top:12px;" class="muted">No hours posted yet.</div>`}
+
+        <div style="margin-top:10px;">
+          ${items.length ? items.map(h => `
+            <div class="azCard" style="box-shadow:none;border-radius:14px;margin-top:10px;">
+              <div class="azCardTitle">Week of ${escapeHtml(h.weekStart || "—")}</div>
+              <div class="azCardSub" style="margin-top:8px;">
+                Total: ${escapeHtml(String(h.totalHours ?? "—"))}
+                • Overtime: ${escapeHtml(String(h.overtime ?? "—"))}
+              </div>
+            </div>
+          `).join("") : `
+            <div class="muted" style="margin-top:12px;">No hours posted yet.</div>
+          `}
+        </div>
       </div>
     `
   );
@@ -1270,7 +1889,7 @@ function renderDeposit(recordData) {
     "Direct Deposit",
     "Banking info (view only).",
     `
-      <div class="card" style="border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
+      <div class="azCard">
         ${sectionHeader("Banking Information")}
         <div class="alert info" style="margin-top:0;">
           Contact HR to update banking information.
@@ -1301,43 +1920,34 @@ function renderNotifications(userData, recordData, publicData) {
     ...personal.map(x => ({ ...x, _scope: "you" }))
   ];
 
-  const list = merged.map(n => `
-    <div class="card" style="
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:14px;
-      margin-top:12px;
-      box-shadow: 0 14px 30px rgba(15,23,42,.06);
-    ">
-      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-        <div style="font-weight:1100;">${escapeHtml(n.title || "")}</div>
-        <div class="small muted" style="font-weight:1100;">
-          ${n._scope === "company" ? "Company" : n._scope === "hr" ? "HR" : "You"}
-        </div>
-      </div>
-      <div class="muted" style="margin-top:10px;line-height:1.45;">${escapeHtml(n.body || "")}</div>
-      <div style="margin-top:12px;">
-        <a class="btn ghost" href="#${escapeHtml(n.route || "progress")}"
-          style="border-radius:16px; width:100%; text-align:center;">
-          ${escapeHtml(n.action || "Open")}
-        </a>
-      </div>
-    </div>
-  `).join("");
-
   setPage(
     "Notifications",
     "Updates and reminders.",
     `
-      <div class="card" style="border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
+      <div class="azCard">
         ${sectionHeader("Inbox")}
-        ${list || `<div class="muted">No notifications</div>`}
+        ${merged.length ? merged.map(n => `
+          <div class="azCard" style="box-shadow:none;border-radius:14px;margin-top:10px;">
+            <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+              <div class="azCardTitle">${escapeHtml(n.title || "Update")}</div>
+              <div class="azCardSub" style="margin-top:0;font-weight:1000;">
+                ${escapeHtml(n._scope === "company" ? "Company" : n._scope === "hr" ? "HR" : "You")}
+              </div>
+            </div>
+            <div class="azCardSub" style="margin-top:10px;line-height:1.45;">${escapeHtml(n.body || "")}</div>
+            <div style="margin-top:12px;">
+              <a class="btn ghost" href="#${escapeHtml(n.route || "home")}"
+                style="border-radius:16px; width:100%; text-align:center;">
+                ${escapeHtml(n.action || "Open")}
+              </a>
+            </div>
+          </div>
+        `).join("") : `<div class="muted">No notifications</div>`}
       </div>
     `
   );
 }
 
-// ✅ Help & Support (FULL corporate)
 function renderHelp(publicData, empId, user) {
   const h = publicData?.help || defaultPublicContent().help;
   const site = publicData?.site || defaultPublicContent().site;
@@ -1346,28 +1956,29 @@ function renderHelp(publicData, empId, user) {
     "Help & Support",
     "Get assistance fast.",
     `
-      <div class="card" style="border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
+      <div class="azCard">
         ${sectionHeader("We’re here to help.")}
         <div class="muted" style="line-height:1.45;">
           Choose the option below and we’ll get you taken care of.
         </div>
 
-        ${bigActionButton(telLink(h.phone || "(502) 555-0148"), "Call HR", `${escapeHtml(h.phone || "(502) 555-0148")} • Mon–Fri 8:00 AM – 5:00 PM (ET)`, "📞")}
-        ${bigActionButton(`mailto:${(h.email || "hr@sunpowerc.energy")}?subject=${encodeURIComponent("Employee Portal Help")}`, "Email HR", `${escapeHtml(h.email || "hr@sunpowerc.energy")} • Response within 24 business hours`, "✉️")}
-        ${bigActionButton(`#help-ticket`, "Open a Support Ticket", "Submit a request directly inside the portal", "🛟")}
-        ${bigActionButton(`#help-safety`, "Report an Emergency / Safety Issue", "Emergency: 911 • On-site contacts available", "🚨")}
-        ${bigActionButton(`#help-faq`, "FAQ / Common Issues", "Login, First Day, Footwear, Documents, Payroll, Schedule", "❓")}
+        <a class="btn ghost" href="${escapeHtml(telLink(h.phone))}" style="display:block;width:100%;border-radius:16px;margin-top:10px;">
+          Call HR
+        </a>
+        <a class="btn ghost" href="${escapeHtml(`mailto:${h.email}?subject=${encodeURIComponent("Employee Portal Help")}`)}" style="display:block;width:100%;border-radius:16px;margin-top:10px;">
+          Email HR
+        </a>
+        <a class="btn ghost" href="#help-ticket" style="display:block;width:100%;border-radius:16px;margin-top:10px;">
+          Open a Support Ticket
+        </a>
 
         <div style="height:12px"></div>
-
         <div class="alert info" style="margin-top:0;">
           Do not share your Employee ID or personal information by text message.
-          Messages are monitored during business hours.
         </div>
       </div>
 
-      <!-- Ticket -->
-      <div id="help-ticket" class="card" style="margin-top:12px;border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
+      <div id="help-ticket" class="azCard" style="margin-top:12px;">
         ${sectionHeader("Support Ticket")}
         <div class="muted" style="line-height:1.45;">
           Describe the issue and we’ll follow up as soon as possible.
@@ -1407,59 +2018,20 @@ function renderHelp(publicData, empId, user) {
         <div class="small muted" id="ticketMsg" style="margin-top:10px;"></div>
       </div>
 
-      <!-- Safety -->
-      <div id="help-safety" class="card" style="margin-top:12px;border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
+      <div class="azCard" style="margin-top:12px;">
         ${sectionHeader("Emergencies / Safety")}
-        <div class="alert warn" style="margin-top:0;">
-          For immediate danger or medical emergencies, call 911.
-        </div>
-
-        ${bigActionButton("tel:911", "Emergency", "Call 911 immediately", "🚑")}
-        ${bigActionButton(telLink(site.safetyPhone || "(502) 555-0172"), "Safety / Supervisor", `${escapeHtml(site.safetyPhone || "(502) 555-0172")}`, "🦺")}
-        ${bigActionButton(telLink(site.managerPhone || "(502) 555-0122"), "Site Manager", `${escapeHtml(site.managerPhone || "(502) 555-0122")}`, "🏭")}
-
-        ${site.address ? `
-          <div style="margin-top:12px;" class="muted">
-            <span style="font-weight:1000;">Site Address:</span> ${escapeHtml(site.address)}
-          </div>
-        ` : ""}
-      </div>
-
-      <!-- FAQ -->
-      <div id="help-faq" class="card" style="margin-top:12px;border-radius:18px;box-shadow: 0 14px 30px rgba(15,23,42,.06);">
-        ${sectionHeader("Common Help Topics")}
-        <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
-          ${faqRow("Can’t log in / wrong Employee ID", "Confirm your Employee ID is SP###. If you still can’t access, open a ticket.")}
-          ${faqRow("First Day instructions", "Go to First Day for check-in details. If missing, HR will update your appointment.")}
-          ${faqRow("Safety Footwear / reimbursement", "Complete the Safety Footwear step and shop through the designated store.")}
-          ${faqRow("I-9 / Documents", "I-9 and Documents are completed in person on your first day.")}
-          ${faqRow("Schedule / Payroll / PTO", "These sections update when HR posts data to your profile.")}
-          ${faqRow("Direct Deposit help", "For banking changes, contact HR directly.")}
-        </div>
+        <div class="alert warn" style="margin-top:0;">For immediate danger or medical emergencies, call 911.</div>
+        <a class="btn ghost" href="tel:911" style="display:block;width:100%;border-radius:16px;margin-top:10px;">Emergency</a>
+        <a class="btn ghost" href="${escapeHtml(telLink(site.safetyPhone))}" style="display:block;width:100%;border-radius:16px;margin-top:10px;">Safety / Supervisor</a>
+        <a class="btn ghost" href="${escapeHtml(telLink(site.managerPhone))}" style="display:block;width:100%;border-radius:16px;margin-top:10px;">Site Manager</a>
+        ${site.address ? `<div class="muted" style="margin-top:10px;line-height:1.45;">Site Address: ${escapeHtml(site.address)}</div>` : ""}
       </div>
     `
   );
 
-  function faqRow(title, body) {
-    return `
-      <div style="
-        border:1px solid var(--line);
-        border-radius:16px;
-        padding:12px;
-        background:#fff;
-        box-shadow: 0 10px 24px rgba(15,23,42,.04);
-      ">
-        <div style="font-weight:1100;">${escapeHtml(title)}</div>
-        <div class="muted" style="margin-top:8px;line-height:1.45;">${escapeHtml(body)}</div>
-      </div>
-    `;
-  }
-
-  // Wire ticket submit
   const btn = document.getElementById("btnTicket");
   if (btn && btn.dataset.wired !== "1") {
     btn.dataset.wired = "1";
-
     btn.onclick = async () => {
       try {
         const msg = (document.getElementById("t_msg")?.value || "").trim();
@@ -1500,7 +2072,9 @@ function renderHelp(publicData, empId, user) {
   }
 }
 
-// ---------- Router (CLEAN + FIXED) ----------
+// ===============================
+// ROUTER
+// ===============================
 function renderRoute(userData, saveUserPatch, publicData, recordData, ctx) {
   const sb = document.getElementById("stagebar");
   if (sb) sb.innerHTML = "";
@@ -1510,60 +2084,82 @@ function renderRoute(userData, saveUserPatch, publicData, recordData, ctx) {
   if (r === "progress") renderStagebar(userData);
 
   switch (r) {
+    // A-to-Z entry
+    case "home":              return renderHome(publicData, recordData, userData);
+
+    // schedule family
+    case "schedule":          return renderMySchedule(recordData);
+    case "schedule-timecard": return renderTimecard(recordData);
+    case "schedule-findshifts": return renderFindShifts(recordData);
+
     // onboarding
     case "progress":          return renderProgress(userData, recordData);
-
     case "shift":
     case "shift_selection":   return renderShiftSelection(userData, saveUserPatch);
-
     case "footwear":          return renderFootwear(userData, saveUserPatch, publicData);
     case "footwearshop":      return renderFootwearShop(publicData);
-
     case "i9":                return renderI9(userData, saveUserPatch);
-
-    // ✅ aliases (old + new)
     case "documents":
     case "docs":              return renderDocumentsLocked();
-
     case "firstday":
     case "first_day":         return renderFirstDayLocked(userData, recordData);
 
-    // work modules
-    case "schedule":          return renderSchedule(recordData);
+    // modules
     case "hours":             return renderHours(recordData);
     case "payroll":           return renderPayroll(recordData);
     case "timeoff":           return renderTimeOff(recordData);
     case "deposit":           return renderDeposit(recordData);
 
-    // other
     case "notifications":     return renderNotifications(userData, recordData, publicData);
     case "help":              return renderHelp(publicData, ctx?.empId, ctx?.user);
 
     default:
-      location.hash = "#progress";
+      location.hash = "#home";
       return;
   }
 }
 
-// ---------- Init ----------
+// ===============================
+// INIT
+// ===============================
 export async function initEmployeeApp() {
   const badge = document.getElementById("userBadge");
-  const statusChip = document.getElementById("statusShift"); // ✅ matches your HTML
+  const statusChip = document.getElementById("statusShift");
   const adminBtn = document.getElementById("btnAdminGo");
 
-  // ✅ A to Z chrome (tabs) - no hamburger
   ensureChromeOnce();
   setActiveTabsAndSidebar();
 
   if (!isFirebaseConfigured()) {
-    uiSetText(badge, "Preview mode");
+    uiSetText(badge, "Preview");
     if (statusChip) uiSetText(statusChip, "offline");
     if (adminBtn) adminBtn.style.display = "none";
 
     const demoUser = defaultUserDoc({ email: "preview@demo", displayName: "Preview" });
     const demoPublic = defaultPublicContent();
-    const demoRecord = {};
-    const ctx = { empId: "PREVIEW", user: { uid:"preview", email:"preview@demo" } };
+
+    // demo record so NOTHING looks empty
+    const demoRecord = {
+      findShiftsText: "5 shifts available",
+      vtoText: "No VTO available at the moment",
+      filtersCount: 2,
+      lastClockedIn: "—",
+      maxHours: { max: 60, scheduledMinutes: 25 * 60 + 58 },
+      punchesToday: [{ type: "In", date: nowISODate(), time: "03:02 PM" }],
+      scheduleEvents: [
+        { date: nowISODate(), start: "9:00 AM", end: "1:00 PM", role: "Warehouse", location: "Site", status: "Scheduled" }
+      ],
+      punches: [
+        { type: "In", date: nowISODate(), time: "7:30 AM" },
+        { type: "Out", date: nowISODate(), time: "10:54 AM" }
+      ],
+      missedPunch: false,
+      availableShifts: []
+    };
+
+    const ctx = { empId: "PREVIEW", user: { uid: "preview", email: "preview@demo" } };
+
+    if (!location.hash) location.hash = "#home";
 
     renderRoute(demoUser, async () => {}, demoPublic, demoRecord, ctx);
     setActiveTabsAndSidebar();
@@ -1609,7 +2205,6 @@ export async function initEmployeeApp() {
       let currentUserData = null;
       let currentPublicData = defaultPublicContent();
       let currentRecordData = {}; // employeeRecords/{SP###}
-
       const ctx = { empId, user };
 
       const rerender = () => {
@@ -1620,7 +2215,7 @@ export async function initEmployeeApp() {
         setActiveTabsAndSidebar();
       };
 
-      // portal/public (company content)
+      // portal/public
       onSnapshot(publicRef, (snap) => {
         currentPublicData = snap.exists()
           ? { ...defaultPublicContent(), ...snap.data() }
@@ -1628,7 +2223,7 @@ export async function initEmployeeApp() {
         rerender();
       });
 
-      // employeeRecords/{SP###} (admin data)
+      // employeeRecords/{SP###}
       onSnapshot(recordRef, async (snap) => {
         currentRecordData = snap.exists() ? (snap.data() || {}) : {};
 
@@ -1646,13 +2241,13 @@ export async function initEmployeeApp() {
         rerender();
       });
 
-      // users/{uid} (onboarding progress)
+      // users/{uid}
       onSnapshot(userRef, (snap) => {
         if (!snap.exists()) return;
         const d = snap.data() || {};
         const base = defaultUserDoc(user);
 
-        // ✅ steps merge (keep progress, upgrade older ids if needed)
+        // merge steps (upgrade older ids)
         let mergedSteps = Array.isArray(d.steps) ? d.steps : [];
         if (!Array.isArray(d.steps) || d.steps.length < base.steps.length) {
           const old = Array.isArray(d.steps) ? d.steps : [];
@@ -1665,7 +2260,6 @@ export async function initEmployeeApp() {
           });
         }
 
-        // footwear merge (supports old 4-ack docs too)
         const fw = (d.footwear && typeof d.footwear === "object") ? d.footwear : {};
         const footwearMerged = {
           ack1: !!fw.ack1,
@@ -1685,6 +2279,9 @@ export async function initEmployeeApp() {
           i9: (d.i9 && typeof d.i9 === "object") ? d.i9 : base.i9,
           notifications: Array.isArray(d.notifications) ? d.notifications : base.notifications
         };
+
+        // ✅ Default entry is Home A-to-Z
+        if (!location.hash) location.hash = "#home";
 
         rerender();
       });
