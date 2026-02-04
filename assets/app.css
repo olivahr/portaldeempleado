@@ -816,4 +816,45 @@ select.inp, select.input{
   color: #2563eb;
   font-weight: 600;
 }
+.bottomnav{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  display:flex;
+  justify-content:space-around;
+  background:white;
+  padding:8px 0;
+  border-top:1px solid #eee;
+  z-index:9999;
+}
+
+.bottomnav .nav-item{
+  flex:1;
+  text-align:center;
+  text-decoration:none;
+  color:#333;
+  font-size:13px;
+  font-weight:600;
+}
+
+.bn-ico{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:#f2f2f2;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto 6px;
+  font-size:20px;
+}
+
+.nav-item.active .bn-ico{
+  background:#e8f0ff;
+}
+
+.bn-txt{
+  display:block;
+}
 }
