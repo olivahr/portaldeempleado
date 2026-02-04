@@ -2957,4 +2957,67 @@ export async function initEmployeeApp() {
       uiToast(e?.message || String(e));
     }
   });
+/* =========================
+   FORCE BOTTOM NAV ROUTING
+   ========================= */
+(function () {
+  const nav = document.getElementById("bottomNav");
+  if (!nav) return;
+
+  // pon aquí los IDs REALES de tus secciones/módulos
+  // (tienen que existir en tu HTML)
+  const ROUTES = {
+    home: "home",
+    schedule: "schedule",
+    payroll: "payroll",
+    timeoff: "timeoff",
+    more: "more",
+  };
+
+  function showRoute(route) {
+    // fallback
+    if (!ROUTES[route]) route = "home";
+
+    // 1) ocultar todos los módulos
+    document.querySelectorAll(".module").forEach((el) => {
+      el.style.display = "none";
+      el.classList.remove("active");
+    });
+
+    // 2) mostrar el módulo correcto
+    const targetId = ROUTES[route];
+    const target = document.getElementById(targetId);
+    if (target) {
+      target.style.display = "block";
+      target.classList.add("active");
+    }
+
+    // 3) marcar activo en la barra
+    nav.querySelectorAll(".bn-item").forEach((a) => {
+      a.classList.toggle("active", a.dataset.route === route);
+    });
+  }
+
+  // CLICK en barra
+  nav.addEventListener("click", (e) => {
+    const a = e.target.closest("a.bn-item");
+    if (!a) return;
+    e.preventDefault();
+
+    const route = a.dataset.route || "home";
+    window.location.hash = route;
+    showRoute(route);
+  });
+
+  // cuando cambie el hash (back/forward o refresh)
+  window.addEventListener("hashchange", () => {
+    const route = (window.location.hash || "#home").replace("#", "");
+    showRoute(route);
+  });
+
+  // init
+  const firstRoute = (window.location.hash || "#home").replace("#", "");
+  showRoute(firstRoute);
+})();
+
 }
