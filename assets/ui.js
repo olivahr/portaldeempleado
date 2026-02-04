@@ -1,11 +1,11 @@
 // assets/ui.js
 // UI helpers (no framework)
-// - Toast (single instance)
-// - Active nav (href="#route" and/or data-route="route")
-// - Global tap delegation for tiles/buttons (fixes iOS tap issues)
-// - Empty states + skeletons
-// - Small builders (pill, row, section header)
-// - Optional drawer wiring (only if you use a drawer)
+// ✅ Toast (single instance)
+// ✅ Active nav (bottom nav + sidebar) with grouped routes (schedule-* → schedule)
+// ✅ Global tap delegation (iOS-safe) using POINTER events (no double-fire)
+// ✅ Empty states + skeletons
+// ✅ Small builders (pill, row, section header)
+// ✅ Optional drawer wiring (only if you actually use it)
 
 export function uiSetText(el, text) {
   if (!el) return;
@@ -33,12 +33,25 @@ export function escapeHtml(s) {
    ROUTES
    ========================= */
 export function uiRoute() {
-  return (location.hash || "#progress").replace("#", "").trim().toLowerCase();
+  // ✅ Default route should be HOME (not progress)
+  return (location.hash || "#home").replace("#", "").trim().toLowerCase() || "home";
 }
 
 export function uiGo(route) {
   const r = String(route || "").replace("#", "").trim().toLowerCase();
-  location.hash = "#" + (r || "progress");
+  location.hash = "#" + (r || "home");
+}
+
+// Grouped nav keys so bottom tabs highlight correctly
+function navKey(route) {
+  const r = String(route || "").trim().toLowerCase();
+  if (!r) return "home";
+  if (r.startsWith("schedule")) return "schedule";
+  if (r === "timeoff") return "timeoff";
+  // Home tab should also light up if you want progress under home:
+  // (your employee.js also handles this, but this keeps HTML-only uiActiveNav solid)
+  if (r === "progress") return "home";
+  return r;
 }
 
 /* =========================
@@ -72,18 +85,26 @@ export function uiToast(text, ms = 2200) {
    ========================= */
 export function uiActiveNav() {
   const route = uiRoute();
+  const key = navKey(route);
 
   document.querySelectorAll(".nav-item").forEach((a) => {
     const r1 = (a.getAttribute("data-route") || "").trim().toLowerCase();
     const href = (a.getAttribute("href") || "").trim();
     const r2 = href.startsWith("#") ? href.replace("#", "").trim().toLowerCase() : "";
-    const match = (r1 && r1 === route) || (r2 && r2 === route);
+
+    const aKey1 = navKey(r1);
+    const aKey2 = navKey(r2);
+
+    const match =
+      (r1 && (r1 === route || aKey1 === key)) ||
+      (r2 && (r2 === route || aKey2 === key));
+
     a.classList.toggle("active", !!match);
   });
 }
 
 /* =========================
-   GLOBAL ACTIONS (for tiles/buttons)
+   GLOBAL ACTIONS (tiles/buttons)
    =========================
    Use in HTML:
      <div class="tile" data-route="timecard">...</div>
@@ -91,9 +112,8 @@ export function uiActiveNav() {
 
    Or actions:
      <div data-action="correct-punch"></div>
-     Then register handler:
+     Then register:
        uiRegisterAction("correct-punch", () => {...});
-       uiRegisterAction("report-absence", () => uiGo("report-absence"));
 */
 const __actions = new Map();
 
@@ -109,6 +129,8 @@ export function uiClearActions() {
 
 /* =========================
    TAP / CLICK DELEGATION (iOS-safe)
+   - Uses Pointer events to avoid touchend+click double firing
+   - Captures early to beat overlays / stopPropagation
    ========================= */
 let __tapWired = false;
 
@@ -121,7 +143,7 @@ export function uiWireGlobalTaps({
   if (__tapWired) return;
   __tapWired = true;
 
-  // Avoid 300ms delay / weird highlights in old iOS
+  // iOS highlight + tap behavior
   try {
     document.body.style.webkitTapHighlightColor = "transparent";
     document.body.style.touchAction = "manipulation";
@@ -130,26 +152,40 @@ export function uiWireGlobalTaps({
   let lastKey = "";
   let lastAt = 0;
 
+  const isTextInput = (el) => {
+    const tag = (el?.tagName || "").toUpperCase();
+    return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+  };
+
   const handler = (ev) => {
-    // Find closest clickable
-    const target = ev.target?.closest?.(allowSelectors.join(","));
+    // never hijack typing/selection
+    if (isTextInput(ev.target)) return;
+
+    const selector = allowSelectors.join(",");
+    const target = ev.target?.closest?.(selector);
     if (!target) return;
 
-    // If it’s a normal link to an external page, don’t hijack
-    const href = target.getAttribute?.("href") || "";
-    const isHashLink = href.startsWith("#");
+    // If user clicked something disabled, ignore
+    if (target.matches?.("[disabled], .disabled, [aria-disabled='true']")) return;
 
-    const route = (target.getAttribute?.(routeAttr) || (isHashLink ? href.replace("#", "") : "") || "")
-      .trim()
-      .toLowerCase();
+    const href = (target.getAttribute?.("href") || "").trim();
+    const isHashLink = href.startsWith("#");
+    const isExternalLink =
+      target.tagName === "A" && href && !isHashLink && !href.startsWith("javascript:");
+
+    const route = (
+      target.getAttribute?.(routeAttr) ||
+      (isHashLink ? href.replace("#", "") : "") ||
+      ""
+    ).trim().toLowerCase();
 
     const action = (target.getAttribute?.(actionAttr) || "").trim().toLowerCase();
 
-    // Debounce: prevents iOS from triggering twice (touchend + click)
+    // Debounce: prevents double triggers
     if (preventDouble) {
       const key = `${route}|${action}|${target.id || ""}|${target.className || ""}`;
       const now = Date.now();
-      if (key === lastKey && (now - lastAt) < 450) {
+      if (key === lastKey && (now - lastAt) < 420) {
         ev.preventDefault?.();
         ev.stopPropagation?.();
         return;
@@ -158,15 +194,17 @@ export function uiWireGlobalTaps({
       lastAt = now;
     }
 
-    // If route present: navigate
+    // Allow normal external navigation
+    if (isExternalLink && !route && !action) return;
+
+    // Route navigation
     if (route) {
-      // Only prevent default if it’s a hash navigation or non-link element
       if (isHashLink || target.tagName !== "A") ev.preventDefault?.();
       uiGo(route);
       return;
     }
 
-    // If action present: run handler
+    // Custom action
     if (action && __actions.has(action)) {
       ev.preventDefault?.();
       try {
@@ -177,9 +215,14 @@ export function uiWireGlobalTaps({
     }
   };
 
-  // Use capture to beat overlays / stopPropagation inside components
-  document.addEventListener("click", handler, true);
-  document.addEventListener("touchend", handler, true);
+  // Pointer events = single event path for mobile + desktop
+  const usePointer = "PointerEvent" in window;
+  if (usePointer) {
+    document.addEventListener("pointerup", handler, true);
+  } else {
+    // fallback
+    document.addEventListener("click", handler, true);
+  }
 }
 
 /* =========================
