@@ -22,161 +22,110 @@
     </div>
 
     <div class="topbar-right">
-      <!-- Hidden unless admin -->
+      <!-- Hidden unless admin (JS decides) -->
       <button class="btn sm ghost" id="btnAdminGo" type="button" style="display:none;">Admin</button>
       <button class="btn sm ghost" id="btnLogout" type="button">Log out</button>
     </div>
   </header>
 
-  <!-- =========================================================
-       COMPAT LAYER (HIDDEN) — para que employee.js no se rompa
-       (no hamburger, no sidebar visible)
-       ========================================================= -->
-  <div id="drawerOverlay" class="drawer-overlay" style="display:none;"></div>
+  <!-- Drawer overlay (compat only; stays unused if you keep bottomnav on mobile) -->
+  <div id="drawerOverlay" class="drawer-overlay"></div>
 
-  <aside class="sidebar" id="sidebar" style="display:none;">
-    <nav class="nav" id="nav">
-      <a class="nav-item" href="#home" data-route="home">Home</a>
-      <a class="nav-item" href="#progress" data-route="progress">Progress</a>
-      <a class="nav-item" href="#shift" data-route="shift">Shift Selection</a>
-      <a class="nav-item" href="#footwear" data-route="footwear">Safety Footwear</a>
-      <a class="nav-item" href="#i9" data-route="i9">I-9</a>
-      <a class="nav-item" href="#documents" data-route="documents">Documents</a>
-      <a class="nav-item" href="#firstday" data-route="firstday">First Day</a>
+  <!-- ✅ Desktop shell: sidebar + content -->
+  <div class="shell">
 
-      <a class="nav-item" href="#schedule" data-route="schedule">Schedule</a>
-      <a class="nav-item" href="#hours" data-route="hours">My Hours</a>
-      <a class="nav-item" href="#payroll" data-route="payroll">Payroll</a>
-      <a class="nav-item" href="#timeoff" data-route="timeoff">Time Off</a>
-      <a class="nav-item" href="#deposit" data-route="deposit">Direct Deposit</a>
+    <!-- SIDEBAR (desktop) -->
+    <aside class="sidebar" id="sidebar">
+      <nav class="nav" id="nav">
+        <a class="nav-item" href="#home" data-route="home">Home</a>
+        <a class="nav-item" href="#progress" data-route="progress">Progress</a>
 
-      <a class="nav-item" href="#notifications" data-route="notifications">Notifications</a>
-      <a class="nav-item" href="#help" data-route="help">Help</a>
-      <a class="nav-item" href="#more" data-route="more">More</a>
-    </nav>
+        <a class="nav-item" href="#shift_selection" data-route="shift_selection">Shift Selection</a>
+        <a class="nav-item" href="#footwearpolicy" data-route="footwearpolicy">Safety Footwear</a>
+        <a class="nav-item" href="#i9" data-route="i9">I-9</a>
+        <a class="nav-item" href="#documents" data-route="documents">Documents</a>
+        <a class="nav-item" href="#firstdayinfo" data-route="firstdayinfo">First Day Info</a>
 
-    <div class="sidebar-foot">
-      <div class="small muted">Status</div>
-      <div class="status-chip" id="statusShift">offline</div>
-    </div>
-  </aside>
+        <a class="nav-item" href="#schedule" data-route="schedule">Schedule</a>
+        <a class="nav-item" href="#hours" data-route="hours">My Hours</a>
+        <a class="nav-item" href="#payroll" data-route="payroll">Payroll</a>
+        <a class="nav-item" href="#timeoff" data-route="timeoff">Time Off</a>
+        <a class="nav-item" href="#deposit" data-route="deposit">Direct Deposit</a>
 
-  <!-- MAIN CONTENT -->
-  <main class="content">
+        <a class="nav-item" href="#notifications" data-route="notifications">Notifications</a>
+        <a class="nav-item" href="#help" data-route="help">Help</a>
+        <a class="nav-item" href="#more" data-route="more">More</a>
+      </nav>
 
-    <section class="page-head">
-      <h1 id="pageTitle">Home</h1>
-      <div class="subhead" id="pageSub">Quick access to your schedule, time, pay, and support.</div>
-    </section>
+      <div class="sidebar-foot">
+        <div class="small muted">Status</div>
+        <div class="status-chip" id="statusShift">offline</div>
+      </div>
+    </aside>
 
-    <!-- employee.js controls this (show only in progress route) -->
-    <section id="stagebar"></section>
+    <!-- MAIN CONTENT -->
+    <main class="content">
+      <section class="page-head">
+        <h1 id="pageTitle">Home</h1>
+        <div class="subhead" id="pageSub">Quick access to your schedule, time, pay, and support.</div>
+      </section>
 
-    <!-- employee.js renders here -->
-    <section id="pageBody"></section>
+      <!-- employee.js controls this (show only in progress route) -->
+      <section id="stagebar"></section>
 
-    <footer class="footer">
-      <span class="muted">SunPower Corporation</span>
-      • <span class="muted" id="build">Connected</span>
-    </footer>
+      <!-- employee.js renders here -->
+      <section id="pageBody"></section>
 
-  </main>
+      <footer class="footer">
+        <span class="muted">SunPower Corporation</span>
+        • <span class="muted" id="build">Connected</span>
+      </footer>
+    </main>
 
-  <!-- BOTTOM NAV (APP STYLE / NO EMOJI) -->
- <nav id="bottomNav" class="bottomnav">
+  </div>
 
-  <!-- IMPORTANT: keep class nav-item so uiActiveNav() works -->
-  <a class="nav-item bn-item" href="#home" data-route="home">
-    <div class="bn-ico" aria-hidden="true"></div>
-    <div class="bn-txt">Home</div>
-  </a>
+  <!-- ✅ BOTTOM NAV (mobile app style) -->
+  <nav id="bottomNav" class="bottomnav">
+    <a class="nav-item bn-item" href="#home" data-route="home">
+      <div class="bn-ico" aria-hidden="true"></div>
+      <div class="bn-txt">Home</div>
+    </a>
 
-  <a class="nav-item bn-item" href="#schedule" data-route="schedule">
-    <div class="bn-ico" aria-hidden="true"></div>
-    <div class="bn-txt">Schedule</div>
-  </a>
+    <a class="nav-item bn-item" href="#schedule" data-route="schedule">
+      <div class="bn-ico" aria-hidden="true"></div>
+      <div class="bn-txt">Schedule</div>
+    </a>
 
-  <a class="nav-item bn-item" href="#timeoff" data-route="timeoff">
-    <div class="bn-ico" aria-hidden="true"></div>
-    <div class="bn-txt">Benefits</div>
-  </a>
+    <a class="nav-item bn-item" href="#timeoff" data-route="timeoff">
+      <div class="bn-ico" aria-hidden="true"></div>
+      <div class="bn-txt">Benefits</div>
+    </a>
 
-  <a class="nav-item bn-item" href="#more" data-route="more">
-    <div class="bn-ico" aria-hidden="true"></div>
-    <div class="bn-txt">More</div>
-  </a>
+    <a class="nav-item bn-item" href="#more" data-route="more">
+      <div class="bn-ico" aria-hidden="true"></div>
+      <div class="bn-txt">More</div>
+    </a>
+  </nav>
 
-</nav>
-
-  <!-- Bottom nav CSS (kept inline so you don't have to revisit CSS later) -->
-  <style>
-    /* Always reserve space for bottom nav */
-    body.portal .content{ padding-bottom: 110px; }
-
-    #bottomNav .bn-item{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap:6px;
-      padding:10px 12px;
-      border-radius:16px;
-      border:1px solid transparent;
-      min-width: 86px;
-      font-weight:1000;
-      color: rgba(11,18,32,.78);
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-      position:relative;
-    }
-
-    #bottomNav .bn-ico{
-      width:26px; height:26px;
-      border-radius:12px;
-      background: rgba(29,78,216,.10);
-      border:1px solid rgba(29,78,216,.12);
-      box-shadow: 0 10px 18px rgba(29,78,216,.10);
-    }
-
-    #bottomNav .bn-txt{
-      font-size:11px;
-      line-height:1.05;
-    }
-
-    #bottomNav .bn-item.active{
-      background: linear-gradient(90deg, rgba(29,78,216,.12), rgba(14,165,233,.10));
-      border-color: rgba(29,78,216,.18);
-      color: var(--blue);
-    }
-    #bottomNav .bn-item.active .bn-ico{
-      background: linear-gradient(135deg, rgba(29,78,216,.18), rgba(14,165,233,.14));
-      border-color: rgba(29,78,216,.22);
-    }
-  </style>
-
+  <!-- APP INIT -->
   <script type="module">
     import { uiActiveNav, uiWireGlobalTaps } from "./assets/ui.js";
     import { signOutNow } from "./assets/auth.js";
     import { initEmployeeApp } from "./assets/employee.js";
 
-    // Fix iOS taps + route tiles/buttons everywhere (global delegation)
     uiWireGlobalTaps();
 
-    // Logout
     document.getElementById("btnLogout").onclick = async () => {
       await signOutNow();
       window.location.href = "./index.html";
     };
 
-    // Admin jump
     document.getElementById("btnAdminGo").onclick = () => {
       window.location.href = "./admin.html";
     };
 
-    // Init app
     await initEmployeeApp();
 
-    // Active nav highlight
     uiActiveNav();
     window.addEventListener("hashchange", uiActiveNav);
   </script>
