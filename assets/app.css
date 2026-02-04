@@ -730,33 +730,25 @@ select.inp, select.input{
   .btn{ width:100%; }
 }
 
-/* =========================
-   BOTTOM NAV (tu nav fijo del HTML) - FINAL
-   ========================= */
+/* ===== BOTTOM NAV CLEAN FIX ===== */
+
 .bottomnav{
   position:fixed;
-  left:10px;
-  right:10px;
-  bottom:10px;
+  left:0;
+  right:0;
+  bottom:0;
   z-index:5000;
 
-  background: rgba(255,255,255,.98);
-  border:1px solid var(--hair);
-  box-shadow: 0 -16px 38px rgba(2,6,23,.16);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-
-  border-radius:18px;
-  padding:10px;
-  padding-bottom: calc(10px + var(--safe-bottom));
-
   display:flex;
+  justify-content:space-between;
   align-items:center;
-  justify-content:space-between; /* sin hueco raro */
-  gap:10px;
+
+  background:#fff;
+  border-top:1px solid rgba(0,0,0,.08);
+
+  padding:10px 0 calc(10px + env(safe-area-inset-bottom));
 }
 
-/* cada item ocupa lo mismo */
 .bottomnav .nav-item{
   flex:1;
   min-width:0;
@@ -767,38 +759,22 @@ select.inp, select.input{
   justify-content:center;
 
   gap:6px;
-  padding:10px 8px;
 
-  border-radius:14px;
-  border:1px solid transparent;
-
-  color: rgba(11,18,32,.78);
-  font-weight:1000;
-  font-size:11px;
-  line-height:1.05;
-
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
+  text-decoration:none;
+  font-weight:700;
+  font-size:12px;
+  color:#333;
 }
 
-/* iconito para tu HTML (bn-ico) */
 .bottomnav .bn-ico{
-  width:26px; height:26px;
-  border-radius:12px;
-  background: rgba(29,78,216,.10);
-  border:1px solid rgba(29,78,216,.12);
-  box-shadow: 0 10px 18px rgba(29,78,216,.10);
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  background:#eee;
 }
-.bottomnav .bn-txt{ font-size:11px; line-height:1.05; }
 
 .bottomnav .nav-item.active{
-  background: linear-gradient(90deg, rgba(29,78,216,.12), rgba(14,165,233,.10));
-  border-color: rgba(29,78,216,.18);
-  color: var(--blue);
-}
-.bottomnav .nav-item.active .bn-ico{
-  background: linear-gradient(135deg, rgba(29,78,216,.18), rgba(14,165,233,.14));
-  border-color: rgba(29,78,216,.22);
+  color:#1d4ed8;
 }
 
 /* =========================
