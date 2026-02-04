@@ -42,6 +42,9 @@
   /* Bottom tab bar */
   --tabH: 74px;
 
+  /* Safe area (iPhone) */
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
   /* Subtle app background */
   --appwash:
     radial-gradient(1200px 600px at 20% -10%, rgba(29,78,216,.10), transparent),
@@ -70,8 +73,14 @@ a{ color:inherit; text-decoration:none; }
 .muted{ color:var(--muted); }
 .small{ font-size:12px; }
 .h3{ margin:0 0 10px 0; font-size:16px; font-weight:950; letter-spacing:.2px; }
-
 ::selection{ background: rgba(29,78,216,.18); }
+
+/* kill any pseudo-bubbles globally */
+.nav-item::before,
+.nav-item::after{
+  content:none !important;
+  display:none !important;
+}
 
 /* Scrollbar (desktop only) */
 @media (min-width: 921px){
@@ -129,7 +138,7 @@ a{ color:inherit; text-decoration:none; }
   margin:10px 0 6px;
 }
 
-.inp{
+.inp, .input{
   width:100%;
   display:block;
   padding:13px 12px;
@@ -140,16 +149,15 @@ a{ color:inherit; text-decoration:none; }
   transition: .15s ease;
   color: var(--text);
 }
-.inp::placeholder{ color: rgba(91,107,130,.75); }
-.inp:focus{
+.inp::placeholder, .input::placeholder{ color: rgba(91,107,130,.75); }
+.inp:focus, .input:focus{
   background:#fff;
   border-color: rgba(29,78,216,.55);
   box-shadow: var(--ring);
 }
-textarea.inp{ resize: vertical; min-height: 120px; }
+textarea.inp, textarea.input{ resize: vertical; min-height: 120px; }
 
 .row{ display:flex; gap:10px; margin-top:10px; }
-
 .sep{ height:1px; background:var(--line); margin:14px 0; }
 
 .linkbtn{
@@ -184,6 +192,7 @@ textarea.inp{ resize: vertical; min-height: 120px; }
   white-space:nowrap;
   transition: transform .10s ease, filter .10s ease, box-shadow .12s ease, background .12s ease, border-color .12s ease;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 .btn:hover{ filter:brightness(.99); box-shadow: var(--shadow2); }
 .btn:active{ transform: translateY(1px); }
@@ -207,10 +216,11 @@ textarea.inp{ resize: vertical; min-height: 120px; }
   padding:8px 10px;
   border-radius:12px;
   font-size:13px;
+  min-height:38px;
 }
 
 /* Consistent tap height */
-.btn, .inp, .menu-btn{ min-height: var(--tap); }
+.btn, .inp, .input, .menu-btn{ min-height: var(--tap); }
 
 /* =========================
    ALERTS
@@ -223,18 +233,9 @@ textarea.inp{ resize: vertical; min-height: 120px; }
   font-size:12px;
   line-height:1.35;
 }
-.alert.warn{
-  border-color: rgba(245,158,11,.25);
-  background: rgba(245,158,11,.10);
-}
-.alert.ok{
-  border-color: rgba(22,163,74,.25);
-  background: rgba(22,163,74,.10);
-}
-.alert.info{
-  border-color: rgba(14,165,233,.25);
-  background: rgba(14,165,233,.10);
-}
+.alert.warn{ border-color: rgba(245,158,11,.25); background: rgba(245,158,11,.10); }
+.alert.ok{ border-color: rgba(22,163,74,.25); background: rgba(22,163,74,.10); }
+.alert.info{ border-color: rgba(14,165,233,.25); background: rgba(14,165,233,.10); }
 
 /* =========================
    PORTAL LAYOUT
@@ -275,7 +276,7 @@ textarea.inp{ resize: vertical; min-height: 120px; }
   backdrop-filter: blur(6px);
 }
 
-/* Desktop shell */
+/* Desktop shell (si lo usas en desktop) */
 .shell{
   display:grid;
   grid-template-columns: 270px 1fr;
@@ -317,16 +318,6 @@ textarea.inp{ resize: vertical; min-height: 120px; }
   border-color: rgba(29,78,216,.18);
   color: var(--blue);
 }
-.sidebar .nav-item.active::before{
-  content:"";
-  position:absolute;
-  left:8px;
-  top:10px;
-  bottom:10px;
-  width:3px;
-  border-radius:999px;
-  background: linear-gradient(180deg, var(--blue), var(--blue2));
-}
 
 /* Sidebar footer */
 .sidebar-foot{
@@ -334,7 +325,6 @@ textarea.inp{ resize: vertical; min-height: 120px; }
   border-top:1px solid var(--hair);
   padding-top:12px;
 }
-
 .status-chip{
   margin-top:6px;
   display:inline-block;
@@ -359,6 +349,7 @@ textarea.inp{ resize: vertical; min-height: 120px; }
   width:100%;
   position:relative;
   z-index:1;
+  padding-bottom: calc(var(--tabH) + var(--safe-bottom) + 22px);
 }
 
 /* Page head */
@@ -369,6 +360,8 @@ textarea.inp{ resize: vertical; min-height: 120px; }
   padding:14px;
   box-shadow: var(--shadow2);
   margin-bottom:12px;
+  position:relative;
+  z-index:2;
 }
 .page-head h1{
   margin:0;
@@ -383,7 +376,17 @@ textarea.inp{ resize: vertical; min-height: 120px; }
   line-height:1.35;
 }
 
-/* Cards */
+.footer{
+  margin-top:16px;
+  font-size:12px;
+  color:var(--muted);
+}
+
+#stagebar{ margin:10px 0 14px; }
+
+/* =========================
+   GENERIC CARD (legacy)
+   ========================= */
 .card{
   background:#fff;
   border:1px solid var(--hair);
@@ -394,188 +397,166 @@ textarea.inp{ resize: vertical; min-height: 120px; }
 }
 .card + .card{ margin-top:12px; }
 
-.card-head{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:10px;
+/* =========================
+   AZ UI (employee.js usa estas)
+   ========================= */
+.azCard{
+  background:#fff;
+  border:1px solid var(--hair);
+  border-radius:20px;
+  padding:14px;
+  box-shadow: var(--shadow2);
 }
-.card-title{
-  font-weight:980;
+.azCard + .azCard{ margin-top:12px; }
+
+.azCardTitle{
+  font-weight:1000;
   letter-spacing:.2px;
   font-size:14px;
-  margin:0;
 }
-.card-sub{
-  margin-top:4px;
+.azCardSub{
+  margin-top:6px;
   font-size:12px;
   color:var(--muted);
   line-height:1.35;
 }
 
-.grid2{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:12px;
-}
-
-.kv{
-  display:grid;
-  grid-template-columns: 140px 1fr;
-  gap:8px 10px;
+.azCardLink{
+  margin-top:12px;
+  display:inline-flex;
   align-items:center;
-  margin-top:10px;
-}
-.k{ color:var(--muted); font-size:12px; }
-.v{ font-weight:950; font-size:13px; }
-
-.footer{
-  margin-top:16px;
+  gap:8px;
+  color: var(--blue);
+  font-weight:1000;
   font-size:12px;
-  color:var(--muted);
 }
+.azCardLink svg{ width:18px; height:18px; }
 
-#stagebar{ margin:10px 0 14px; }
-
-/* =========================
-   DASHBOARD UI
-   ========================= */
-.dash-grid{
-  display:grid;
-  grid-template-columns: 1.2fr .8fr;
-  gap:12px;
-  align-items:start;
+.azTopRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
 }
-@media (max-width: 920px){
-  .dash-grid{ grid-template-columns: 1fr; }
-}
-
-.kpi-grid{
-  display:grid;
-  grid-template-columns: repeat(3, 1fr);
+.azTopIcons{
+  display:flex;
+  align-items:center;
   gap:10px;
 }
-@media (max-width: 520px){
-  .kpi-grid{ grid-template-columns: 1fr; }
+.azIconBtn{
+  width:40px; height:40px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.22);
+  background: rgba(255,255,255,.16);
+  color:#fff;
+  backdrop-filter: blur(6px);
+  -webkit-tap-highlight-color: transparent;
 }
-.kpi{
-  border:1px solid var(--hair);
-  background:#fff;
-  border-radius:18px;
-  padding:12px;
-  box-shadow: var(--shadow2);
-}
-.kpi .kpi-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
-.kpi .kpi-title{ font-size:12px; color:var(--muted); font-weight:950; }
-.kpi .kpi-val{ font-size:18px; font-weight:1000; letter-spacing:.2px; margin-top:6px; }
-.kpi .kpi-sub{ font-size:12px; color:var(--muted); margin-top:6px; line-height:1.35; }
+.azIconBtn svg{ width:18px; height:18px; }
 
-.tile-grid{
+.azHero{
+  border-radius:22px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.18);
+  background: linear-gradient(90deg, rgba(29,78,216,.95), rgba(37,99,235,.92));
+  box-shadow: 0 18px 55px rgba(2,6,23,.18);
+}
+.azHeroInner{ padding:14px; color:#fff; }
+.azHeroTitle{ font-weight:1100; font-size:16px; letter-spacing:.2px; }
+.azHeroSub{ margin-top:6px; font-size:12px; opacity:.92; line-height:1.35; }
+.azHeroPills{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+.azPill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 12px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.22);
+  background: rgba(255,255,255,.16);
+  color:#fff;
+  font-weight:1000;
+  font-size:12px;
+}
+.azPill svg{ width:18px; height:18px; }
+
+.azRow2{
   display:grid;
   grid-template-columns: 1fr 1fr;
   gap:12px;
 }
 @media (max-width: 520px){
-  .tile-grid{ grid-template-columns: 1fr; }
+  .azRow2{ grid-template-columns:1fr; }
 }
-.tile{
-  border:1px solid var(--hair);
-  background:#fff;
-  border-radius:18px;
-  padding:14px;
-  box-shadow: var(--shadow2);
-  transition:.12s ease;
-}
-.tile:hover{ box-shadow: var(--shadow3); transform: translateY(-1px); }
-.tile-title{ font-weight:980; font-size:13px; letter-spacing:.2px; }
-.tile-sub{ margin-top:6px; font-size:12px; color:var(--muted); line-height:1.35; }
-.tile-link{ margin-top:10px; display:inline-flex; gap:8px; align-items:center; color:var(--blue); font-weight:950; font-size:12px; }
 
-.progress{
+.azBar{
+  margin-top:10px;
   height:10px;
   border-radius:999px;
   background: rgba(15,23,42,.08);
-  overflow:hidden;
   border:1px solid rgba(15,23,42,.06);
+  overflow:hidden;
 }
-.progress > span{
-  display:block;
+.azBar > div{
   height:100%;
   width:0%;
   background: linear-gradient(90deg, var(--blue), var(--blue2));
   border-radius:999px;
 }
 
-.rowcard{
-  border:1px solid var(--hair);
-  background:#fff;
-  border-radius:18px;
-  padding:12px;
-  box-shadow: var(--shadow2);
-}
-.rowcard + .rowcard{ margin-top:10px; }
-.rowcard .row-top{
+.azPunchRow{
   display:flex;
   align-items:flex-start;
   justify-content:space-between;
-  gap:10px;
-}
-.rowcard .row-title{ font-weight:980; font-size:13px; }
-.rowcard .row-sub{ margin-top:4px; font-size:12px; color:var(--muted); line-height:1.35; }
-.rowcard .row-right{ font-size:12px; color:var(--muted); font-weight:950; }
-
-.empty{
-  border:1px dashed rgba(15,23,42,.18);
-  background: rgba(248,250,252,.75);
-  border-radius:18px;
-  padding:14px;
-  color: var(--muted);
-  font-size:12px;
-  line-height:1.35;
-}
-
-.pill{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:8px 12px;
-  border-radius:999px;
+  gap:12px;
+  padding:12px;
   border:1px solid var(--hair);
-  background: rgba(248,250,252,.85);
-  font-weight:950;
-  font-size:12px;
+  border-radius:18px;
+  background:#fff;
+  box-shadow: var(--shadow2);
 }
-.pill.blue{
+.azPunchRow + .azPunchRow{ margin-top:10px; }
+.azPunchLeft{ display:flex; flex-direction:column; gap:4px; }
+.azPunchType{ font-weight:1000; font-size:13px; }
+.azPunchTime{ font-size:12px; color:var(--muted); font-weight:950; }
+
+.azTabsTop{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  padding:10px 12px;
+  border:1px solid var(--hair);
+  border-radius:18px;
+  background: rgba(255,255,255,.95);
+  box-shadow: var(--shadow2);
+  margin-bottom:12px;
+}
+.azTabsTop a{
+  padding:10px 12px;
+  border-radius:999px;
+  border:1px solid transparent;
+  font-weight:1000;
+  font-size:12px;
+  color: rgba(11,18,32,.78);
+}
+.azTabsTop a.active{
+  background: linear-gradient(90deg, rgba(29,78,216,.12), rgba(14,165,233,.10));
   border-color: rgba(29,78,216,.18);
-  background: rgba(29,78,216,.08);
   color: var(--blue);
 }
-.pill.ok{
-  border-color: rgba(22,163,74,.25);
-  background: rgba(22,163,74,.10);
-  color: var(--good);
-}
-.pill.warn{
-  border-color: rgba(245,158,11,.25);
-  background: rgba(245,158,11,.10);
-  color: var(--warn);
-}
 
-.divider{ height:1px; background: var(--line); margin:12px 0; }
-
-/* =========================
-   CALENDAR / SCHEDULE
-   (calendar limpio, sin pintar azul/rojo por defecto)
-   ========================= */
-.cal{
+/* Calendar (az*) */
+.azCalWrap{
   border:1px solid var(--hair);
   border-radius:20px;
   background:#fff;
   box-shadow: var(--shadow2);
   overflow:hidden;
 }
-.cal-head{
+.azCalHead{
   display:flex;
   align-items:center;
   justify-content:space-between;
@@ -584,88 +565,72 @@ textarea.inp{ resize: vertical; min-height: 120px; }
   border-bottom:1px solid var(--line);
   background: linear-gradient(180deg, rgba(29,78,216,.06), rgba(255,255,255,0));
 }
-.cal-title{
-  font-weight:1000;
+.azCalMonth{
+  font-weight:1100;
   letter-spacing:.2px;
   font-size:14px;
 }
-.cal-actions{ display:flex; gap:8px; }
-.cal-actions .btn.sm{ min-height:38px; height:38px; }
+.azCalNav{ display:flex; gap:8px; }
+.azCalBtn{
+  width:40px; height:40px;
+  border-radius:14px;
+  border:1px solid var(--hair);
+  background:#fff;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.azCalBtn:hover{ box-shadow: var(--shadow2); }
+.azCalBtn svg{ width:18px; height:18px; }
 
-.cal-grid{
+.azCalGrid{
   display:grid;
   grid-template-columns: repeat(7, 1fr);
   gap:8px;
   padding:12px;
 }
-.cal-dow{
+.azCalDow{
   font-size:11px;
   color:var(--muted);
   font-weight:950;
   text-align:center;
   padding:6px 0;
 }
-.cal-day{
+.azDay{
   border:1px solid var(--hair);
   border-radius:14px;
   background:#fff;
-  min-height:64px;
+  min-height:48px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:flex-start;
   padding:8px;
   box-shadow: 0 8px 16px rgba(15,23,42,.05);
   position:relative;
+  font-weight:1000;
+  font-size:12px;
+  cursor:pointer;
+  -webkit-tap-highlight-color: transparent;
 }
-.cal-day .d{ font-weight:1000; font-size:12px; }
-.cal-day .m{
-  font-size:10px;
-  color:var(--muted);
-  margin-top:4px;
-  line-height:1.2;
-}
-.cal-day.is-today{
+.azDay.muted{ opacity:.60; background: rgba(248,250,252,.9); }
+.azDay.today{
   border-color: rgba(29,78,216,.35);
   box-shadow: 0 10px 22px rgba(29,78,216,.16);
 }
-.cal-day.is-today::after{
-  content:"";
+.azDay.sel{
+  outline:none;
+  box-shadow: var(--ring);
+  border-color: rgba(29,78,216,.40);
+}
+.azDay .dot{
   position:absolute;
-  top:8px; right:8px;
+  bottom:8px;
+  left:8px;
   width:8px; height:8px;
   border-radius:999px;
   background: linear-gradient(180deg, var(--blue), var(--blue2));
-}
-.cal-day.is-off{ opacity:.70; background: rgba(248,250,252,.9); }
-
-@media (max-width: 520px){
-  .cal-grid{ gap:6px; padding:10px; }
-  .cal-day{ min-height:58px; }
-}
-
-/* Schedule event list */
-.event{
-  border:1px solid var(--hair);
-  border-radius:18px;
-  padding:12px;
-  background:#fff;
-  box-shadow: var(--shadow2);
-  margin-top:10px;
-}
-.event-top{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:10px;
-  flex-wrap:wrap;
-}
-.event-title{ font-weight:1000; font-size:13px; }
-.event-sub{ margin-top:6px; color:var(--muted); font-size:12px; line-height:1.35; }
-.event-pill{
-  padding:8px 10px;
-  border-radius:999px;
-  border:1px solid var(--hair);
-  background: rgba(29,78,216,.06);
-  font-size:12px;
-  font-weight:1000;
-  color: var(--muted);
 }
 
 /* =========================
@@ -721,10 +686,7 @@ textarea.inp{ resize: vertical; min-height: 120px; }
   margin-top:2px;
 }
 
-.card .btn{ margin-top:10px; }
-.card .inp + .inp{ margin-top:10px; }
-
-select.inp{
+select.inp, select.input{
   appearance:none;
   background-image:
     linear-gradient(45deg, transparent 50%, rgba(15,23,42,.55) 50%),
@@ -738,42 +700,27 @@ select.inp{
 }
 
 /* =====================
-   MOBILE
+   MOBILE RULES
    ===================== */
 .menu-btn{ display:none !important; }
 .drawer-overlay{ display:none !important; }
 
 @media (max-width: 920px){
   .shell{ grid-template-columns: 1fr; }
-  .grid2{ grid-template-columns: 1fr; }
 
-  /* content needs space for bottom bar */
+  /* Sidebar OFF en mobile (ya tienes bottom nav fija) */
+  .sidebar{ display:none !important; }
+  .sidebar-foot{ display:none !important; }
+
   .content{
     padding:14px;
-    padding-bottom: calc(var(--tabH) + 16px);
+    padding-bottom: calc(var(--tabH) + var(--safe-bottom) + 22px) !important;
   }
-
-  /* IMPORTANT:
-     NO convertir sidebar a bottombar aquí
-     porque tú YA tienes una bottom nav fija en el HTML.
-     Esto evita duplicados y evita el overlay raro.
-  */
-  .sidebar{
-    position:static;
-    width:auto;
-    height:auto;
-    padding:14px;
-    border-right:none;
-    border-top:none;
-    box-shadow:none;
-    background: rgba(255,255,255,.98);
-    display:none; /* la dejamos fuera en mobile si usas bottom nav */
-  }
-
-  .sidebar-foot{ display:none; }
 
   .page-head{ border-radius:18px; }
-  .card{ border-radius:18px; }
+  .card, .azCard{ border-radius:18px; }
+
+  .azCalGrid{ gap:6px; padding:10px; }
 }
 
 /* Auth mobile */
@@ -781,60 +728,77 @@ select.inp{
   .auth-card{ padding:16px; }
   .row{ flex-direction:column; }
   .btn{ width:100%; }
-  .kv{ grid-template-columns: 1fr; }
 }
 
 /* =========================
-   BOTTOM NAV (tu nav fijo del HTML)
-   Para que se vea como app real y no meta “burbujas raras”.
-   OJO: agrega class="bottomnav" a ese <nav> fijo cuando puedas.
-   Si no lo agregas aún, no rompe nada, solo no aplica el look final.
+   BOTTOM NAV (tu nav fijo del HTML) - FINAL
    ========================= */
 .bottomnav{
   position:fixed;
-  left:10px; right:10px; bottom:10px;
+  left:10px;
+  right:10px;
+  bottom:10px;
   z-index:5000;
+
   background: rgba(255,255,255,.98);
   border:1px solid var(--hair);
   box-shadow: 0 -16px 38px rgba(2,6,23,.16);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
   border-radius:18px;
   padding:10px;
+  padding-bottom: calc(10px + var(--safe-bottom));
+
   display:flex;
-  justify-content:space-around;
   align-items:center;
+  justify-content:space-between; /* sin hueco raro */
+  gap:10px;
 }
 
-/* scoped bottomnav items only */
+/* cada item ocupa lo mismo */
 .bottomnav .nav-item{
+  flex:1;
+  min-width:0;
+
   display:flex;
   flex-direction:column;
   align-items:center;
+  justify-content:center;
+
   gap:6px;
-  padding:10px 12px;
+  padding:10px 8px;
+
   border-radius:14px;
   border:1px solid transparent;
-  min-width:72px;
+
   color: rgba(11,18,32,.78);
   font-weight:1000;
   font-size:11px;
   line-height:1.05;
+
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
-.bottomnav .nav-item:hover{
-  background: rgba(15,23,42,.04);
-  border-color: var(--hair);
+
+/* iconito para tu HTML (bn-ico) */
+.bottomnav .bn-ico{
+  width:26px; height:26px;
+  border-radius:12px;
+  background: rgba(29,78,216,.10);
+  border:1px solid rgba(29,78,216,.12);
+  box-shadow: 0 10px 18px rgba(29,78,216,.10);
 }
+.bottomnav .bn-txt{ font-size:11px; line-height:1.05; }
+
 .bottomnav .nav-item.active{
   background: linear-gradient(90deg, rgba(29,78,216,.12), rgba(14,165,233,.10));
   border-color: rgba(29,78,216,.18);
   color: var(--blue);
 }
-
-/* kill any pseudo-bubbles globally */
-.nav-item::before,
-.nav-item::after{
-  content:none !important;
+.bottomnav .nav-item.active .bn-ico{
+  background: linear-gradient(135deg, rgba(29,78,216,.18), rgba(14,165,233,.14));
+  border-color: rgba(29,78,216,.22);
 }
 
 /* =========================
@@ -848,99 +812,4 @@ select.inp{
 
 @media (prefers-reduced-motion: reduce){
   *{ transition:none !important; scroll-behavior:auto !important; }
-/* =========================================
-   SUNPOWER FIX PACK (FINAL OVERRIDES)
-   - quita duplo / sombra rara
-   - arregla recorte abajo en iPhone
-   - distribuye tabs bien (sin hueco derecha)
-   - desactiva sidebar en mobile SI ya tienes bottomnav
-   ========================================= */
-
-/* 1) SAFE AREA REAL + espacio para bottom nav */
-:root{
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-/* 2) Tu content estaba quedándose corto abajo: esto lo deja perfecto */
-@media (max-width: 920px){
-  .content{
-    padding-bottom: calc(var(--tabH) + var(--safe-bottom) + 22px) !important;
-  }
-}
-
-/* 3) Si ya estás usando bottomnav fija, NO dejes sidebar viva en mobile (causa "duplo") */
-@media (max-width: 920px){
-  .sidebar{
-    display:none !important;
-  }
-}
-
-/* 4) BOTTOMNAV (tu nav fijo real) — que se vea PRO y que no se pegue ni deje huecos */
-.bottomnav{
-  position:fixed !important;
-  left:10px !important;
-  right:10px !important;
-  bottom:10px !important;
-  z-index:5000 !important;
-
-  background: rgba(255,255,255,.98) !important;
-  border: 1px solid var(--hair) !important;
-  border-radius: 18px !important;
-
-  display:flex !important;
-  align-items:center !important;
-  justify-content:space-between !important; /* 🔥 evita hueco raro */
-  gap:10px !important;
-
-  padding:10px !important;
-  padding-bottom: calc(10px + var(--safe-bottom)) !important;
-
-  box-shadow: 0 -16px 38px rgba(2,6,23,.16) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-}
-
-/* cada item ocupa el mismo espacio (no se pega, no deja hueco) */
-.bottomnav .nav-item{
-  flex:1 !important;
-  min-width:0 !important;
-
-  display:flex !important;
-  flex-direction:column !important;
-  align-items:center !important;
-  justify-content:center !important;
-
-  gap:6px !important;
-  padding:10px 8px !important;
-
-  border-radius:14px !important;
-  border:1px solid transparent !important;
-
-  color: rgba(11,18,32,.78) !important;
-  font-weight:1000 !important;
-  font-size:11px !important;
-
-  -webkit-tap-highlight-color: transparent !important;
-  touch-action: manipulation !important;
-}
-
-/* estado activo clean */
-.bottomnav .nav-item.active{
-  background: linear-gradient(90deg, rgba(29,78,216,.12), rgba(14,165,233,.10)) !important;
-  border-color: rgba(29,78,216,.18) !important;
-  color: var(--blue) !important;
-}
-
-/* 5) Mata cualquier "burbujita" / pseudo elementos que estén creando el overlay arriba */
-.nav-item::before,
-.nav-item::after{
-  content:none !important;
-  display:none !important;
-}
-
-/* 6) Si tu topbar o page-head está “montándose raro”, esto elimina sombra/espacio fantasma */
-.page-head{
-  position:relative !important;
-  z-index:2 !important;
-}
 }
