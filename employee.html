@@ -83,42 +83,30 @@
   </main>
 
   <!-- BOTTOM NAV (APP STYLE / NO EMOJI) -->
-  <nav id="bottomNav" class="card"
-       style="
-         position:fixed; left:10px; right:10px; bottom:10px;
-         padding:10px; border-radius:18px;
-         display:flex; justify-content:space-around; align-items:center;
-         z-index:5000;
-         backdrop-filter: blur(10px);
-       ">
+ <nav id="bottomNav" class="bottomnav">
 
-    <!-- IMPORTANT: keep class nav-item so uiActiveNav() works -->
-    <a class="nav-item bn-item" href="#home" data-route="home">
-      <div class="bn-ico" aria-hidden="true"></div>
-      <div class="bn-txt">Home</div>
-    </a>
+  <!-- IMPORTANT: keep class nav-item so uiActiveNav() works -->
+  <a class="nav-item bn-item" href="#home" data-route="home">
+    <div class="bn-ico" aria-hidden="true"></div>
+    <div class="bn-txt">Home</div>
+  </a>
 
-    <a class="nav-item bn-item" href="#schedule" data-route="schedule">
-      <div class="bn-ico" aria-hidden="true"></div>
-      <div class="bn-txt">Schedule</div>
-    </a>
+  <a class="nav-item bn-item" href="#schedule" data-route="schedule">
+    <div class="bn-ico" aria-hidden="true"></div>
+    <div class="bn-txt">Schedule</div>
+  </a>
 
-    <a class="nav-item bn-item" href="#timecard" data-route="timecard">
-      <div class="bn-ico" aria-hidden="true"></div>
-      <div class="bn-txt">Timecard</div>
-    </a>
+  <a class="nav-item bn-item" href="#timeoff" data-route="timeoff">
+    <div class="bn-ico" aria-hidden="true"></div>
+    <div class="bn-txt">Benefits</div>
+  </a>
 
-    <a class="nav-item bn-item" href="#pay" data-route="pay">
-      <div class="bn-ico" aria-hidden="true"></div>
-      <div class="bn-txt">Pay</div>
-    </a>
+  <a class="nav-item bn-item" href="#more" data-route="more">
+    <div class="bn-ico" aria-hidden="true"></div>
+    <div class="bn-txt">More</div>
+  </a>
 
-    <a class="nav-item bn-item" href="#more" data-route="more">
-      <div class="bn-ico" aria-hidden="true"></div>
-      <div class="bn-txt">More</div>
-    </a>
-
-  </nav>
+</nav>
 
   <!-- Bottom nav CSS (kept inline so you don't have to revisit CSS later) -->
   <style>
