@@ -743,7 +743,14 @@ function ensureChromeOnce() {
 
   document.getElementById("azMoreClose").addEventListener("click", closeMore);
   overlay.addEventListener("click", closeMore);
+// FIX DEFINITIVO botón More (aunque el DOM cambie)
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("#azMoreBtn, [data-route='more']");
+  if (!btn) return;
 
+  e.preventDefault();
+  openMore();
+});
   sheet.querySelectorAll("a").forEach(a => a.addEventListener("click", closeMore));
 
   applyChromeVisibility();
