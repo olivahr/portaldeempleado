@@ -2330,5 +2330,60 @@ export async function initEmployeeApp() {
     true
   );
 })();
+// ===============================
+// GHOST CLICK FIX (MORE SHEET)
+// ===============================
+(function () {
+  const sheet = document.getElementById("azMoreSheet");
+  const overlay = document.getElementById("azMoreOverlay");
+
+  if (!sheet || !overlay) return;
+
+  let moreOpen = false;
+
+  // Detectar cuando More abre/cierra
+  const obs = new MutationObserver(() => {
+    moreOpen = sheet.classList.contains("open");
+
+    if (moreOpen) {
+      document.body.style.overflow = "hidden";
+      overlay.style.pointerEvents = "auto";
+    } else {
+      document.body.style.overflow = "";
+      overlay.style.pointerEvents = "none";
+    }
+  });
+
+  obs.observe(sheet, { attributes: true });
+
+  // 👉 BLOQUEO TOTAL de ghost clicks
+  document.addEventListener(
+    "touchend",
+    (e) => {
+      if (!moreOpen) return;
+
+      const insideMore = e.target.closest("#azMoreSheet");
+      if (!insideMore) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }
+    },
+    true
+  );
+
+  document.addEventListener(
+    "click",
+    (e) => {
+      if (!moreOpen) return;
+
+      const insideMore = e.target.closest("#azMoreSheet");
+      if (!insideMore) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }
+    },
+    true
+  );
+})();
 }
  
