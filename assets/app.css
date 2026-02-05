@@ -881,4 +881,25 @@ select.inp{
   background: transparent !important;
   border-color: transparent !important;
 }
+/* ==== FIX sombra/relieve ARRIBA (top bar/header) ==== */
+header, .header, .topbar, .app-header, .navbar, .site-header, .page-header{
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+header * , .header * , .topbar * , .app-header * , .navbar *{
+  box-shadow: none !important;
+}
+
+/* si el relieve es un ::before o ::after */
+header::before, header::after,
+.header::before, .header::after,
+.topbar::before, .topbar::after,
+.app-header::before, .app-header::after,
+.navbar::before, .navbar::after{
+  box-shadow: none !important;
+  filter: none !important;
+  background: transparent !important;
+  content: none !important;
+}
 }
