@@ -458,32 +458,7 @@ function ensureChromeOnce() {
     }
     .azDot{ width:6px; height:6px; border-radius:99px; background: rgba(2,6,23,.25); }
 
-    /* Ask A-to-Z button (bottom-right inside page, like screenshot) */
-    .azAsk{
-      position:fixed;
-      right:16px;
-      bottom:92px;
-      z-index:4500;
-      border-radius:999px;
-      padding:12px 14px;
-      border:1px solid rgba(229,234,242,.95);
-      background: linear-gradient(90deg, rgba(124,58,237,.95), rgba(147,51,234,.92));
-      color:#fff;
-      font-weight:1000;
-      box-shadow: 0 18px 38px rgba(15,23,42,.18);
-      display:none;
-      align-items:center;
-      gap:10px;
-    }
-    .azAsk .spark{
-      width:18px; height:18px;
-      display:flex; align-items:center; justify-content:center;
-      background: rgba(255,255,255,.18);
-      border-radius:999px;
-      font-weight:1100;
-    }
-
-    /* Schedule top tabs (My Schedule / Timecard / Find Shifts) */
+     /* Schedule top tabs (My Schedule / Timecard / Find Shifts) */
     .azTabsTop{
       display:flex; gap:18px; align-items:center;
       border-bottom:1px solid rgba(229,234,242,.95);
