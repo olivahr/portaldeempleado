@@ -2283,25 +2283,29 @@ export async function initEmployeeApp() {
   });
 }
 
-// ===== FIX SCROLL GHOST CLICK (FINAL) =====
-let __scrolling = false;
-let __startY = 0;
+// ===== REAL iOS SCROLL FIX FOR MORE SHEET =====
+(function () {
+  let moved = false;
+  let startY = 0;
 
-document.addEventListener("touchstart", e => {
-  __scrolling = false;
-  __startY = e.touches[0].clientY;
-}, { passive:true });
+  document.addEventListener("touchstart", e => {
+    if (!e.target.closest("#azMoreSheet")) return;
+    moved = false;
+    startY = e.touches[0].clientY;
+  }, { passive:true });
 
-document.addEventListener("touchmove", e => {
-  if (Math.abs(e.touches[0].clientY - __startY) > 10) {
-    __scrolling = true;
-  }
-}, { passive:true });
+  document.addEventListener("touchmove", e => {
+    if (!e.target.closest("#azMoreSheet")) return;
+    if (Math.abs(e.touches[0].clientY - startY) > 12) {
+      moved = true;
+    }
+  }, { passive:true });
 
-document.addEventListener("click", e => {
-  if (__scrolling) {
-    e.stopImmediatePropagation();
-    e.preventDefault();
-    return false;
-  }
-}, true);
+  document.addEventListener("click", e => {
+    if (!moved) return;
+    if (e.target.closest("#azMoreSheet a")) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }
+  }, true);
+})();
