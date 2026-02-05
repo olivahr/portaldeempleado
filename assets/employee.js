@@ -2571,6 +2571,5 @@ export async function initEmployeeApp() {
   document.addEventListener("click", onClickCapture, true);
 })(); 
 
- });
-}
+ });}
  
