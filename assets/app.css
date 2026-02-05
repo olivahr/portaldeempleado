@@ -995,3 +995,16 @@ a:active{ opacity:.85 !important; }
     padding: 18px !important;
   }
 }
+
+/* TEST CSS LOADED */
+html::before{
+  content:"CSS LOADED";
+  position:fixed;
+  top:10px; left:10px;
+  z-index:999999;
+  background:#000;
+  color:#fff;
+  padding:6px 10px;
+  border-radius:10px;
+  font: 900 12px/1 system-ui;
+}
