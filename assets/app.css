@@ -849,34 +849,51 @@ select.inp{
 @media (prefers-reduced-motion: reduce){
   *{ transition:none !important; scroll-behavior:auto !important; }
 }
-/* === REMOVE “RELIEVE” / SHADOW ABOVE BOTTOM NAV (iOS) === */
+
+/* ================================
+   NUCLEAR: remove any line/relief above bottom nav (iOS)
+   ================================ */
+
+/* 1) Flatten the bar itself (both possible implementations) */
 #azTabs,
-.bottomnav,
-#bottomNav{
+#bottomNav,
+.bottomnav{
+  background: #fff !important;
   box-shadow: none !important;
   filter: none !important;
   -webkit-filter: none !important;
+  border-top: 0 !important;
+  outline: 0 !important;
+
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
-#azTabs,
-.bottomnav,
-#bottomNav{
-  border-top: 0 !important;
+/* 2) Kill pseudo separators */
+#azTabs::before, #azTabs::after,
+#bottomNav::before, #bottomNav::after,
+.bottomnav::before, .bottomnav::after{
+  content: "" !important;
+  display: none !important;
+  height: 0 !important;
+}
+
+/* 3) Ensure the content area above isn't drawing a border/shadow */
+.shell, .content, main.content, #pageBody, .page-head, footer.footer{
+  box-shadow: none !important;
+  border: 0 !important;
   outline: 0 !important;
 }
 
-/* Sometimes the relief is the wrap/parent */
-#azTabs::before,
-#azTabs::after,
-.bottomnav::before,
-.bottomnav::after,
-#bottomNav::before,
-#bottomNav::after{
-  content: none !important;
+/* 4) Hard cut any “hairline” that might be coming from the content bottom edge */
+body.portal.has-tabs .content{
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+  background: #fff !important;
 }
 
-/* If the “line” is coming from a background blur */
-#azTabs{
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+/* 5) Some browsers render a 1px line from transforms/overflow - force compositing */
+#azTabs, #bottomNav, .bottomnav{
+  transform: translateZ(0) !important;
+  -webkit-transform: translateZ(0) !important;
 }
