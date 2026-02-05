@@ -725,7 +725,73 @@ function ensureChromeOnce() {
     </div>
   `;
   document.body.appendChild(sheet);
+// ===== iOS: matar "tap" al soltar después de SCROLL dentro del sheet =====
+(() => {
+  const sh = document.getElementById("azMoreSheet");
+  if (!sh) return;
 
+  let startTop = 0;
+  let sx = 0, sy = 0;
+  let ignoreUntil = 0;
+
+  sh.addEventListener("touchstart", (e) => {
+    startTop = sh.scrollTop;
+    const t = e.touches[0];
+    sx = t.clientX; sy = t.clientY;
+  }, { passive: true });
+
+  // CAPTURE: corre antes que cualquier handler global (uiWireGlobalTaps o similares)
+  sh.addEventListener("touchend", (e) => {
+    const endTop = sh.scrollTop;
+    const t = e.changedTouches[0];
+    const dx = Math.abs(t.clientX - sx);
+    const dy = Math.abs(t.clientY - sy);
+    const dScroll = Math.abs(endTop - startTop);
+
+    // Si el sheet se movió (scroll real) o el dedo se movió, NO es tap válido
+    if (dScroll > 2 || dx > 10 || dy > 10) {
+      ignoreUntil = Date.now() + 600;
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation?.();
+      return false;
+    }
+  }, true);
+
+  // También bloquea clicks que lleguen después del touchend
+  sh.addEventListener("click", (e) => {
+    if (Date.now() < ignoreUntil) {
+      const a = e.target.closest("a");
+      if (a) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation?.();
+        return false;
+      }
+    }
+  }, true);
+
+  // Pointer events (por si iOS te dispara pointerup)
+  sh.addEventListener("pointerdown", (e) => {
+    startTop = sh.scrollTop;
+    sx = e.clientX; sy = e.clientY;
+  }, { passive: true });
+
+  sh.addEventListener("pointerup", (e) => {
+    const endTop = sh.scrollTop;
+    const dx = Math.abs(e.clientX - sx);
+    const dy = Math.abs(e.clientY - sy);
+    const dScroll = Math.abs(endTop - startTop);
+
+    if (dScroll > 2 || dx > 10 || dy > 10) {
+      ignoreUntil = Date.now() + 600;
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation?.();
+      return false;
+    }
+  }, true);
+})();
   // ====== FIX DEFINITIVO: More funciona SIEMPRE + overlay nunca bloquea taps ======
   const azMoreOpen = () => {
     const ov = document.getElementById("azMoreOverlay");
