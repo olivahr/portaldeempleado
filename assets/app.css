@@ -792,17 +792,14 @@ select.inp{
    ========================= */
 .bottomnav{
   position:fixed;
-  left:0;
-  right:0;
-  bottom:0;
+  left:10px; right:10px; bottom:10px;
   z-index:5000;
-
-  background:#fff;
-  border-top:1px solid #e5e7eb;
-
-  border-radius:0;
-  padding:6px 0;
-
+  background: rgba(255,255,255,.98);
+  border:1px solid var(--hair);
+  box-shadow: 0 -16px 38px rgba(2,6,23,.16);
+  backdrop-filter: blur(10px);
+  border-radius:18px;
+  padding:10px;
   display:flex;
   justify-content:space-around;
   align-items:center;
@@ -851,67 +848,4 @@ select.inp{
 
 @media (prefers-reduced-motion: reduce){
   *{ transition:none !important; scroll-behavior:auto !important; }
-/* ===== FORCE FLAT BOTTOM NAV ===== */
-
-.bottomnav{
-  box-shadow: none !important;
-  filter: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-
-  border-radius: 0 !important;
-  border: 0 !important;
-  border-top: 1px solid #e5e7eb !important;
-
-  background: #fff !important;
-}
-
-/* matar pseudo efectos */
-.bottomnav::before,
-.bottomnav::after,
-.bottomnav .nav-item::before,
-.bottomnav .nav-item::after{
-  content: none !important;
-  box-shadow: none !important;
-  filter: none !important;
-}
-
-/* active sin relieve */
-.bottomnav .nav-item.active{
-  background: transparent !important;
-  border-color: transparent !important;
-}
-/* ==== FIX sombra/relieve ARRIBA (top bar/header) ==== */
-header, .header, .topbar, .app-header, .navbar, .site-header, .page-header{
-  box-shadow: none !important;
-  filter: none !important;
-}
-
-header * , .header * , .topbar * , .app-header * , .navbar *{
-  box-shadow: none !important;
-}
-
-/* si el relieve es un ::before o ::after */
-header::before, header::after,
-.header::before, .header::after,
-.topbar::before, .topbar::after,
-.app-header::before, .app-header::after,
-.navbar::before, .navbar::after{
-  box-shadow: none !important;
-  filter: none !important;
-  background: transparent !important;
-  content: none !important;
-}
-/* KILL Ask A to Z (force hide) */
-#azAskBtn,
-.azAsk,
-button.azAsk,
-*[class*="azAsk"],
-*[id*="azAsk"]{
-  display:none !important;
-  visibility:hidden !important;
-  opacity:0 !important;
-  pointer-events:none !important;
-}
-
 }
