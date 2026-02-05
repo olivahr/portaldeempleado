@@ -2410,56 +2410,78 @@ export async function initEmployeeApp() {
   });
 
   obs.observe(sheet, { attributes: true });
+// ===== FIX iOS: evita que al soltar scroll en el menú "More" se abra un link solo =====
+(() => {
+  function findMoreSheet() {
+    // Busca un panel fijo abajo que tenga links internos (#...) y texto "More"
+    const candidates = Array.from(document.querySelectorAll("div,section,nav,aside"))
+      .filter(el => {
+        const st = getComputedStyle(el);
+        if (st.position !== "fixed") return false;
+        if (!st.bottom || st.bottom === "auto") return false;
+        if (parseFloat(st.bottom) !== 0) return false;
+        if (el.querySelectorAll('a[href^="#"]').length < 3) return false;
+        const txt = (el.innerText || "").toLowerCase();
+        return txt.includes("more"); // el sheet normalmente dice "More"
+      });
 
-  // 👉 BLOQUEO TOTAL de ghost clicks
-  document.addEventListener(
-    "touchend",
-    (e) => {
-      if (!moreOpen) return;
+    // El más “grande” suele ser el sheet
+    candidates.sort((a,b) => (b.getBoundingClientRect().height - a.getBoundingClientRect().height));
+    return candidates[0] || null;
+  }
 
-      const insideMore = e.target.closest("#azMoreSheet");
-      if (!insideMore) {
+  function install() {
+    const sheet = findMoreSheet();
+    if (!sheet) return false;
+    if (sheet.dataset.iosScrollGuard === "1") return true;
+    sheet.dataset.iosScrollGuard = "1";
+
+    let startY = 0, startX = 0;
+    let moved = false;
+    let lastTouchTime = 0;
+
+    sheet.addEventListener("touchstart", (e) => {
+      const t = e.touches && e.touches[0];
+      if (!t) return;
+      startY = t.clientY;
+      startX = t.clientX;
+      moved = false;
+      lastTouchTime = Date.now();
+    }, { passive: true });
+
+    sheet.addEventListener("touchmove", (e) => {
+      const t = e.touches && e.touches[0];
+      if (!t) return;
+      if (Math.abs(t.clientY - startY) > 8 || Math.abs(t.clientX - startX) > 8) moved = true;
+    }, { passive: true });
+
+    const blockGhostTap = (e) => {
+      const a = e.target && e.target.closest && e.target.closest('a[href^="#"]');
+      if (!a) return;
+
+      // Si hubo scroll o es “soltar” rápido, CANCELA
+      if (moved || (Date.now() - lastTouchTime < 350)) {
         e.preventDefault();
-        e.stopImmediatePropagation();
+        e.stopPropagation();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
       }
-    },
-    true
-  );
+    };
 
-  document.addEventListener(
-    "click",
-    (e) => {
-      if (!moreOpen) return;
+    // Capture = mata el click antes de que el navegador lo ejecute
+    sheet.addEventListener("touchend", blockGhostTap, true);
+    sheet.addEventListener("click", blockGhostTap, true);
 
-      const insideMore = e.target.closest("#azMoreSheet");
-      if (!insideMore) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-      }
-    },
-    true
-  );
+    return true;
+  }
+
+  // Reintenta porque tu app re-renderiza
+  const t = setInterval(() => {
+    if (install()) clearInterval(t);
+  }, 200);
+
+  window.addEventListener("hashchange", install);
+  window.addEventListener("resize", install);
 })();
-// ===============================
-// REAL MOBILE GHOST CLICK FIX
-// ===============================
-(function () {
-  let moved = false;
-
-  document.addEventListener("touchstart", () => {
-    moved = false;
-  }, { passive: true });
-
-  document.addEventListener("touchmove", () => {
-    moved = true;
-  }, { passive: true });
-
-  document.addEventListener("click", (e) => {
-    if (!moved) return;
-
-    // Si hubo scroll, cancelar click fantasma
-    e.preventDefault();
-    e.stopPropagation();
-  }, true);
+ 
 })();}
  
