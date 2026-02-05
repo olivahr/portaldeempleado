@@ -726,7 +726,47 @@ function ensureChromeOnce() {
   `;
   document.body.appendChild(sheet);
 
-  // ====== FIX DEFINITIVO: More funciona SIEMPRE + overlay nunca bloquea taps ======
+// ===== iOS ghost-tap fix (scroll dentro de More NO navega solo) =====
+(() => {
+  const sh = document.getElementById("azMoreSheet");
+  if (!sh || sh.dataset.ghostfix === "1") return;
+  sh.dataset.ghostfix = "1";
+
+  let moved = false;
+  let sx = 0, sy = 0;
+  let lastMove = 0;
+
+  sh.addEventListener("touchstart", (e) => {
+    const t = e.touches && e.touches[0];
+    if (!t) return;
+    moved = false;
+    sx = t.clientX;
+    sy = t.clientY;
+  }, { passive: true });
+
+  sh.addEventListener("touchmove", (e) => {
+    const t = e.touches && e.touches[0];
+    if (!t) return;
+    const dx = Math.abs(t.clientX - sx);
+    const dy = Math.abs(t.clientY - sy);
+    if (dx > 6 || dy > 6) {
+      moved = true;
+      lastMove = Date.now();
+    }
+  }, { passive: true });
+
+  // CAPTURE: mata el click fantasma antes que el <a> navegue
+  sh.addEventListener("click", (e) => {
+    const recent = moved || (Date.now() - lastMove < 500);
+    if (!recent) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    moved = false;
+  }, true);
+})();
+ 
+ // ====== FIX DEFINITIVO: More funciona SIEMPRE + overlay nunca bloquea taps ======
   const azMoreOpen = () => {
     const ov = document.getElementById("azMoreOverlay");
     const sh = document.getElementById("azMoreSheet");
