@@ -1,5 +1,4 @@
-
-// ===============================
+ // ===============================
 // Employee Portal (A-to-Z STYLE, NO EMOJIS)
 // ✅ Bottom Tab Bar on mobile: Home / Schedule / Pay / Benefits / More
 // ✅ Desktop keeps sidebar
@@ -275,13 +274,22 @@ function ensureChromeOnce() {
   const sidebar = document.getElementById("sidebar");
   if (sidebar) sidebar.style.display = isMobile() ? "none" : "";
 
-  if (document.getElementById("azTabs")) return;
+  // If tabs already exist, just re-apply visibility + force-close overlay so it doesn't block taps
+  if (document.getElementById("azTabs")) {
+    applyChromeVisibility();
+    const ov = document.getElementById("azMoreOverlay");
+    const sh = document.getElementById("azMoreSheet");
+    if (ov) { ov.style.display = "none"; ov.style.pointerEvents = "none"; }
+    if (sh) sh.classList.remove("open");
+    return;
+  }
 
   const style = document.createElement("style");
   style.id = "azStyle";
   style.textContent = `
     /* A-to-Z base spacing */
     body.portal.has-tabs .content{ padding-bottom: 92px; }
+
     #azTabs{
       position:fixed; left:0; right:0; bottom:0;
       height:72px; z-index:5000;
@@ -322,16 +330,17 @@ function ensureChromeOnce() {
       color: rgba(2,6,23,.78);
     }
     .az-ico svg{ width:18px; height:18px; }
-    .az-tab.active{
-      color: rgba(29,78,216,1);
-    }
-    .az-tab.active .az-ico{
-      background: rgba(29,78,216,.10);
-      color: rgba(29,78,216,1);
-    }
+    .az-tab.active{ color: rgba(29,78,216,1); }
+    .az-tab.active .az-ico{ background: rgba(29,78,216,.10); color: rgba(29,78,216,1); }
 
-    /* More sheet */
-    #azMoreOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; z-index:6000; }
+    /* More overlay MUST NOT block clicks when closed */
+    #azMoreOverlay{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.45);
+      display:none;
+      pointer-events:none; /* 👈 critical */
+      z-index:6000;
+    }
     #azMoreSheet{
       position:fixed; left:0; right:0; bottom:0;
       background:rgba(255,255,255,.98);
@@ -346,6 +355,7 @@ function ensureChromeOnce() {
       padding-bottom: env(safe-area-inset-bottom);
     }
     #azMoreSheet.open{ transform: translateY(0); }
+
     .azMoreHead{
       padding:14px 14px 10px;
       display:flex;align-items:center;justify-content:space-between;
@@ -366,16 +376,15 @@ function ensureChromeOnce() {
       background:#fff;
       box-shadow: 0 10px 24px rgba(15,23,42,.05);
       font-weight:1000;
+      text-decoration:none;
+      color: inherit;
     }
     .azMoreItem .sub{ font-size:12px; font-weight:800; color: var(--muted); margin-top:4px; }
     .azMoreArrow{ display:flex; align-items:center; justify-content:center; width:18px; height:18px; color: rgba(2,6,23,.45); }
     .azMoreArrow svg{ width:18px; height:18px; }
 
     /* Home top bar row (icons) */
-    .azTopRow{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:10px; margin-bottom:10px;
-    }
+    .azTopRow{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
     .azTopIcons{ display:flex; gap:10px; }
     .azIconBtn{
       width:34px; height:34px;
@@ -385,6 +394,7 @@ function ensureChromeOnce() {
       display:flex;align-items:center;justify-content:center;
       box-shadow: 0 10px 22px rgba(15,23,42,.05);
       color: rgba(2,6,23,.70);
+      text-decoration:none;
     }
     .azIconBtn svg{ width:18px; height:18px; }
 
@@ -411,6 +421,7 @@ function ensureChromeOnce() {
       display:inline-flex;
       align-items:center;
       gap:8px;
+      text-decoration:none;
     }
 
     /* Two-card row like A-to-Z */
@@ -445,21 +456,9 @@ function ensureChromeOnce() {
       border:1px solid rgba(229,234,242,.95);
       margin-top:10px;
     }
-    .azBar > div{
-      height:100%;
-      background: rgba(29,78,216,.45);
-      width:0%;
-    }
-    .azDots{
-      display:flex; gap:6px; align-items:center; margin-top:8px;
-      color: rgba(2,6,23,.55);
-      font-weight:900;
-      font-size:12px;
-    }
-    .azDot{ width:6px; height:6px; border-radius:99px; background: rgba(2,6,23,.25); }
+    .azBar > div{ height:100%; background: rgba(29,78,216,.45); width:0%; }
 
-   
-    /* Schedule top tabs (My Schedule / Timecard / Find Shifts) */
+    /* Schedule top tabs */
     .azTabsTop{
       display:flex; gap:18px; align-items:center;
       border-bottom:1px solid rgba(229,234,242,.95);
@@ -547,8 +546,6 @@ function ensureChromeOnce() {
       font-weight:900;
       font-size:12px;
     }
-    .azKey{ display:flex; align-items:center; gap:8px; }
-    .azKeyBox{ width:10px; height:10px; border-radius:3px; background: rgba(2,6,23,.18); }
 
     /* Timecard quick grid */
     .azQuickGrid{
@@ -629,7 +626,7 @@ function ensureChromeOnce() {
   `;
   document.body.appendChild(tabs);
 
-  // More sheet
+  // More overlay + sheet
   const overlay = document.createElement("div");
   overlay.id = "azMoreOverlay";
   document.body.appendChild(overlay);
@@ -728,56 +725,60 @@ function ensureChromeOnce() {
     </div>
   `;
   document.body.appendChild(sheet);
-   // ===== MORE FIX DEFINITIVO (SIN CONFLICTOS) =====
-  function wireMoreMenu() {
-    const overlayEl = document.getElementById("azMoreOverlay");
-    const sheetEl   = document.getElementById("azMoreSheet");
-    const btnEl     = document.getElementById("azMoreBtn");
-    const closeEl   = document.getElementById("azMoreClose");
 
-    if (!overlayEl || !sheetEl || !btnEl) return;
+  // ====== FIX DEFINITIVO: More funciona SIEMPRE + overlay nunca bloquea taps ======
+  const azMoreOpen = () => {
+    const ov = document.getElementById("azMoreOverlay");
+    const sh = document.getElementById("azMoreSheet");
+    if (!ov || !sh) return;
+    ov.style.display = "block";
+    ov.style.pointerEvents = "auto";
+    sh.classList.add("open");
+  };
 
-    const open = () => {
-      overlayEl.style.display = "block";
-      sheetEl.classList.add("open");
-    };
+  const azMoreClose = () => {
+    const ov = document.getElementById("azMoreOverlay");
+    const sh = document.getElementById("azMoreSheet");
+    if (!ov || !sh) return;
+    sh.classList.remove("open");
+    ov.style.display = "none";
+    ov.style.pointerEvents = "none"; // 👈 clave: no traga clicks (Log out vuelve a funcionar)
+  };
 
-    const close = () => {
-      overlayEl.style.display = "none";
-      sheetEl.classList.remove("open");
-    };
+  // Siempre arrancar cerrado (mata overlays fantasmas)
+  azMoreClose();
 
-    // Reset handlers para evitar duplicados
-    btnEl.onclick = null;
-    overlayEl.onclick = null;
-    if (closeEl) closeEl.onclick = null;
+  // Delegación (captura) para que nunca se pierda el click aunque haya rerenders
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("#azMoreBtn");
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    azMoreOpen();
+  }, true);
 
-    // Set handlers
-    btnEl.onclick = (e) => {
+  document.addEventListener("click", (e) => {
+    const closeBtn = e.target.closest("#azMoreClose");
+    if (!closeBtn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    azMoreClose();
+  }, true);
+
+  document.addEventListener("click", (e) => {
+    if (e.target && e.target.id === "azMoreOverlay") {
       e.preventDefault();
       e.stopPropagation();
-      open();
-    };
+      azMoreClose();
+    }
+  }, true);
 
-    overlayEl.onclick = (e) => {
-      e.preventDefault();
-      close();
-    };
+  document.addEventListener("click", (e) => {
+    const link = e.target.closest("#azMoreSheet a");
+    if (!link) return;
+    azMoreClose();
+  }, true);
 
-    if (closeEl) closeEl.onclick = (e) => {
-      e.preventDefault();
-      close();
-    };
-
-    // Cerrar al tocar cualquier opción del menu
-    sheetEl.querySelectorAll("a").forEach(a => {
-      a.onclick = () => close();
-    });
-  }
-
-  // cablear ahora
-  wireMoreMenu();
- 
   applyChromeVisibility();
   window.addEventListener("resize", applyChromeVisibility);
 }
@@ -798,7 +799,7 @@ function applyChromeVisibility() {
 
     const overlay = document.getElementById("azMoreOverlay");
     const sheet = document.getElementById("azMoreSheet");
-    if (overlay) overlay.style.display = "none";
+    if (overlay) { overlay.style.display = "none"; overlay.style.pointerEvents = "none"; }
     if (sheet) sheet.classList.remove("open");
   }
 }
@@ -1211,18 +1212,10 @@ function renderMySchedule(recordData) {
     }).join("");
   }
 
-  // Wire month nav + day select
-  const calPrev = document.getElementById("calPrev");
-  const calNext = document.getElementById("calNext");
-  const wrap = document.querySelector(".azCalWrap");
-
   function rerenderCalendar() {
-    // replace calendar HTML in-place
     const newHtml = renderCalendarMonth(recordData, state);
     const old = document.querySelector(".azCalWrap");
     if (old) old.outerHTML = newHtml;
-
-    // rewire after replace
     wireCalendar();
     renderDayDetails(state.selectedYmd);
   }
@@ -1246,7 +1239,6 @@ function renderMySchedule(recordData) {
         const key = el.getAttribute("data-ymd") || "";
         state.selectedYmd = key;
 
-        // toggle selection
         document.querySelectorAll(".azDay").forEach(x => x.classList.remove("sel"));
         el.classList.add("sel");
 
@@ -1775,7 +1767,6 @@ function renderFirstDayLocked(userData, recordData) {
 
 // ===============================
 // PAY / BENEFITS / HOURS / DEPOSIT / NOTIFS / HELP
-// (kept full, no blanks)
 // ===============================
 function renderPayroll(recordData) {
   const items = Array.isArray(recordData?.payroll) ? recordData.payroll : [];
@@ -2275,9 +2266,7 @@ export async function initEmployeeApp() {
           notifications: Array.isArray(d.notifications) ? d.notifications : base.notifications
         };
 
-        // ✅ Default entry is Home A-to-Z
         if (!location.hash) location.hash = "#home";
-
         rerender();
       });
 
@@ -2293,3 +2282,4 @@ export async function initEmployeeApp() {
     }
   });
 }
+ 
