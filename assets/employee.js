@@ -2282,3 +2282,26 @@ export async function initEmployeeApp() {
     }
   });
 }
+
+// ===== FIX SCROLL GHOST CLICK (FINAL) =====
+let __scrolling = false;
+let __startY = 0;
+
+document.addEventListener("touchstart", e => {
+  __scrolling = false;
+  __startY = e.touches[0].clientY;
+}, { passive:true });
+
+document.addEventListener("touchmove", e => {
+  if (Math.abs(e.touches[0].clientY - __startY) > 10) {
+    __scrolling = true;
+  }
+}, { passive:true });
+
+document.addEventListener("click", e => {
+  if (__scrolling) {
+    e.stopImmediatePropagation();
+    e.preventDefault();
+    return false;
+  }
+}, true);
