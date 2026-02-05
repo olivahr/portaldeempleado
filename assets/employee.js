@@ -728,53 +728,56 @@ function ensureChromeOnce() {
     </div>
   `;
   document.body.appendChild(sheet);
+   // ===== MORE FIX DEFINITIVO (SIN CONFLICTOS) =====
+  function wireMoreMenu() {
+    const overlayEl = document.getElementById("azMoreOverlay");
+    const sheetEl   = document.getElementById("azMoreSheet");
+    const btnEl     = document.getElementById("azMoreBtn");
+    const closeEl   = document.getElementById("azMoreClose");
 
-  const openMore = () => {
-    overlay.style.display = "block";
-    sheet.classList.add("open");
-  };
-  const closeMore = () => {
-    overlay.style.display = "none";
-    sheet.classList.remove("open");
-  };
-const moreBtn = document.getElementById("azMoreBtn");
-if (moreBtn) {
-  moreBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    openMore();
-  });
-}
+    if (!overlayEl || !sheetEl || !btnEl) return;
 
-const closeBtn = document.getElementById("azMoreClose");
-if (closeBtn) closeBtn.addEventListener("click", closeMore);
+    const open = () => {
+      overlayEl.style.display = "block";
+      sheetEl.classList.add("open");
+    };
 
-if (overlay) overlay.addEventListener("click", closeMore);
+    const close = () => {
+      overlayEl.style.display = "none";
+      sheetEl.classList.remove("open");
+    };
 
-// fallback: si el botón no existe, abre More desde el tab "More"
-document.addEventListener(
-  "click",
-  (e) => {
-    const tabMore = e.target.closest("[data-route='more'], .nav-item[data-route='more']");
-    if (!tabMore) return;
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    openMore();
-  },
-  true
-);
+    // Reset handlers para evitar duplicados
+    btnEl.onclick = null;
+    overlayEl.onclick = null;
+    if (closeEl) closeEl.onclick = null;
 
- // FIX DEFINITIVO botón More (aunque el DOM cambie)
-document.addEventListener("click", (e) => {
-  const btn = e.target.closest("#azMoreBtn, [data-route='more']");
-  if (!btn) return;
+    // Set handlers
+    btnEl.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      open();
+    };
 
-  e.preventDefault();
-  openMore();
-});
-  sheet.querySelectorAll("a").forEach(a => a.addEventListener("click", closeMore));
+    overlayEl.onclick = (e) => {
+      e.preventDefault();
+      close();
+    };
 
+    if (closeEl) closeEl.onclick = (e) => {
+      e.preventDefault();
+      close();
+    };
+
+    // Cerrar al tocar cualquier opción del menu
+    sheetEl.querySelectorAll("a").forEach(a => {
+      a.onclick = () => close();
+    });
+  }
+
+  // cablear ahora
+  wireMoreMenu();
+ 
   applyChromeVisibility();
   window.addEventListener("resize", applyChromeVisibility);
 }
