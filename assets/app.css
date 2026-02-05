@@ -913,4 +913,25 @@ button.azAsk,
   opacity:0 !important;
   pointer-events:none !important;
 }
+/* ===== FIX SCROLL + GHOST TAP iOS DEFINITIVO ===== */
+
+#azMoreSheet{
+  touch-action: pan-y !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+#azMoreOverlay{
+  pointer-events: auto !important;
+  touch-action: none !important;
+}
+
+#azMoreSheet *{
+  touch-action: pan-y !important;
+}
+
+/* evita que el fondo reciba taps mientras More está abierto */
+body.has-tabs{
+  overscroll-behavior: contain !important;
+}
 }
