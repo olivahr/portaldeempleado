@@ -1,3 +1,4 @@
+
 // ===============================
 // Employee Portal (A-to-Z STYLE, NO EMOJIS)
 // ✅ Bottom Tab Bar on mobile: Home / Schedule / Pay / Benefits / More
@@ -924,7 +925,7 @@ function renderHome(publicData, recordData, userData) {
     `
       <div class="azTopRow">
         <div style="display:flex;align-items:center;gap:10px;">
-          <div style="font-weight:1000;color:rgba(2,6,23,.75);">amazon a to z</div>
+          <div style="font-weight:1000;color:rgba(2,6,23,.75);">Sun Power</div>
         </div>
         <div class="azTopIcons">
           <a class="azIconBtn" href="#help" aria-label="Help">${azIcon("chat")}</a>
