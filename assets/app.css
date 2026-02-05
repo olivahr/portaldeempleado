@@ -848,4 +848,34 @@ select.inp{
 
 @media (prefers-reduced-motion: reduce){
   *{ transition:none !important; scroll-behavior:auto !important; }
+/* ===== FORCE FLAT BOTTOM NAV ===== */
+
+.bottomnav{
+  box-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+
+  border-radius: 0 !important;
+  border: 0 !important;
+  border-top: 1px solid #e5e7eb !important;
+
+  background: #fff !important;
+}
+
+/* matar pseudo efectos */
+.bottomnav::before,
+.bottomnav::after,
+.bottomnav .nav-item::before,
+.bottomnav .nav-item::after{
+  content: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* active sin relieve */
+.bottomnav .nav-item.active{
+  background: transparent !important;
+  border-color: transparent !important;
+}
 }
