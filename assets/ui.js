@@ -346,3 +346,23 @@ export function uiSectionHeader(title, right = "") {
     </div>
   `;
 }
+// ===== SCROLL vs TAP FIX GLOBAL =====
+// Evita que scroll dispare clicks en móvil
+
+let fingerMoved = false;
+
+window.addEventListener("touchstart", () => {
+  fingerMoved = false;
+}, { passive:true });
+
+window.addEventListener("touchmove", () => {
+  fingerMoved = true;
+}, { passive:true });
+
+document.addEventListener("click", (e) => {
+  if (fingerMoved) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    return false;
+  }
+}, true);
