@@ -2281,5 +2281,54 @@ export async function initEmployeeApp() {
       uiToast(e?.message || String(e));
     }
   });
+// ===============================
+// GLOBAL TOUCH/SCROLL FIX (MORE PANEL)
+// ===============================
+(function () {
+  const sheet = document.getElementById("azMoreSheet");
+  const overlay = document.getElementById("azMoreOverlay");
+
+  if (!sheet || !overlay) return;
+
+  // 👉 evitar que el scroll pase al body
+  sheet.addEventListener(
+    "touchmove",
+    (e) => {
+      e.stopPropagation();
+    },
+    { passive: true }
+  );
+
+  sheet.addEventListener(
+    "wheel",
+    (e) => {
+      e.stopPropagation();
+    },
+    { passive: true }
+  );
+
+  // 👉 bloquear fondo cuando More esté abierto
+  const obs = new MutationObserver(() => {
+    if (sheet.classList.contains("open")) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+  });
+
+  obs.observe(sheet, { attributes: true, attributeFilter: ["class"] });
+
+  // 👉 asegurar taps correctos
+  document.addEventListener(
+    "click",
+    (e) => {
+      const inMore = e.target.closest("#azMoreSheet");
+      if (sheet.classList.contains("open") && !inMore) {
+        e.stopPropagation();
+      }
+    },
+    true
+  );
+})();
 }
  
