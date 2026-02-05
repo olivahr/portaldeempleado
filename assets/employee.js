@@ -728,62 +728,6 @@ function ensureChromeOnce() {
   `;
   document.body.appendChild(sheet);
 
-  // Ask A to Z floating button
-  const ask = document.createElement("button");
-  ask.id = "azAskBtn";
-  ask.type = "button";
-  ask.className = "azAsk";
-  ask.innerHTML = `<span class="spark">✦</span><span>Ask A to Z</span>`;
-  ask.onclick = () => {
-    uiToast("Ask A to Z is not enabled in this portal yet.");
-  };
-  document.body.appendChild(ask);
-
-  const openMore = () => {
-    overlay.style.display = "block";
-    sheet.classList.add("open");
-  };
-  const closeMore = () => {
-    overlay.style.display = "none";
-    sheet.classList.remove("open");
-  };
-
-  const moreBtn = document.getElementById("azMoreBtn");
-  moreBtn.addEventListener("click", openMore);
-
-  document.getElementById("azMoreClose").addEventListener("click", closeMore);
-  overlay.addEventListener("click", closeMore);
-
-  sheet.querySelectorAll("a").forEach(a => a.addEventListener("click", closeMore));
-
-  applyChromeVisibility();
-  window.addEventListener("resize", applyChromeVisibility);
-}
-
-function applyChromeVisibility() {
-  const tabs = document.getElementById("azTabs");
-  const ask = document.getElementById("azAskBtn");
-  if (!tabs) return;
-
-  const sidebar = document.getElementById("sidebar");
-  if (sidebar) sidebar.style.display = isMobile() ? "none" : "";
-
-  if (isMobile()) {
-    tabs.style.display = "block";
-    document.body.classList.add("has-tabs");
-    if (ask) ask.style.display = "inline-flex";
-  } else {
-    tabs.style.display = "none";
-    document.body.classList.remove("has-tabs");
-    if (ask) ask.style.display = "none";
-
-    const overlay = document.getElementById("azMoreOverlay");
-    const sheet = document.getElementById("azMoreSheet");
-    if (overlay) overlay.style.display = "none";
-    if (sheet) sheet.classList.remove("open");
-  }
-}
-
 function setActiveTabsAndSidebar() {
   const r = routeName();
 
