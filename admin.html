@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Employee Portal</title>
+  <link rel="stylesheet" href="./assets/app.css"/>
+</head>
+
+<body class="portal">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="brand-mini">
+        <div class="brand-dot"></div>
+        <div class="brand-title">Employee</div>
+      </div>
+      <div class="topbar-pill" id="userBadge">Loading…</div>
+    </div>
+
+    <div class="topbar-right">
+      <button class="btn sm ghost" id="btnAdminGo" type="button" style="display:none;">Admin</button>
+      <button class="btn sm ghost" id="btnLogout" type="button">Log out</button>
+    </div>
+  </header>
+
+  <!-- =========================================================
+       COMPAT LAYER (HIDDEN) — employee.js usa esto para active state
+       (no hamburger, no sidebar visible)
+       ========================================================= -->
+  <div id="drawerOverlay" class="drawer-overlay" style="display:none;"></div>
+
+  <aside class="sidebar" id="sidebar" style="display:none;">
+    <nav class="nav" id="nav">
+      <a class="nav-item" href="#home" data-route="home">Home</a>
+      <a class="nav-item" href="#progress" data-route="progress">Progress</a>
+      <a class="nav-item" href="#shift" data-route="shift">Shift Selection</a>
+      <a class="nav-item" href="#footwear" data-route="footwear">Safety Footwear</a>
+      <a class="nav-item" href="#i9" data-route="i9">I-9</a>
+      <a class="nav-item" href="#documents" data-route="documents">Documents</a>
+      <a class="nav-item" href="#firstday" data-route="firstday">First Day</a>
+
+      <a class="nav-item" href="#schedule" data-route="schedule">Schedule</a>
+      <a class="nav-item" href="#hours" data-route="hours">My Hours</a>
+      <a class="nav-item" href="#payroll" data-route="payroll">Payroll</a>
+      <a class="nav-item" href="#timeoff" data-route="timeoff">Time Off</a>
+      <a class="nav-item" href="#deposit" data-route="deposit">Direct Deposit</a>
+
+      <a class="nav-item" href="#notifications" data-route="notifications">Notifications</a>
+      <a class="nav-item" href="#help" data-route="help">Help</a>
+      <a class="nav-item" href="#more" data-route="more">More</a>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="small muted">Status</div>
+      <div class="status-chip" id="statusShift">offline</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="content" style="padding-bottom:92px;">
+
+    <section class="page-head">
+      <h1 id="pageTitle">Home</h1>
+      <div class="subhead" id="pageSub">Loading…</div>
+    </section>
+
+    <!-- Stagebar (solo si employee.js lo usa en progress) -->
+    <section id="stagebar"></section>
+
+    <!-- Aquí employee.js renderiza TODO -->
+    <section id="pageBody"></section>
+
+    <footer class="footer">
+      <span class="muted">Employee Portal</span> • <span class="muted" id="build">Firebase Connected</span>
+    </footer>
+
+  </main>
+
+  <!-- BOTTOM NAV (NO EMOJIS, no casita) -->
+  <nav class="card"
+       style="
+         position:fixed; left:10px; right:10px; bottom:10px;
+         padding:10px; border-radius:18px;
+         display:flex; justify-content:space-around; align-items:center;
+         z-index:5000;
+       ">
+
+    <a class="nav-item"
+       href="#home" data-route="home"
+       style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 12px;border-radius:14px;">
+      <div style="width:26px;height:26px;border-radius:12px;background:rgba(29,78,216,.10);border:1px solid rgba(29,78,216,.10);"></div>
+      <div class="small">Home</div>
+    </a>
+
+    <a class="nav-item"
+       href="#schedule" data-route="schedule"
+       style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 12px;border-radius:14px;">
+      <div style="width:26px;height:26px;border-radius:12px;background:rgba(29,78,216,.10);border:1px solid rgba(29,78,216,.10);"></div>
+      <div class="small">Schedule</div>
+    </a>
+
+    <a class="nav-item"
+       href="#payroll" data-route="payroll"
+       style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 12px;border-radius:14px;">
+      <div style="width:26px;height:26px;border-radius:12px;background:rgba(29,78,216,.10);border:1px solid rgba(29,78,216,.10);"></div>
+      <div class="small">Pay</div>
+    </a>
+
+    <a class="nav-item"
+       href="#timeoff" data-route="timeoff"
+       style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 12px;border-radius:14px;">
+      <div style="width:26px;height:26px;border-radius:12px;background:rgba(29,78,216,.10);border:1px solid rgba(29,78,216,.10);"></div>
+      <div class="small">Time Off</div>
+    </a>
+
+    <a class="nav-item"
+       href="#more" data-route="more"
+       style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 12px;border-radius:14px;">
+      <div style="width:26px;height:26px;border-radius:12px;background:rgba(29,78,216,.10);border:1px solid rgba(29,78,216,.10);"></div>
+      <div class="small">More</div>
+    </a>
+
+  </nav>
+
+  <script type="module">
+    import { uiActiveNav } from "./assets/ui.js";
+    import { signOutNow } from "./assets/auth.js";
+    import { initEmployeeApp } from "./assets/employee.js";
+
+    document.getElementById("btnLogout").onclick = async () => {
+      await signOutNow();
+      window.location.href = "./index.html";
+    };
+
+    document.getElementById("btnAdminGo").onclick = () => {
+      window.location.href = "./admin.html";
+    };
+
+    await initEmployeeApp();
+
+    uiActiveNav();
+    window.addEventListener("hashchange", uiActiveNav);
+  </script>
+
+</body>
+</html>
