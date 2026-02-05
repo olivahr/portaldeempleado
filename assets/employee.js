@@ -2283,29 +2283,41 @@ export async function initEmployeeApp() {
   });
 }
 
-// ===== REAL iOS SCROLL FIX FOR MORE SHEET =====
+// ===== FIX DEFINITIVO iOS: scroll en #azMoreSheet NO debe disparar tap al soltar =====
 (function () {
-  let moved = false;
-  let startY = 0;
+  let scrolled = false;
+  let ignoreClicksUntil = 0;
 
-  document.addEventListener("touchstart", e => {
+  // Marca cuando el sheet realmente scrolleó (esto SIEMPRE funciona en iOS)
+  document.addEventListener("scroll", (e) => {
+    const sheet = document.getElementById("azMoreSheet");
+    if (!sheet) return;
+    if (e.target === sheet) scrolled = true;
+  }, true);
+
+  // En cuanto empieza un gesto dentro del sheet, resetea flag
+  document.addEventListener("touchstart", (e) => {
     if (!e.target.closest("#azMoreSheet")) return;
-    moved = false;
-    startY = e.touches[0].clientY;
-  }, { passive:true });
+    scrolled = false;
+  }, { passive: true });
 
-  document.addEventListener("touchmove", e => {
+  // Si hubo scroll durante el gesto, bloquea clicks por un momento
+  document.addEventListener("touchend", (e) => {
     if (!e.target.closest("#azMoreSheet")) return;
-    if (Math.abs(e.touches[0].clientY - startY) > 12) {
-      moved = true;
-    }
-  }, { passive:true });
+    if (scrolled) ignoreClicksUntil = Date.now() + 500; // ventana anti “tap fantasma”
+    scrolled = false;
+  }, { passive: true });
 
-  document.addEventListener("click", e => {
-    if (!moved) return;
-    if (e.target.closest("#azMoreSheet a")) {
+  // Captura clicks en links del sheet y los cancela si venimos de scroll
+  document.addEventListener("click", (e) => {
+    const link = e.target.closest("#azMoreSheet a");
+    if (!link) return;
+
+    if (Date.now() < ignoreClicksUntil) {
       e.preventDefault();
-      e.stopImmediatePropagation();
+      e.stopPropagation();
+      e.stopImmediatePropagation?.();
+      return false;
     }
   }, true);
 })();
