@@ -2482,6 +2482,95 @@ export async function initEmployeeApp() {
   window.addEventListener("hashchange", install);
   window.addEventListener("resize", install);
 })();
- 
-})();}
+  });
+// ===== FIX DEFINITIVO: Scroll en More NO debe navegar (iOS ghost-tap) =====
+(() => {
+  let moved = false;
+  let startY = 0;
+
+  const sheet = () => document.getElementById("azMoreSheet") || document.getElementById("azMoreSheet".toLowerCase());
+  const overlay = () => document.getElementById("azMoreOverlay");
+
+  const isSheetOpen = () => {
+    const sh = document.getElementById("azMoreSheet");
+    return !!(sh && sh.classList.contains("open"));
+  };
+
+  // Marca movimiento real (scroll)
+  const onTouchStart = (e) => {
+    if (!isSheetOpen()) return;
+    const sh = document.getElementById("azMoreSheet");
+    if (!sh) return;
+    if (!e.target.closest("#azMoreSheet")) return;
+
+    moved = false;
+    startY = (e.touches && e.touches[0]) ? e.touches[0].clientY : 0;
+  };
+
+  const onTouchMove = (e) => {
+    if (!isSheetOpen()) return;
+    if (!e.target.closest("#azMoreSheet")) return;
+
+    const y = (e.touches && e.touches[0]) ? e.touches[0].clientY : 0;
+    if (Math.abs(y - startY) > 6) moved = true;
+  };
+
+  // Captura clicks dentro del sheet: si hubo scroll -> NO navegar
+  const onClickCapture = (e) => {
+    if (!isSheetOpen()) return;
+    const sh = document.getElementById("azMoreSheet");
+    if (!sh) return;
+    if (!e.target.closest("#azMoreSheet")) return;
+
+    const a = e.target.closest('a[href^="#"]');
+    if (!a) return;
+
+    // Si venimos de scroll, cancelamos el click fantasma
+    if (moved) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+      return;
+    }
+
+    // Tap real: navegamos nosotros (y cerramos)
+    const href = a.getAttribute("href") || "";
+    if (href.startsWith("#")) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+
+      // cerrar sheet (si existe)
+      const ov = document.getElementById("azMoreOverlay");
+      if (ov) ov.style.display = "none";
+      sh.classList.remove("open");
+
+      // navegar
+      location.hash = href;
+    }
+  };
+
+  // iOS a veces navega en touchend, lo frenamos igual
+  const onTouchEndCapture = (e) => {
+    if (!isSheetOpen()) return;
+    if (!e.target.closest("#azMoreSheet")) return;
+
+    const a = e.target.closest('a[href^="#"]');
+    if (!a) return;
+
+    if (moved) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+    }
+  };
+
+  document.addEventListener("touchstart", onTouchStart, { passive: true, capture: true });
+  document.addEventListener("touchmove", onTouchMove, { passive: true, capture: true });
+  document.addEventListener("touchend", onTouchEndCapture, { passive: false, capture: true });
+  document.addEventListener("click", onClickCapture, true);
+})(); 
+
+ });
+}
  
