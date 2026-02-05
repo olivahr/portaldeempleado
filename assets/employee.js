@@ -783,25 +783,133 @@ function ensureChromeOnce() {
   window.addEventListener("resize", applyChromeVisibility);
 }
 
-function applyChromeVisibility() {
-  const tabs = document.getElementById("azTabs");
-  if (!tabs) return;
+function ensureChromeOnce() {
+  const btnMenu = document.getElementById("btnMenu");
+  if (btnMenu) btnMenu.style.display = "none";
 
   const sidebar = document.getElementById("sidebar");
   if (sidebar) sidebar.style.display = isMobile() ? "none" : "";
 
-  if (isMobile()) {
-    tabs.style.display = "block";
-    document.body.classList.add("has-tabs");
-  } else {
-    tabs.style.display = "none";
-    document.body.classList.remove("has-tabs");
-
-    const overlay = document.getElementById("azMoreOverlay");
-    const sheet = document.getElementById("azMoreSheet");
-    if (overlay) { overlay.style.display = "none"; overlay.style.pointerEvents = "none"; }
-    if (sheet) sheet.classList.remove("open");
+  if (document.getElementById("azTabs")) {
+    applyChromeVisibility();
+    const ov = document.getElementById("azMoreOverlay");
+    const sh = document.getElementById("azMoreSheet");
+    if (ov) { ov.style.display = "none"; ov.style.pointerEvents = "none"; }
+    if (sh) sh.classList.remove("open");
+    return;
   }
+
+  const tabs = document.createElement("div");
+  tabs.id = "azTabs";
+  tabs.innerHTML = `
+    <div class="az-wrap">
+      <a class="az-tab" data-route="home" href="#home">
+        <div class="az-ico">${azIcon("home")}</div>
+        <div>Home</div>
+      </a>
+
+      <a class="az-tab" data-route="schedule" href="#schedule">
+        <div class="az-ico">${azIcon("schedule")}</div>
+        <div>Schedule</div>
+      </a>
+
+      <a class="az-tab" data-route="payroll" href="#payroll">
+        <div class="az-ico">${azIcon("pay")}</div>
+        <div>Pay</div>
+      </a>
+
+      <a class="az-tab" data-route="timeoff" href="#timeoff">
+        <div class="az-ico">${azIcon("benefits")}</div>
+        <div>Benefits</div>
+      </a>
+
+      <button class="az-tab" id="azMoreBtn" type="button">
+        <div class="az-ico">${azIcon("more")}</div>
+        <div>More</div>
+      </button>
+    </div>
+  `;
+  document.body.appendChild(tabs);
+
+  const overlay = document.createElement("div");
+  overlay.id = "azMoreOverlay";
+  document.body.appendChild(overlay);
+
+  const sheet = document.createElement("div");
+  sheet.id = "azMoreSheet";
+
+  sheet.innerHTML = `
+    <div class="azMoreHead">
+      <div class="azMoreTitle">More</div>
+      <button id="azMoreClose" type="button">Close</button>
+    </div>
+
+    <div class="azMoreGrid">
+      <a href="#progress">Progress</a>
+      <a href="#shift">Shift</a>
+      <a href="#footwear">Footwear</a>
+      <a href="#i9">I-9</a>
+      <a href="#documents">Documents</a>
+      <a href="#firstday">First Day</a>
+      <a href="#hours">Hours</a>
+      <a href="#deposit">Deposit</a>
+      <a href="#notifications">Notifications</a>
+      <a href="#help">Help</a>
+    </div>
+  `;
+
+  document.body.appendChild(sheet);
+
+  // ===== OPEN / CLOSE =====
+
+  const open = () => {
+    overlay.style.display = "block";
+    overlay.style.pointerEvents = "auto";
+    sheet.classList.add("open");
+  };
+
+  const close = () => {
+    overlay.style.display = "none";
+    overlay.style.pointerEvents = "none";
+    sheet.classList.remove("open");
+  };
+
+  close();
+
+  document.getElementById("azMoreBtn").onclick = open;
+  document.getElementById("azMoreClose").onclick = close;
+  overlay.onclick = close;
+
+  // ===== REAL SCROLL FIX =====
+
+  let moved = false;
+  let startY = 0;
+
+  sheet.addEventListener("touchstart", e => {
+    startY = e.touches[0].clientY;
+    moved = false;
+  }, { passive: true });
+
+  sheet.addEventListener("touchmove", e => {
+    if (Math.abs(e.touches[0].clientY - startY) > 12) {
+      moved = true;
+    }
+  }, { passive: true });
+
+  sheet.addEventListener("click", e => {
+    if (!moved) return;
+
+    const a = e.target.closest("a");
+    if (a) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    moved = false;
+  }, true);
+
+  applyChromeVisibility();
+  window.addEventListener("resize", applyChromeVisibility);
 }
 
 function setActiveTabsAndSidebar() {
