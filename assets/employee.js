@@ -2385,5 +2385,26 @@ export async function initEmployeeApp() {
     true
   );
 })();
-}
+// ===============================
+// REAL MOBILE GHOST CLICK FIX
+// ===============================
+(function () {
+  let moved = false;
+
+  document.addEventListener("touchstart", () => {
+    moved = false;
+  }, { passive: true });
+
+  document.addEventListener("touchmove", () => {
+    moved = true;
+  }, { passive: true });
+
+  document.addEventListener("click", (e) => {
+    if (!moved) return;
+
+    // Si hubo scroll, cancelar click fantasma
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
+})();}
  
