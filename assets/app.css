@@ -883,178 +883,244 @@ body.portal.has-tabs::after{
 /* Keep the bar above the mask */
 #azTabs{ z-index: 5000 !important; }
 
-/* ============================
-   AUTH (LOGIN) – PREMIUM POLISH
-   Targets: body.app-bg, .auth-wrap, .auth-card, .brand, .inp, .btn
-   Paste at END of app.css
-   ============================ */
+/* ==========================================
+   SUNPOWER LOGIN — A-to-Z look (IDENTICAL)
+   Paste at END of assets/app.css
+   ========================================== */
 
-body.app-bg{
-  min-height: 100vh;
-  min-height: 100svh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 18px 14px;
+:root{
+  --sp-blue:#0b76a7;
+  --sp-blue-2:#0a6a97;
+  --sp-bg:#eef2f6;
+  --sp-card:#ffffff;
+  --sp-line:#cfd6de;
+  --sp-text:#111827;
+  --sp-muted:#6b7280;
+}
+
+body.sp-login{
+  margin:0;
+  min-height:100vh;
+  min-height:100svh;
+  background: var(--sp-bg);
+  color: var(--sp-text);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Top blue header like screenshot */
+.sp-topbar{
+  background: var(--sp-blue);
+  padding: 18px 14px 18px;
   padding-top: calc(18px + env(safe-area-inset-top));
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+.sp-topbar-inner{
+  max-width: 460px;
+  margin: 0 auto;
+}
+.sp-topbar-title{
+  font-weight: 800;
+  font-size: 28px;
+  letter-spacing: .2px;
+  color:#fff;
+  text-transform: lowercase; /* like "amazon" */
+}
+.sp-topbar-title::first-letter{
+  text-transform: uppercase;
+}
+.sp-topbar-sub{
+  margin-top: 2px;
+  color: rgba(255,255,255,.85);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Shell: places card under header with same spacing */
+.sp-shell{
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 14px 14px 18px;
   padding-bottom: calc(18px + env(safe-area-inset-bottom));
-  background:
-    radial-gradient(1200px 600px at 20% 0%, rgba(37,99,235,.22), rgba(37,99,235,0) 55%),
-    radial-gradient(900px 520px at 90% 10%, rgba(2,132,199,.14), rgba(2,132,199,0) 60%),
-    linear-gradient(180deg, rgba(241,245,249,1), rgba(248,250,252,1));
 }
 
-.auth-wrap{
-  width: 100%;
-  max-width: 440px;
-}
-
-.auth-card{
-  width: 100%;
-  border-radius: 22px;
-  background: rgba(255,255,255,.92);
-  border: 1px solid rgba(226,232,240,.9);
-  box-shadow:
-    0 18px 50px rgba(2,6,23,.10),
-    0 2px 10px rgba(2,6,23,.06);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  padding: 18px 16px 16px;
-}
-
-.brand{
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  padding-bottom: 12px;
-  margin-bottom: 10px;
-  border-bottom: 1px solid rgba(226,232,240,.85);
-}
-
-.brand-dot{
-  width: 18px;
-  height: 18px;
+/* White card */
+.sp-card{
+  background: var(--sp-card);
+  border: 1px solid var(--sp-line);
   border-radius: 6px;
-  background: linear-gradient(180deg, rgba(37,99,235,1), rgba(29,78,216,1));
-  box-shadow: 0 8px 18px rgba(29,78,216,.28);
+  box-shadow: 0 2px 0 rgba(0,0,0,.06);
+  padding: 16px 14px 14px;
 }
 
-.brand-title{
-  font-weight: 1000;
-  letter-spacing: .2px;
+/* Title + text */
+.sp-h1{
+  margin: 0;
   font-size: 18px;
-  line-height: 1.1;
-  color: rgba(2,6,23,.92);
+  font-weight: 700;
+  color: rgba(17,24,39,.78);
 }
-
-.brand-sub{
-  margin-top: 3px;
-  font-weight: 800;
+.sp-p{
+  margin: 10px 0 14px;
   font-size: 13px;
-  color: rgba(51,65,85,.72);
-}
-
-.lbl{
-  display: block;
-  font-weight: 900;
-  font-size: 12px;
-  letter-spacing: .2px;
-  color: rgba(30,41,59,.85);
-  margin-top: 12px;
-  margin-bottom: 6px;
-}
-
-.inp{
-  width: 100%;
-  border-radius: 16px;
-  border: 1px solid rgba(226,232,240,1);
-  background: rgba(248,250,252,1);
-  padding: 13px 14px;
-  font-weight: 800;
-  font-size: 15px;
-  color: rgba(2,6,23,.92);
-  outline: none;
-  box-shadow: 0 10px 22px rgba(15,23,42,.05);
-  transition: transform .08s ease, border-color .15s ease, box-shadow .15s ease;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-.inp::placeholder{
-  color: rgba(100,116,139,.65);
-  font-weight: 800;
-}
-
-.inp:focus{
-  border-color: rgba(37,99,235,.55);
-  box-shadow:
-    0 10px 24px rgba(15,23,42,.06),
-    0 0 0 4px rgba(37,99,235,.12);
-}
-
-.btn{
-  border-radius: 16px;
-  font-weight: 1000;
-  letter-spacing: .2px;
-}
-
-.btn.primary{
-  width: 100%;
-  margin-top: 14px;
-  padding: 14px 14px;
-  border: 1px solid rgba(29,78,216,.18);
-  box-shadow:
-    0 18px 38px rgba(29,78,216,.18),
-    0 10px 20px rgba(15,23,42,.05);
-}
-
-.row{
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.btn.ghost{
-  width: 100%;
-  padding: 13px 14px;
-  background: rgba(255,255,255,1);
-  border: 1px solid rgba(226,232,240,1);
-  box-shadow: 0 10px 20px rgba(15,23,42,.05);
-}
-
-.sep{
-  height: 1px;
-  background: rgba(226,232,240,.9);
-  margin: 14px 0 12px;
-}
-
-.linkbtn{
-  border: 0;
-  background: transparent;
-  padding: 0;
-  font-weight: 1000;
-  color: rgba(29,78,216,1);
-  text-decoration: none;
-}
-
-.linkbtn:active{ opacity: .75; }
-
-.msg{
-  margin-top: 12px;
-  font-weight: 850;
-  font-size: 12.5px;
-  color: rgba(239,68,68,1);
   line-height: 1.35;
+  color: rgba(17,24,39,.70);
 }
 
-.auth-foot{
-  text-align: center;
-  margin-top: 14px;
-  font-weight: 900;
+/* Section label (AMAZON LOGIN style) */
+.sp-label{
   font-size: 12px;
-  color: rgba(51,65,85,.65);
+  font-weight: 800;
+  color: rgba(17,24,39,.55);
+  letter-spacing: .8px;
+  margin: 6px 0 10px;
+  text-transform: uppercase;
 }
 
-/* iOS tap + scrolling polish */
-*{ -webkit-tap-highlight-color: transparent; }
+/* Field labels */
+.sp-field-label{
+  display:block;
+  margin: 12px 0 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(17,24,39,.55);
+  letter-spacing: .6px;
+  text-transform: uppercase;
+}
+
+/* Inputs like screenshot */
+.sp-inp{
+  width:100%;
+  height: 44px;
+  border-radius: 3px;
+  border: 2px solid #cfd6de;
+  background: #fff;
+  padding: 0 12px;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+.sp-inp:focus{
+  border-color: #8aa9ba;
+}
+
+/* Show password row */
+.sp-check{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin: 12px 0 12px;
+  font-size: 14px;
+  color: rgba(17,24,39,.70);
+}
+.sp-check input{
+  width:18px;
+  height:18px;
+}
+
+/* Main button like A to Z */
+.sp-btn{
+  width:100%;
+  height: 48px;
+  border-radius: 2px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: var(--sp-blue);
+  color:#fff;
+  font-weight: 700;
+  font-size: 16px;
+}
+.sp-btn:active{ transform: translateY(1px); }
+
+/* Forgot password link centered */
+.sp-link{
+  width:100%;
+  background: transparent;
+  border: none;
+  color: var(--sp-blue);
+  font-weight: 600;
+  padding: 12px 0 2px;
+  font-size: 14px;
+  text-align:center;
+}
+
+/* Divider line like screenshot */
+.sp-divider{
+  height: 1px;
+  background: #d6dde5;
+  margin: 14px 0 14px;
+}
+
+/* Google button simple */
+.sp-btn-outline{
+  width:100%;
+  height: 44px;
+  border-radius: 3px;
+  border: 2px solid #cfd6de;
+  background: #fff;
+  color: var(--sp-blue);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* Create account row */
+.sp-create{
+  margin-top: 14px;
+  font-size: 14px;
+  color: rgba(17,24,39,.70);
+}
+.sp-create-link{
+  background: transparent;
+  border: none;
+  color: var(--sp-blue);
+  font-weight: 800;
+  font-size: 14px;
+  padding: 0;
+}
+
+/* Message area */
+.sp-msg{
+  margin-top: 10px;
+  font-size: 13px;
+  color: #b91c1c;
+  min-height: 18px;
+}
+
+/* Notice box */
+.sp-alert{
+  margin-top: 12px;
+  border: 1px solid #f59e0b55;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* Footer like A to Z */
+.sp-footer{
+  text-align:center;
+  margin-top: 14px;
+  color: rgba(17,24,39,.55);
+}
+.sp-footer-row{
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap: 10px;
+  font-size: 12px;
+}
+.sp-footer-link{
+  border:none;
+  background: transparent;
+  color: rgba(17,24,39,.55);
+  font-weight: 700;
+  padding: 6px 0;
+}
+.sp-footer-sep{
+  opacity:.6;
+}
+.sp-copy{
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
