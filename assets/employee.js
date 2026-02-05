@@ -726,45 +726,60 @@ function ensureChromeOnce() {
   `;
   document.body.appendChild(sheet);
 
-// ===== iOS ghost-tap fix (scroll dentro de More NO navega solo) =====
-(() => {
-  const sh = document.getElementById("azMoreSheet");
-  if (!sh || sh.dataset.ghostfix === "1") return;
-  sh.dataset.ghostfix = "1";
+// ===== FIX REAL iPhone: scroll NO puede disparar links dentro de More =====
+if (!sheet.dataset.fixGhost) {
+  sheet.dataset.fixGhost = "1";
 
-  let moved = false;
-  let sx = 0, sy = 0;
-  let lastMove = 0;
+  let sx = 0, sy = 0, moved = false, lastMoveAt = 0;
 
-  sh.addEventListener("touchstart", (e) => {
+  // Detecta scroll dentro del sheet
+  sheet.addEventListener("touchstart", (e) => {
     const t = e.touches && e.touches[0];
     if (!t) return;
+    sx = t.clientX; sy = t.clientY;
     moved = false;
-    sx = t.clientX;
-    sy = t.clientY;
   }, { passive: true });
 
-  sh.addEventListener("touchmove", (e) => {
+  sheet.addEventListener("touchmove", (e) => {
     const t = e.touches && e.touches[0];
     if (!t) return;
     const dx = Math.abs(t.clientX - sx);
     const dy = Math.abs(t.clientY - sy);
     if (dx > 6 || dy > 6) {
       moved = true;
-      lastMove = Date.now();
+      lastMoveAt = Date.now();
     }
   }, { passive: true });
 
-  // CAPTURE: mata el click fantasma antes que el <a> navegue
-  sh.addEventListener("click", (e) => {
-    const recent = moved || (Date.now() - lastMove < 500);
-    if (!recent) return;
+  // IMPORTANTE: captura global para bloquear el "ghost tap" de iPhone
+  document.addEventListener("click", (e) => {
+    const sheetOpen = sheet.classList.contains("open") && overlay.style.display === "block";
+    if (!sheetOpen) return;
+
+    // Solo links dentro del sheet
+    const a = e.target && e.target.closest ? e.target.closest("a[href^='#']") : null;
+    if (!a) return;
+
+    // Si el link no está dentro del sheet, ignora
+    if (!sheet.contains(a)) return;
+
+    // Bloquea SIEMPRE la navegación automática del <a>
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
-    moved = false;
+
+    // Si hubo scroll reciente, NO navegues
+    if (moved || (Date.now() - lastMoveAt) < 500) return;
+
+    // Tap real: navegar manual y cerrar
+    const href = a.getAttribute("href") || "";
+    if (href.startsWith("#")) {
+      overlay.style.display = "none";
+      sheet.classList.remove("open");
+      location.hash = href;
+    }
   }, true);
-})();
+}
  
  // ====== FIX DEFINITIVO: More funciona SIEMPRE + overlay nunca bloquea taps ======
   const azMoreOpen = () => {
