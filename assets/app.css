@@ -882,3 +882,116 @@ body.portal.has-tabs::after{
 
 /* Keep the bar above the mask */
 #azTabs{ z-index: 5000 !important; }
+
+/* =========================
+   LOGIN PACK (Premium)
+   Pegar al FINAL de app.css
+   ========================= */
+
+/* Fondo suave premium */
+body{
+  background:
+    radial-gradient(900px 520px at 50% -120px, rgba(37,99,235,.22), rgba(255,255,255,0) 60%),
+    linear-gradient(180deg, #f8fafc 0%, #eef2ff 35%, #f1f5f9 100%) !important;
+}
+
+/* Centrado y padding general del login (agarra layouts comunes) */
+.auth, .login, .page-auth, .auth-page, .wrap-auth{
+  padding: 22px 16px !important;
+}
+
+/* Card del login (agarra casi cualquier card) */
+.card, .panel, .auth-card, .login-card{
+  border-radius: 24px !important;
+  border: 1px solid rgba(226,232,240,.95) !important;
+  background: rgba(255,255,255,.92) !important;
+  box-shadow: 0 18px 55px rgba(15,23,42,.12) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+/* Header del card más bonito */
+.card .title, .auth-card .title, .login-card .title,
+.card h1, .auth-card h1, .login-card h1{
+  font-weight: 1000 !important;
+  letter-spacing: .2px !important;
+  color: rgba(2,6,23,.88) !important;
+}
+
+/* Subtítulo / texto */
+.card .sub, .card p, .muted{
+  color: rgba(2,6,23,.58) !important;
+  font-weight: 850 !important;
+}
+
+/* Labels */
+label, .lbl{
+  font-weight: 950 !important;
+  color: rgba(2,6,23,.70) !important;
+}
+
+/* Inputs (email/pass) */
+input[type="email"],
+input[type="text"],
+input[type="password"],
+.inp{
+  height: 50px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(226,232,240,1) !important;
+  background: rgba(248,250,252,1) !important;
+  font-weight: 900 !important;
+  outline: none !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+
+input:focus, .inp:focus{
+  border-color: rgba(37,99,235,.70) !important;
+  box-shadow: 0 0 0 4px rgba(37,99,235,.14) !important;
+  background: #fff !important;
+}
+
+/* Botones */
+button, .btn{
+  border-radius: 16px !important;
+  font-weight: 1000 !important;
+  letter-spacing: .2px !important;
+  height: 52px;
+}
+
+/* Sign in (primario) */
+.btn.primary, button.primary, .btnPrimary{
+  background: linear-gradient(180deg, rgba(37,99,235,1), rgba(29,78,216,1)) !important;
+  border: 1px solid rgba(29,78,216,.55) !important;
+  color: #fff !important;
+  box-shadow: 0 16px 34px rgba(37,99,235,.22) !important;
+}
+
+/* Google / Forgot (secundarios) */
+.btn.ghost, .btn.secondary, .btnGhost, .btnSecondary{
+  background: rgba(255,255,255,1) !important;
+  border: 1px solid rgba(226,232,240,1) !important;
+  color: rgba(37,99,235,1) !important;
+  box-shadow: 0 10px 22px rgba(15,23,42,.06) !important;
+}
+
+/* Links */
+a{
+  text-decoration: none !important;
+  font-weight: 950 !important;
+}
+a:active{ opacity:.85 !important; }
+
+/* Footer */
+.footer, footer{
+  color: rgba(2,6,23,.55) !important;
+  font-weight: 850 !important;
+}
+
+/* Mobile ajustes */
+@media (max-width: 520px){
+  .card, .panel, .auth-card, .login-card{
+    margin: 0 auto !important;
+    padding: 18px !important;
+  }
+}
