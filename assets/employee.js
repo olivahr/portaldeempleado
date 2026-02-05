@@ -1,3 +1,4 @@
+
 // ===============================
 // Employee Portal (A-to-Z STYLE, NO EMOJIS)
 // ✅ Bottom Tab Bar on mobile: Home / Schedule / Pay / Benefits / More
@@ -457,31 +458,7 @@ function ensureChromeOnce() {
     }
     .azDot{ width:6px; height:6px; border-radius:99px; background: rgba(2,6,23,.25); }
 
-    /* Ask A-to-Z button (bottom-right inside page, like screenshot) */
-    .azAsk{
-      position:fixed;
-      right:16px;
-      bottom:92px;
-      z-index:4500;
-      border-radius:999px;
-      padding:12px 14px;
-      border:1px solid rgba(229,234,242,.95);
-      background: linear-gradient(90deg, rgba(124,58,237,.95), rgba(147,51,234,.92));
-      color:#fff;
-      font-weight:1000;
-      box-shadow: 0 18px 38px rgba(15,23,42,.18);
-      display:none;
-      align-items:center;
-      gap:10px;
-    }
-    .azAsk .spark{
-      width:18px; height:18px;
-      display:flex; align-items:center; justify-content:center;
-      background: rgba(255,255,255,.18);
-      border-radius:999px;
-      font-weight:1100;
-    }
-
+   
     /* Schedule top tabs (My Schedule / Timecard / Find Shifts) */
     .azTabsTop{
       display:flex; gap:18px; align-items:center;
@@ -752,17 +729,6 @@ function ensureChromeOnce() {
   `;
   document.body.appendChild(sheet);
 
-  // Ask A to Z floating button
-  const ask = document.createElement("button");
-  ask.id = "azAskBtn";
-  ask.type = "button";
-  ask.className = "azAsk";
-  ask.innerHTML = `<span class="spark">✦</span><span>Ask A to Z</span>`;
-  ask.onclick = () => {
-    uiToast("Ask A to Z is not enabled in this portal yet.");
-  };
-  document.body.appendChild(ask);
-
   const openMore = () => {
     overlay.style.display = "block";
     sheet.classList.add("open");
@@ -786,7 +752,6 @@ function ensureChromeOnce() {
 
 function applyChromeVisibility() {
   const tabs = document.getElementById("azTabs");
-  const ask = document.getElementById("azAskBtn");
   if (!tabs) return;
 
   const sidebar = document.getElementById("sidebar");
@@ -795,11 +760,9 @@ function applyChromeVisibility() {
   if (isMobile()) {
     tabs.style.display = "block";
     document.body.classList.add("has-tabs");
-    if (ask) ask.style.display = "inline-flex";
   } else {
     tabs.style.display = "none";
     document.body.classList.remove("has-tabs");
-    if (ask) ask.style.display = "none";
 
     const overlay = document.getElementById("azMoreOverlay");
     const sheet = document.getElementById("azMoreSheet");
