@@ -1,246 +1,267 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Employee Portal | Sign in</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SunPower Portal | Sign in</title>
 
-  <link rel="stylesheet" href="/assets/app.css?v=1002">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="/assets/app.css?v=1005">
+<link rel="preconnect" href="https://fonts.googleapis.com">
 </head>
 
-<body class="app-bg">
-  <div class="auth-wrap">
-    <div class="auth-card">
+<body style="margin:0;background:#e9edf2;font-family:system-ui,-apple-system,Segoe UI,Roboto;">
 
-      <div class="brand">
-        <div class="brand-dot"></div>
-        <div>
-          <div class="brand-title">Employee Portal</div>
-          <div class="brand-sub">Sign in to continue</div>
-        </div>
-      </div>
+<!-- BLUE HEADER -->
+<div style="
+background:linear-gradient(180deg,#0d47a1,#1565c0);
+padding:28px 16px 60px 16px;
+text-align:center;
+color:white;
+font-weight:700;
+font-size:22px;
+letter-spacing:.3px;
+">
+SunPower Employee Portal
+</div>
 
-      <div class="alert warn" id="firebaseNotice" style="display:none;">
-        Firebase is not configured yet.
-      </div>
+<!-- CARD -->
+<div style="
+max-width:420px;
+margin:-40px auto 20px;
+padding:22px;
+background:white;
+border-radius:12px;
+box-shadow:0 12px 28px rgba(0,0,0,.12);
+">
 
-      <label class="lbl">Email</label>
-      <input id="email" class="inp" type="email" placeholder="name@email.com" autocomplete="username"/>
+<h2 style="margin:0 0 8px;font-size:20px;">Log in to SunPower</h2>
 
-      <label class="lbl">Password</label>
-      <input id="pass" class="inp" type="password" placeholder="••••••••" autocomplete="current-password"/>
+<p style="margin:0 0 18px;color:#555;font-size:14px;">
+Access your schedule, payroll, onboarding and more by securely signing in.
+</p>
 
-      <button id="btnLogin" class="btn primary" type="button">Sign in</button>
+<div id="firebaseNotice" style="
+display:none;
+background:#fff3cd;
+color:#856404;
+padding:10px;
+border-radius:6px;
+font-size:13px;
+margin-bottom:14px;
+">
+Firebase not configured.
+</div>
 
-      <div class="row">
-        <button id="btnGoogle" class="btn ghost" type="button">Sign in with Google</button>
-        <button id="btnReset" class="btn ghost" type="button">Forgot password</button>
-      </div>
+<label style="font-size:12px;font-weight:700;color:#555;">EMAIL</label>
+<input id="email" type="email" placeholder="Enter your login"
+style="
+width:100%;
+padding:14px;
+margin-top:6px;
+margin-bottom:14px;
+border:1px solid #cfd8dc;
+border-radius:6px;
+font-size:15px;
+"/>
 
-      <div class="sep"></div>
+<label style="font-size:12px;font-weight:700;color:#555;">PASSWORD</label>
+<input id="pass" type="password" placeholder="Enter password"
+style="
+width:100%;
+padding:14px;
+margin-top:6px;
+border:1px solid #cfd8dc;
+border-radius:6px;
+font-size:15px;
+"/>
 
-      <div class="small">
-        New here?
-        <button id="btnRegister" class="linkbtn" type="button">Create account</button>
-      </div>
+<div style="margin:10px 0 18px;">
+<label style="font-size:13px;color:#444;">
+<input type="checkbox" onclick="
+const p=document.getElementById('pass');
+p.type=p.type==='password'?'text':'password';
+"> Show password
+</label>
+</div>
 
-      <div id="msg" class="msg"></div>
-    </div>
+<button id="btnLogin" style="
+width:100%;
+padding:14px;
+background:#1565c0;
+color:white;
+border:none;
+border-radius:6px;
+font-size:16px;
+font-weight:700;
+cursor:pointer;
+">
+Log in
+</button>
 
-    <div class="auth-foot">
-      © <span id="year"></span> Employee Portal
-    </div>
-  </div>
+<div style="text-align:center;margin-top:14px;">
+<button id="btnReset" style="
+background:none;
+border:none;
+color:#1565c0;
+font-size:14px;
+cursor:pointer;
+">
+Forgot your password?
+</button>
+</div>
+
+<hr style="margin:22px 0;border:none;border-top:1px solid #eee;">
+
+<button id="btnGoogle" style="
+width:100%;
+padding:12px;
+background:white;
+border:1px solid #cfd8dc;
+border-radius:6px;
+font-weight:600;
+cursor:pointer;
+">
+Sign in with Google
+</button>
+
+<div style="text-align:center;margin-top:18px;font-size:14px;">
+New here?
+<button id="btnRegister" style="
+background:none;
+border:none;
+color:#1565c0;
+font-weight:700;
+cursor:pointer;
+">
+Create account
+</button>
+</div>
+
+<div id="msg" style="color:#c62828;margin-top:12px;font-size:14px;"></div>
+
+</div>
+
+<div style="text-align:center;color:#777;font-size:13px;margin:20px 0;">
+© <span id="year"></span> SunPower Corporation
+</div>
 
 <script type="module">
-  // UI helpers
-  import { uiSetText, uiShow, uiToast } from "./assets/ui.js";
+import { uiSetText, uiShow, uiToast } from "./assets/ui.js";
+import {
+authReady,
+signInEmail,
+signInGoogle,
+registerEmail,
+resetPassword
+} from "./assets/auth.js";
 
-  // Auth helpers
-  import {
-    authReady,
-    signInEmail,
-    signInGoogle,
-    registerEmail,
-    resetPassword
-  } from "./assets/auth.js";
+import { auth, db, isFirebaseConfigured } from "./assets/firebase.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-  // Firebase
-  import { auth, db, isFirebaseConfigured } from "./assets/firebase.js";
-  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+const yearEl=document.getElementById("year");
+const msg=document.getElementById("msg");
+const firebaseNotice=document.getElementById("firebaseNotice");
+const emailEl=document.getElementById("email");
+const passEl=document.getElementById("pass");
 
-  // ---- DOM ----
-  const yearEl = document.getElementById("year");
-  const msg = document.getElementById("msg");
-  const firebaseNotice = document.getElementById("firebaseNotice");
-  const emailEl = document.getElementById("email");
-  const passEl  = document.getElementById("pass");
+const btnLogin=document.getElementById("btnLogin");
+const btnRegister=document.getElementById("btnRegister");
+const btnReset=document.getElementById("btnReset");
+const btnGoogle=document.getElementById("btnGoogle");
 
-  const btnLogin = document.getElementById("btnLogin");
-  const btnRegister = document.getElementById("btnRegister");
-  const btnReset = document.getElementById("btnReset");
-  const btnGoogle = document.getElementById("btnGoogle");
+yearEl.textContent=new Date().getFullYear();
 
-  yearEl.textContent = new Date().getFullYear();
+function showErr(e){uiSetText(msg,e?.message||String(e));}
+function setBusy(b){
+btnLogin.disabled=b;
+btnRegister.disabled=b;
+btnReset.disabled=b;
+btnGoogle.disabled=b;
+btnLogin.textContent=b?"Signing in...":"Log in";
+}
 
-  // ---- Small utils ----
-  function showErr(e){
-    uiSetText(msg, e?.message || String(e));
-  }
+const EMPLOYEE_DEFAULT_URL="./employee.html#progress";
+const ADMIN_URL="./admin.html";
+const intent=sessionStorage.getItem("postLoginIntent")||"";
 
-  function setBusy(isBusy){
-    btnLogin.disabled = isBusy;
-    btnRegister.disabled = isBusy;
-    btnReset.disabled = isBusy;
-    btnGoogle.disabled = isBusy;
+function goEmployee(){
+window.location.href=EMPLOYEE_DEFAULT_URL;
+}
+function goAdmin(){
+window.location.href=ADMIN_URL;
+}
 
-    btnLogin.textContent = isBusy ? "Signing in..." : "Sign in";
-  }
+try{
+const ok=await authReady();
+if(!ok) uiShow(firebaseNotice,true);
+}catch{
+uiShow(firebaseNotice,true);
+}
 
-  // Routes
-  const EMPLOYEE_DEFAULT_URL = "./employee.html#progress";
-  const ADMIN_URL = "./admin.html";
+async function goNextByRole(){
+try{
+if(typeof isFirebaseConfigured==="function"&&!isFirebaseConfigured()){
+goEmployee();return;
+}
+}catch{goEmployee();return;}
 
-  // Optional: remember “where user tried to go”
-  // If later you add protected routes, you can set this before redirecting to index.html
-  const intent = sessionStorage.getItem("postLoginIntent") || "";
+const user=auth?.currentUser;
+if(!user){goEmployee();return;}
 
-  function goEmployee(){
-    const next = (intent && intent.startsWith("./employee.html"))
-      ? intent
-      : EMPLOYEE_DEFAULT_URL;
+try{
+const ref=doc(db,"admins",user.uid);
+const snap=await getDoc(ref);
+const d=snap.exists()?snap.data():{};
+const isAdmin=snap.exists()&&(d.role==="admin"||d.isAdmin===true);
+isAdmin?goAdmin():goEmployee();
+}catch{goEmployee();}
+}
 
-    sessionStorage.removeItem("postLoginIntent");
-    window.location.href = next;
-  }
+async function doLogin(){
+uiSetText(msg,"");setBusy(true);
+try{
+const email=emailEl.value.trim();
+const pass=passEl.value.trim();
+if(!email||!pass) throw new Error("Enter email and password.");
+await signInEmail(email,pass);
+await goNextByRole();
+}catch(e){showErr(e);setBusy(false);}
+}
 
-  function goAdmin(){
-    sessionStorage.removeItem("postLoginIntent");
-    window.location.href = ADMIN_URL;
-  }
+async function doRegister(){
+uiSetText(msg,"");setBusy(true);
+try{
+await registerEmail(emailEl.value.trim(),passEl.value.trim());
+uiToast("Account created");
+await goNextByRole();
+}catch(e){showErr(e);setBusy(false);}
+}
 
-  // ---- Firebase readiness ----
-  try{
-    const ok = await authReady();
-    if (!ok) uiShow(firebaseNotice, true);
-  }catch{
-    uiShow(firebaseNotice, true);
-  }
+async function doReset(){
+uiSetText(msg,"");setBusy(true);
+try{
+await resetPassword(emailEl.value.trim());
+uiToast("Reset email sent");
+setBusy(false);
+}catch(e){showErr(e);setBusy(false);}
+}
 
-  // ✅ ADMIN CHECK (safe, never blocks)
-  async function goNextByRole(){
-    // Preview mode → employee (never block)
-    try{
-      if (typeof isFirebaseConfigured === "function" && !isFirebaseConfigured()){
-        goEmployee();
-        return;
-      }
-    }catch{
-      goEmployee();
-      return;
-    }
+async function doGoogle(){
+uiSetText(msg,"");setBusy(true);
+try{
+await signInGoogle();
+await goNextByRole();
+}catch(e){showErr(e);setBusy(false);}
+}
 
-    const user = auth?.currentUser;
-    if (!user){
-      goEmployee();
-      return;
-    }
+btnLogin.onclick=doLogin;
+btnRegister.onclick=doRegister;
+btnReset.onclick=doReset;
+btnGoogle.onclick=doGoogle;
 
-    try{
-      // admins/{uid} { role:"admin" } OR { isAdmin:true }
-      const ref = doc(db, "admins", user.uid);
-      const snap = await getDoc(ref);
-
-      const d = snap.exists() ? (snap.data() || {}) : {};
-      const isAdmin = snap.exists() && (d.role === "admin" || d.isAdmin === true);
-
-      // If intent asks for admin but user is not admin → ignore and send employee
-      if (intent && intent.startsWith("./admin.html") && !isAdmin){
-        goEmployee();
-        return;
-      }
-
-      isAdmin ? goAdmin() : goEmployee();
-    }catch{
-      // Firestore failed / rules / offline → don’t block login
-      goEmployee();
-    }
-  }
-
-  // ---- Actions ----
-  async function doLogin(){
-    uiSetText(msg, "");
-    setBusy(true);
-    try{
-      const email = emailEl.value.trim();
-      const pass  = passEl.value.trim();
-      if(!email || !pass) throw new Error("Enter email and password.");
-      await signInEmail(email, pass);
-      await goNextByRole();
-    }catch(e){
-      showErr(e);
-      setBusy(false);
-    }
-  }
-
-  async function doRegister(){
-    uiSetText(msg, "");
-    setBusy(true);
-    try{
-      const email = emailEl.value.trim();
-      const pass  = passEl.value.trim();
-      if(!email) throw new Error("Enter your email.");
-      if(pass.length < 6) throw new Error("Password min 6 characters.");
-      await registerEmail(email, pass);
-      uiToast("Account created");
-      await goNextByRole();
-    }catch(e){
-      showErr(e);
-      setBusy(false);
-    }
-  }
-
-  async function doReset(){
-    uiSetText(msg, "");
-    setBusy(true);
-    try{
-      const email = emailEl.value.trim();
-      if(!email) throw new Error("Enter email first.");
-      await resetPassword(email);
-      uiToast("Reset email sent");
-      setBusy(false);
-    }catch(e){
-      showErr(e);
-      setBusy(false);
-    }
-  }
-
-  async function doGoogle(){
-    uiSetText(msg, "");
-    setBusy(true);
-    try{
-      await signInGoogle();
-      await goNextByRole();
-    }catch(e){
-      showErr(e);
-      setBusy(false);
-    }
-  }
-
-  // ---- Wires ----
-  btnLogin.addEventListener("click", doLogin);
-  btnRegister.addEventListener("click", doRegister);
-  btnReset.addEventListener("click", doReset);
-  btnGoogle.addEventListener("click", doGoogle);
-
-  // Enter key → login (Safari safe)
-  passEl.addEventListener("keydown", (e)=>{
-    if(e.key === "Enter"){
-      e.preventDefault();
-      doLogin();
-    }
-  });
+passEl.addEventListener("keydown",e=>{
+if(e.key==="Enter"){e.preventDefault();doLogin();}
+});
 </script>
 
 </body>
