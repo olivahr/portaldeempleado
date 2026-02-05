@@ -618,7 +618,7 @@ function ensureChromeOnce() {
         <div class="az-ico">${azIcon("benefits")}</div>
         <div>Benefits</div>
       </a>
-      <button class="az-tab" id="azMoreBtn" type="button">
+      <button class="az-tab" id="azMoreBtn" type="button" data-route="more">
         <div class="az-ico">${azIcon("more")}</div>
         <div>More</div>
       </button>
