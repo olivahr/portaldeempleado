@@ -178,8 +178,8 @@ export function uiWireGlobalTaps({
   };
 
   // Use capture to beat overlays / stopPropagation inside components
-  document.addEventListener("click", handler, true);
-  document.addEventListener("touchend", handler, true);
+ document.addEventListener("click", handler, true);
+// ❌ NO touchend: en iOS causa navegación al soltar después de scroll
 }
 
 /* =========================
