@@ -737,13 +737,35 @@ function ensureChromeOnce() {
     overlay.style.display = "none";
     sheet.classList.remove("open");
   };
+const moreBtn = document.getElementById("azMoreBtn");
+if (moreBtn) {
+  moreBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openMore();
+  });
+}
 
-  const moreBtn = document.getElementById("azMoreBtn");
-  moreBtn.addEventListener("click", openMore);
+const closeBtn = document.getElementById("azMoreClose");
+if (closeBtn) closeBtn.addEventListener("click", closeMore);
 
-  document.getElementById("azMoreClose").addEventListener("click", closeMore);
-  overlay.addEventListener("click", closeMore);
-// FIX DEFINITIVO botón More (aunque el DOM cambie)
+if (overlay) overlay.addEventListener("click", closeMore);
+
+// fallback: si el botón no existe, abre More desde el tab "More"
+document.addEventListener(
+  "click",
+  (e) => {
+    const tabMore = e.target.closest("[data-route='more'], .nav-item[data-route='more']");
+    if (!tabMore) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    openMore();
+  },
+  true
+);
+
+ // FIX DEFINITIVO botón More (aunque el DOM cambie)
 document.addEventListener("click", (e) => {
   const btn = e.target.closest("#azMoreBtn, [data-route='more']");
   if (!btn) return;
