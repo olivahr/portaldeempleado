@@ -850,46 +850,35 @@ select.inp{
   *{ transition:none !important; scroll-behavior:auto !important; }
 }
 
-/* ===== FINAL FIX: remove “relief” above bottom bar (iOS) ===== */
+/* ===== DEFINITIVE: remove the line/relief above bottom bar (iOS) ===== */
 
-/* 1) If azTabs exists, hide the HTML bottom nav to avoid double bars */
+/* Use ONLY ONE bar: if azTabs exists, hide HTML bottomNav */
 body.portal.has-tabs #bottomNav{
   display:none !important;
 }
 
-/* 2) Force azTabs perfectly flat */
+/* Flatten the visible bar */
 #azTabs{
   background:#fff !important;
   border-top:0 !important;
   box-shadow:none !important;
   backdrop-filter:none !important;
   -webkit-backdrop-filter:none !important;
+  transform: translateZ(0) !important;
 }
 
-/* 3) Cover strip to hide any card shadow behind the bar (this kills the “relief”) */
-#azTabs::before{
+/* Mask strip to cover ANY shadow/line coming from content above */
+body.portal.has-tabs::after{
   content:"" !important;
-  position:absolute !important;
-  left:0; right:0;
-  top:-14px !important;
-  height:14px !important;
+  position:fixed !important;
+  left:0 !important;
+  right:0 !important;
+  bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+  height: 24px !important;
   background:#fff !important;
-  box-shadow:none !important;
   pointer-events:none !important;
+  z-index: 4999 !important;
 }
 
-/* 4) Just in case your visible bar is the HTML one */
-#bottomNav, .bottomnav{
-  background:#fff !important;
-  border-top:0 !important;
-  box-shadow:none !important;
-}
-#bottomNav::before, .bottomnav::before{
-  content:"" !important;
-  position:absolute !important;
-  left:0; right:0;
-  top:-14px !important;
-  height:14px !important;
-  background:#fff !important;
-  pointer-events:none !important;
-}
+/* Keep the bar above the mask */
+#azTabs{ z-index: 5000 !important; }
