@@ -850,50 +850,46 @@ select.inp{
   *{ transition:none !important; scroll-behavior:auto !important; }
 }
 
-/* ================================
-   NUCLEAR: remove any line/relief above bottom nav (iOS)
-   ================================ */
+/* ===== FINAL FIX: remove “relief” above bottom bar (iOS) ===== */
 
-/* 1) Flatten the bar itself (both possible implementations) */
-#azTabs,
-#bottomNav,
-.bottomnav{
-  background: #fff !important;
-  box-shadow: none !important;
-  filter: none !important;
-  -webkit-filter: none !important;
-  border-top: 0 !important;
-  outline: 0 !important;
-
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+/* 1) If azTabs exists, hide the HTML bottom nav to avoid double bars */
+body.portal.has-tabs #bottomNav{
+  display:none !important;
 }
 
-/* 2) Kill pseudo separators */
-#azTabs::before, #azTabs::after,
-#bottomNav::before, #bottomNav::after,
-.bottomnav::before, .bottomnav::after{
-  content: "" !important;
-  display: none !important;
-  height: 0 !important;
+/* 2) Force azTabs perfectly flat */
+#azTabs{
+  background:#fff !important;
+  border-top:0 !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
 }
 
-/* 3) Ensure the content area above isn't drawing a border/shadow */
-.shell, .content, main.content, #pageBody, .page-head, footer.footer{
-  box-shadow: none !important;
-  border: 0 !important;
-  outline: 0 !important;
+/* 3) Cover strip to hide any card shadow behind the bar (this kills the “relief”) */
+#azTabs::before{
+  content:"" !important;
+  position:absolute !important;
+  left:0; right:0;
+  top:-14px !important;
+  height:14px !important;
+  background:#fff !important;
+  box-shadow:none !important;
+  pointer-events:none !important;
 }
 
-/* 4) Hard cut any “hairline” that might be coming from the content bottom edge */
-body.portal.has-tabs .content{
-  border-bottom: 0 !important;
-  box-shadow: none !important;
-  background: #fff !important;
+/* 4) Just in case your visible bar is the HTML one */
+#bottomNav, .bottomnav{
+  background:#fff !important;
+  border-top:0 !important;
+  box-shadow:none !important;
 }
-
-/* 5) Some browsers render a 1px line from transforms/overflow - force compositing */
-#azTabs, #bottomNav, .bottomnav{
-  transform: translateZ(0) !important;
-  -webkit-transform: translateZ(0) !important;
+#bottomNav::before, .bottomnav::before{
+  content:"" !important;
+  position:absolute !important;
+  left:0; right:0;
+  top:-14px !important;
+  height:14px !important;
+  background:#fff !important;
+  pointer-events:none !important;
 }
