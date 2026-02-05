@@ -902,4 +902,15 @@ header::before, header::after,
   background: transparent !important;
   content: none !important;
 }
+/* KILL Ask A to Z (force hide) */
+#azAskBtn,
+.azAsk,
+button.azAsk,
+*[class*="azAsk"],
+*[id*="azAsk"]{
+  display:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+  pointer-events:none !important;
+}
 }
