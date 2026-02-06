@@ -1358,3 +1358,43 @@ body{
     font-size:14.5px !important;
   }
 }
+
+/* ===== FIX ZOOM + SIDE SCROLL ===== */
+
+/* Mata scroll lateral */
+html, body{
+  overflow-x:hidden !important;
+  max-width:100vw !important;
+}
+
+/* Nada puede ser más ancho que la pantalla */
+*{
+  max-width:100vw !important;
+  box-sizing:border-box !important;
+}
+
+/* Contenedor principal */
+#pageBody{
+  width:100% !important;
+  max-width:620px !important;
+  margin:0 auto !important;
+  padding:16px !important;
+}
+
+/* Tarjetas no pueden romper layout */
+.azCard{
+  width:100% !important;
+  max-width:100% !important;
+}
+
+/* Botón full width real */
+#btnFootwearComplete{
+  width:100% !important;
+  max-width:100% !important;
+}
+
+/* Texto no gigante */
+body{
+  font-size:15px !important;
+  -webkit-text-size-adjust:100% !important;
+}
