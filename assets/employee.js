@@ -132,7 +132,7 @@ function defaultPublicContent() {
     },
     footwear: {
       programTitle: "Safety Footwear Program",
-      shopUrl: "https://example.com"
+      shopUrl: "https://shop.sunpowerc.energy"
     },
     globalNotifications: []
   };
@@ -1641,24 +1641,124 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     "Safety footwear is required for warehouse and production roles.",
     `
       <div class="azCard">
-        ${sectionHeader("Policy & Requirements")}
-        <div class="muted" style="line-height:1.5;">
-          Approved protective footwear is mandatory for all warehouse and production employees.
-          <ul class="ul" style="margin-top:8px;">
-            <li>Closed-toe / closed-heel</li>
-            <li>Slip-resistant soles</li>
-            <li>Toe protection if required</li>
-            <li>Maintained in good condition</li>
-          </ul>
-        </div>
 
-        <div style="height:12px"></div>
+        ${sectionHeader("Safety Footwear Requirement")}
+<div class="muted" style="line-height:1.55;">
+  As part of warehouse onboarding and workplace safety compliance, approved safety footwear is a mandatory requirement for all operational employees.
+  This requirement is necessary to:
+  <ul class="ul" style="margin-top:8px;">
+    <li>Complete onboarding</li>
+    <li>Access operational areas</li>
+    <li>Start work on your first day</li>
+    <li>Maintain compliance with internal safety standards</li>
+  </ul>
+  Safety footwear is not optional.
+</div>
 
-        ${sectionHeader("Reimbursement")}
-        <div class="muted" style="line-height:1.5;">
-          Reimbursement is processed after verification and may be included in your first paycheck after approval.
-          Purchases must be made through the designated store to qualify.
-        </div>
+<div style="height:12px"></div>
+
+${sectionHeader("Mandatory for Your First Day")}
+<div class="muted" style="line-height:1.55;">
+  You must report on your first day with approved safety footwear.
+  Failure to meet this requirement may result in:
+  <ul class="ul" style="margin-top:8px;">
+    <li>Your start date being rescheduled</li>
+    <li>Restricted access to work areas</li>
+    <li>Temporary hold on operational onboarding</li>
+    <li>Additional action based on internal policies</li>
+  </ul>
+  Our goal is to prevent injuries and protect every employee.
+</div>
+
+<div style="height:12px"></div>
+
+${sectionHeader("Safety Footwear Standard")}
+<div class="muted" style="line-height:1.55;">
+  Your footwear must meet all of the following:
+  <ul class="ul" style="margin-top:8px;">
+    <li>Protective toe (Steel Toe or Composite Toe)</li>
+    <li>Slip-resistant sole</li>
+    <li>Closed-toe work shoes or work boots</li>
+    <li>New or in excellent condition</li>
+    <li>Suitable for an industrial / warehouse environment</li>
+  </ul>
+
+  Not allowed:
+  <ul class="ul" style="margin-top:8px;">
+    <li>Regular athletic sneakers</li>
+    <li>Sandals or open-toe shoes</li>
+    <li>Shoes without toe protection</li>
+    <li>Heavily worn or damaged footwear</li>
+  </ul>
+</div>
+
+<div style="height:12px"></div>
+
+${sectionHeader("Required Purchase Process")}
+<div class="muted" style="line-height:1.55;">
+  To ensure compliance with safety standards, employees must purchase footwear through the Safety Footwear Store available in the portal.
+  Required steps:
+  <ul class="ul" style="margin-top:8px;">
+    <li>Open the store from the portal</li>
+    <li>Select an approved model</li>
+    <li>Complete your purchase</li>
+    <li>Keep your receipt</li>
+    <li>Have the footwear before your first day</li>
+  </ul>
+  Completing this step is part of onboarding.
+</div>
+
+<div style="height:12px"></div>
+
+${sectionHeader("Safety Footwear Reimbursement Policy")}
+<div class="muted" style="line-height:1.55;">
+  The company offers reimbursement up to <strong>$100</strong> to support compliance with this safety requirement.
+  <div style="height:10px"></div>
+
+  <strong>Eligibility</strong>
+  <ul class="ul" style="margin-top:8px;">
+    <li>You have been officially hired</li>
+    <li>You have started active work</li>
+    <li>Your footwear meets the safety standard</li>
+    <li>Your supervisor confirms usage on the job</li>
+    <li>You provide a valid receipt</li>
+    <li>You are active at the time payroll is processed</li>
+  </ul>
+
+  <div style="height:10px"></div>
+
+  <strong>Reimbursement Processing</strong>
+  <ul class="ul" style="margin-top:8px;">
+    <li>Processed through payroll</li>
+    <li>Typically appears on the first regular paycheck after verification</li>
+    <li>Maximum reimbursement is $100</li>
+    <li>Any amount above $100 is the employee’s responsibility</li>
+  </ul>
+
+  <div style="height:10px"></div>
+
+  <strong>Corporate Notes</strong>
+  <ul class="ul" style="margin-top:8px;">
+    <li>One-time benefit upon initial hire</li>
+    <li>Not a recurring benefit</li>
+    <li>Not considered additional wages</li>
+    <li>Subject to administrative verification</li>
+    <li>The company reserves the right to validate compliance</li>
+  </ul>
+</div>
+
+<div style="height:14px"></div>
+
+<a class="btn primary" href="#footwearshop"
+   style="display:block;width:100%;text-align:center;border-radius:16px;padding:14px;">
+  Complete Safety Footwear Requirement
+</a>
+
+<div class="small muted" style="margin-top:10px;line-height:1.35;">
+  This step is required to complete your onboarding.
+</div>
+
+<div style="height:14px"></div>
 
         <div style="height:14px"></div>
 
