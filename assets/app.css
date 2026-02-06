@@ -1124,3 +1124,73 @@ body.sp-login{
   font-size: 12px;
   font-weight: 700;
 }
+
+/* ===== SAFETY FOOTWEAR POLISH ===== */
+
+/* Card principal más premium */
+.azCard{
+  border-radius:18px;
+  box-shadow: 0 12px 30px rgba(15,23,42,.06);
+  transition:.2s;
+}
+
+/* Headers de secciones */
+.azCard > div[style*="font-weight:1000"]{
+  font-size:15px !important;
+  letter-spacing:.2px;
+}
+
+/* Texto más limpio */
+.azCard .muted{
+  font-size:13px;
+  line-height:1.55;
+}
+
+/* Listas más bonitas */
+.ul{
+  padding-left:18px;
+}
+.ul li{
+  margin-bottom:6px;
+}
+
+/* Check rows estilo app moderna */
+.checkrow{
+  background:#fff;
+  border:1px solid rgba(229,234,242,.95);
+  border-radius:14px;
+  padding:12px;
+  box-shadow: 0 6px 16px rgba(15,23,42,.05);
+  transition:.15s;
+}
+
+.checkrow:hover{
+  background:rgba(37,99,235,.05);
+  border-color:rgba(37,99,235,.25);
+}
+
+/* Checkbox más grande */
+.checkrow input[type="checkbox"]{
+  width:18px;
+  height:18px;
+  margin-top:3px;
+}
+
+/* Botón principal más “Amazon style” */
+.btn.primary{
+  background: linear-gradient(180deg,#2563eb,#1d4ed8);
+  border:none;
+  box-shadow: 0 10px 20px rgba(37,99,235,.25);
+  font-weight:1000;
+  letter-spacing:.3px;
+}
+
+.btn.primary:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(37,99,235,.35);
+}
+
+/* Espaciado entre bloques */
+.azCard > div{
+  margin-bottom:8px;
+}
