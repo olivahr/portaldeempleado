@@ -1237,164 +1237,145 @@ body.sp-login{
   margin-bottom:10px;
 }
 
-/* ===== PREMIUM FORCE STYLE (SAFETY FOOTWEAR) ===== */
+/* =======================================
+   FORCE MOBILE FIT (NO SIDE SCROLL / ZOOM)
+======================================= */
 
-/* 1️⃣ Quitar efecto ZOOM */
-html{
-  -webkit-text-size-adjust: 100% !important;
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
-body{
-  font-size:15px !important;
+* {
+  box-sizing: border-box;
 }
 
-/* 2️⃣ Contenedor centrado tipo app real */
-#pageBody{
-  max-width:650px !important;
-  margin:0 auto !important;
-  padding:16px 18px 130px !important;
+.content, .container, main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding-left: 14px;
+  padding-right: 14px;
 }
 
-/* 3️⃣ Tarjetas TOP más premium */
-.azCard{
-  background:#fff !important;
-  border-radius:24px !important;
-  border:1px solid rgba(0,0,0,.05) !important;
+
+/* =======================================
+   PREMIUM TYPOGRAPHY
+======================================= */
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont,
+               "SF Pro Display",
+               "Inter",
+               "Segoe UI",
+               Roboto,
+               sans-serif;
+
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, .page-title {
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+p, li, .muted {
+  line-height: 1.6;
+  font-weight: 450;
+}
+
+
+/* =======================================
+   PREMIUM CARDS
+======================================= */
+
+.azCard, .card {
+  border-radius: 20px !important;
+
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.95),
+    rgba(248,249,252,0.95)
+  ) !important;
 
   box-shadow:
-    0 4px 12px rgba(0,0,0,.04),
-    0 12px 30px rgba(0,0,0,.06) !important;
+    0 10px 30px rgba(0,0,0,0.07),
+    0 2px 8px rgba(0,0,0,0.05) !important;
 
-  padding:20px !important;
-  margin-bottom:14px !important;
+  border: 1px solid rgba(0,0,0,0.05) !important;
+
+  padding: 18px !important;
 }
 
-/* 4️⃣ Tipografía PRO */
-.azCardTitle{
-  font-size:20px !important;
-  font-weight:800 !important;
-  letter-spacing:.3px !important;
-  color:#111827 !important;
+.azCardTitle {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
 }
 
-.azCardSub,
-.muted{
-  font-size:15px !important;
-  line-height:1.65 !important;
-  color:#4b5563 !important;
-  font-weight:500 !important;
+.azCardSub {
+  font-size: 14px;
+  opacity: 0.75;
 }
 
-/* 5️⃣ Listas más limpias */
-.ul li{
-  margin-bottom:8px !important;
-  line-height:1.6 !important;
+
+/* =======================================
+   ACKNOWLEDGEMENT BOXES (SHOES CHECKS)
+======================================= */
+
+.checkrow {
+  border-radius: 16px !important;
+  background: #f8fafc !important;
+  border: 1px solid rgba(0,0,0,0.06) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.6),
+    0 4px 12px rgba(0,0,0,0.04) !important;
+
+  padding: 14px !important;
 }
 
-/* 6️⃣ Acknowledgements cajas suaves */
-.checkrow{
-  background:#f9fafb !important;
-  border-radius:18px !important;
-  padding:16px !important;
-  border:1px solid #e5e7eb !important;
-  transition:.2s !important;
+
+/* =======================================
+   PREMIUM PRIMARY BUTTON
+======================================= */
+
+.btn.primary {
+  background: linear-gradient(
+    135deg,
+    #2563eb,
+    #1e40af
+  ) !important;
+
+  border-radius: 16px !important;
+
+  box-shadow:
+    0 12px 24px rgba(37,99,235,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.25) !important;
+
+  font-weight: 700;
+  letter-spacing: 0.2px;
+
+  padding: 14px 18px !important;
 }
 
-.checkrow:hover{
-  background:#f3f4f6 !important;
+
+/* =======================================
+   ALERT / NOTES LOOK CLEAN
+======================================= */
+
+.alert {
+  border-radius: 16px !important;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-/* 7️⃣ Checkbox nicer */
-.checkrow input{
-  transform:scale(1.2) !important;
+.alert.warn {
+  background: #fff7ed !important;
+  border: 1px solid #fdba74 !important;
 }
 
-/* 8️⃣ BOTÓN PREMIUM */
-#btnFootwearComplete{
-  height:56px !important;
-  border-radius:18px !important;
-
-  background:linear-gradient(135deg,#2563eb,#1d4ed8) !important;
-
-  font-size:16px !important;
-  font-weight:700 !important;
-  letter-spacing:.4px !important;
-
-  box-shadow:0 10px 25px rgba(37,99,235,.35) !important;
-}
-
-#btnFootwearComplete:active{
-  transform:scale(.97) !important;
-}
-
-/* 9️⃣ Header más elegante */
-#pageTitle{
-  font-size:22px !important;
-  font-weight:800 !important;
-}
-
-#pageSub{
-  font-size:14px !important;
-  color:#6b7280 !important;
-}
-
-/* 🔟 Mobile tuning */
-@media(max-width:480px){
-
-  #pageBody{
-    padding:14px 14px 130px !important;
-  }
-
-  .azCard{
-    padding:18px !important;
-  }
-
-  .azCardTitle{
-    font-size:18px !important;
-  }
-
-  .azCardSub,
-  .muted{
-    font-size:14.5px !important;
-  }
-}
-
-/* ===== FIX ZOOM + SIDE SCROLL ===== */
-
-/* Mata scroll lateral */
-html, body{
-  overflow-x:hidden !important;
-  max-width:100vw !important;
-}
-
-/* Nada puede ser más ancho que la pantalla */
-*{
-  max-width:100vw !important;
-  box-sizing:border-box !important;
-}
-
-/* Contenedor principal */
-#pageBody{
-  width:100% !important;
-  max-width:620px !important;
-  margin:0 auto !important;
-  padding:16px !important;
-}
-
-/* Tarjetas no pueden romper layout */
-.azCard{
-  width:100% !important;
-  max-width:100% !important;
-}
-
-/* Botón full width real */
-#btnFootwearComplete{
-  width:100% !important;
-  max-width:100% !important;
-}
-
-/* Texto no gigante */
-body{
-  font-size:15px !important;
-  -webkit-text-size-adjust:100% !important;
+.alert.info {
+  background: #eff6ff !important;
+  border: 1px solid #93c5fd !important;
 }
