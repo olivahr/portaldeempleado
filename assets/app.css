@@ -1236,3 +1236,70 @@ body.sp-login{
 .azCard > div{
   margin-bottom:10px;
 }
+
+/* ===== PREMIUM SAFETY FOOTWEAR FINAL ===== */
+
+.azCard{
+  background:#fff;
+  border-radius:22px;
+  padding:22px;
+  box-shadow:0 10px 30px rgba(0,0,0,.06);
+}
+
+/* texto */
+.azCard .muted{
+  font-size:15px;
+  line-height:1.7;
+  color:#475569;
+}
+
+/* listas */
+.azCard ul{
+  padding-left:20px;
+  margin-top:8px;
+}
+.azCard li{
+  margin-bottom:6px;
+}
+
+/* acknowledgements premium */
+.checkrow{
+  background:#f8fafc;
+  padding:16px;
+  border-radius:16px;
+  border:1px solid #e5e7eb;
+  transition:.2s;
+}
+.checkrow:hover{
+  background:#f1f5f9;
+}
+
+.checkrow input{
+  transform:scale(1.25);
+  accent-color:#2563eb;
+}
+
+/* botón premium */
+#btnFootwearComplete{
+  background:linear-gradient(135deg,#2563eb,#1e40af);
+  border:none;
+  font-size:16px;
+  font-weight:600;
+  box-shadow:0 8px 20px rgba(37,99,235,.35);
+  transition:.2s;
+}
+#btnFootwearComplete:hover{
+  transform:translateY(-2px);
+}
+#btnFootwearComplete:disabled{
+  background:#cbd5f5;
+  box-shadow:none;
+}
+
+/* security note box */
+.small.muted{
+  background:#f1f5f9;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid #e2e8f0;
+}
