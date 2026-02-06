@@ -1841,28 +1841,33 @@ function renderFootwearShop(publicData) {
     `
       <div class="azCard">
         ${sectionHeader("Shop Approved Footwear", "Secure")}
+
         <div class="muted" style="line-height:1.45;">
+          If the in-app view is blocked by the store's security settings, use "Open in Browser".
+        </div>
 
         <div style="height:12px"></div>
 
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
           <a class="btn ghost" href="#footwear" style="border-radius:14px;">Back</a>
-          
         </div>
 
         <div style="height:12px"></div>
 
-          <div style="border:1px solid rgba(229,234,242,.95);border-radius:18px;overflow:hidden;height:70vh;background:#fff;">
-            <iframe
-              src="${escapeHtml(url)}"
-              style="width:100%;height:100%;border:0;"
-              sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-              referrerpolicy="no-referrer"
-            ></iframe>
-          </div>
-        ` : `
-          <div class="alert warn" style="margin-top:0;">Shop URL is not set by admin yet.</div>
-        `}
+        ${
+          url
+            ? `
+              <div style="border:1px solid rgba(229,234,242,.95);border-radius:18px;overflow:hidden;height:70vh;background:#fff;">
+                <iframe
+                  src="${escapeHtml(url)}"
+                  style="width:100%;height:100%;border:0;"
+                  sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+                  referrerpolicy="no-referrer"
+                ></iframe>
+              </div>
+            `
+            : `<div class="alert warn" style="margin-top:0;">Shop URL is not set by admin yet.</div>`
+        }
       </div>
     `
   );
