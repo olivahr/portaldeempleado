@@ -1749,6 +1749,22 @@ ${sectionHeader("Safety Footwear Reimbursement Policy")}
 
 <div style="height:14px"></div>
 
+${sectionHeader("Acknowledgements")}
+        ${ackRow("fwAck1", fw.ack1, "I understand safety footwear is required for my role.")}
+        ${ackRow("fwAck2", fw.ack2, "I will purchase approved footwear before my first shift.")}
+        ${ackRow("fwAck3", fw.ack3, "I understand purchases must be made through the designated store to qualify.")}
+        ${ackRow("fwAck4", fw.ack4, "I understand reimbursement is processed after verification.")}
+        ${ackRow("fwAck5", fw.ack5, "I understand reimbursement will be included in my first paycheck after approval.")}
+        
+
+        <div class="small muted" style="margin-top:10px;line-height:1.35;">
+          Security note: Do not share your Employee ID or personal info by text message.
+        </div>
+      </div>
+    `
+  );
+
+
 <a class="btn primary" href="#footwearshop"
    style="display:block;width:100%;text-align:center;border-radius:16px;padding:14px;">
   Complete Safety Footwear Requirement
@@ -1759,27 +1775,6 @@ ${sectionHeader("Safety Footwear Reimbursement Policy")}
 </div>
 
 <div style="height:14px"></div>
-
-        
-        ${sectionHeader("Acknowledgements")}
-        ${ackRow("fwAck1", fw.ack1, "I understand safety footwear is required for my role.")}
-        ${ackRow("fwAck2", fw.ack2, "I will purchase approved footwear before my first shift.")}
-        ${ackRow("fwAck3", fw.ack3, "I understand purchases must be made through the designated store to qualify.")}
-        ${ackRow("fwAck4", fw.ack4, "I understand reimbursement is processed after verification.")}
-        ${ackRow("fwAck5", fw.ack5, "I understand reimbursement will be included in my first paycheck after approval.")}
-
-        <button class="btn primary" id="btnFwSave" type="button"
-          style="margin-top:14px;width:100%;border-radius:16px;opacity:.75;"
-          disabled>
-          ${done ? "Saved" : "Continue"}
-        </button>
-
-        <div class="small muted" style="margin-top:10px;line-height:1.35;">
-          Security note: Do not share your Employee ID or personal info by text message.
-        </div>
-      </div>
-    `
-  );
 
   function ackRow(id, checked, text) {
     return `
