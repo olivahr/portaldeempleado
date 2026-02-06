@@ -1668,592 +1668,173 @@ function renderProgress(userData, recordData) {
 // ===============================
 function renderShiftSelection(userData, saveUserPatch) {
   const shift = userData?.shift || {};
-  const currentShift = shift.shift || "";
-  const currentPosition = shift.position || "";
-  const isConfirmed = !!(userData?.steps || []).find(s => s.id === "shift_selection")?.done;
-  
-  // Real data from specifications
-  const positions = [
-    {
-      key: "assembler",
-      title: "Solar Panel Assembler",
-      description: "Employees work on assembly lines performing panel assembly, wiring, and component installation. Work requires focus, teamwork, and adherence to safety and quality standards. Shifts are structured around production demand.",
-      icon: "briefcase"
-    },
-    {
-      key: "material",
-      title: "Material Handler / Warehouse Associate",
-      description: "Employees support warehouse operations by moving, scanning, and staging materials. Shift schedules align with shipping, receiving, and production flow.",
-      icon: "briefcase"
-    },
-    {
-      key: "qc",
-      title: "Quality Control / Inspection Associate",
-      description: "Employees inspect completed panels, verify quality standards, and document results. Shift assignments align with production output and inspection timelines.",
-      icon: "check"
-    }
-  ];
-
-  const shifts = [
-    {
-      key: "day",
-      title: "Day Shift",
-      times: ["6:00 AM – 2:30 PM", "7:00 AM – 3:30 PM"],
-      type: "Standard production shift",
-      status: "Available",
-      weeklyHours: 40,
-      shiftType: "Fixed",
-      differential: 0
-    },
-    {
-      key: "afternoon",
-      title: "Afternoon Shift",
-      times: ["2:30 PM – 11:00 PM"],
-      type: "Supports late production cycles",
-      status: "Limited",
-      weeklyHours: 40,
-      shiftType: "Fixed",
-      differential: 1.50
-    },
-    {
-      key: "night",
-      title: "Night Shift",
-      times: ["11:00 PM – 7:00 AM"],
-      type: "Supports overnight operations",
-      status: "Available",
-      weeklyHours: 40,
-      shiftType: "Fixed",
-      differential: 2.50,
-      note: "Night differential pay may apply"
-    }
-  ];
-
-  const hoursData = {
-    scheduled: 40,
-    worked: 28,
-    overtime: 6,
-    remaining: 12
-  };
-
-  const workflowSteps = [
-    { title: "Review shift options", desc: "Employee reviews available shifts and requirements" },
-    { title: "Select preferred shift", desc: "Choose the shift that fits your availability" },
-    { title: "Confirm selection", desc: "Click Save or Confirm to submit your choice" },
-    { title: "System stores shift", desc: "Shift is saved to your employee profile" },
-    { title: "Onboarding schedule set", desc: "Shift becomes your active work schedule" }
-  ];
-
-  // Build HTML based on whether shift is already confirmed
-  let mainContent;
-  
-  if (isConfirmed && currentShift) {
-    const confirmedShiftData = shifts.find(s => s.key === currentShift) || shifts[0];
-    const confirmedPosData = positions.find(p => p.key === currentPosition) || positions[0];
-    
-    mainContent = `
-      <div class="confirmation-banner">
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-          ${azIcon("check")}
-          <div style="font-weight:1000; font-size:14px; color:#166534;">Shift Confirmed</div>
-        </div>
-        <div style="font-size:12px; color:rgba(22,100,52,.80); line-height:1.5;">
-          Your shift selection has been saved successfully and is now part of your employee record.
-        </div>
-      </div>
-
-      <div class="azCard" style="border-color:rgba(22,163,74,.30); background:rgba(22,163,74,.03);">
-        <div style="font-weight:1000; font-size:13px; color:rgba(2,6,23,.70); margin-bottom:12px;">SELECTED SHIFT RECORD</div>
-        
-        <div style="display:grid; gap:12px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:#fff; border-radius:12px; border:1px solid rgba(229,234,242,.95);">
-            <div>
-              <div style="font-size:11px; font-weight:900; color:rgba(2,6,23,.50); text-transform:uppercase;">Position</div>
-              <div style="font-weight:1000; font-size:14px; color:rgba(2,6,23,.85); margin-top:4px;">${escapeHtml(confirmedPosData.title)}</div>
-            </div>
-            ${azIcon("briefcase")}
-          </div>
-
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:#fff; border-radius:12px; border:1px solid rgba(229,234,242,.95);">
-            <div>
-              <div style="font-size:11px; font-weight:900; color:rgba(2,6,23,.50); text-transform:uppercase;">Shift Schedule</div>
-              <div style="font-weight:1000; font-size:14px; color:rgba(2,6,23,.85); margin-top:4px;">${escapeHtml(confirmedShiftData.title)}</div>
-              <div style="font-size:12px; color:rgba(2,6,23,.60); margin-top:2px;">${escapeHtml(confirmedShiftData.times.join(" or "))}</div>
-            </div>
-            ${azIcon("clock")}
-          </div>
-
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:#fff; border-radius:12px; border:1px solid rgba(229,234,242,.95);">
-            <div>
-              <div style="font-size:11px; font-weight:900; color:rgba(2,6,23,.50); text-transform:uppercase;">Start Date</div>
-              <div style="font-weight:1000; font-size:14px; color:rgba(2,6,23,.85); margin-top:4px;">${escapeHtml(shift.shiftStartDate || "To be determined by HR")}</div>
-            </div>
-            ${azIcon("calendar")}
-          </div>
-
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:#fff; border-radius:12px; border:1px solid rgba(229,234,242,.95);">
-            <div>
-              <div style="font-size:11px; font-weight:900; color:rgba(2,6,23,.50); text-transform:uppercase;">Supervisor</div>
-              <div style="font-weight:1000; font-size:14px; color:rgba(2,6,23,.85); margin-top:4px;">${escapeHtml(shift.supervisor || "To be assigned")}</div>
-            </div>
-            ${azIcon("user")}
-          </div>
-        </div>
-      </div>
-
-      <div style="height:16px"></div>
-
-      <div class="azCard">
-        ${sectionHeader("Weekly Hours & Overtime Tracking")}
-        
-        <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; margin-bottom:16px;">
-          <div style="text-align:center; padding:12px; background:rgba(2,6,23,.04); border-radius:12px;">
-            <div style="font-size:24px; font-weight:1000; color:rgba(29,78,216,1);">${hoursData.scheduled}</div>
-            <div style="font-size:11px; font-weight:900; color:rgba(2,6,23,.50); margin-top:4px;">Scheduled Hours</div>
-          </div>
-          <div style="text-align:center; padding:12px; background:rgba(22,163,74,.08); border-radius:12px;">
-            <div style="font-size:24px; font-weight:1000; color:#166534;">${hoursData.worked}</div>
-            <div style="font-size:11px; font-weight:900; color:rgba(22,100,52,.70); margin-top:4px;">Worked Hours</div>
-          </div>
-          <div style="text-align:center; padding:12px; background:rgba(245,158,11,.08); border-radius:12px;">
-            <div style="font-size:24px; font-weight:1000; color:#92400e;">${hoursData.overtime}</div>
-            <div style="font-size:11px; font-weight:900; color:rgba(146,64,14,.70); margin-top:4px;">Overtime Hours</div>
-          </div>
-          <div style="text-align:center; padding:12px; background:rgba(99,102,241,.08); border-radius:12px;">
-            <div style="font-size:24px; font-weight:1000; color:#3730a3;">${hoursData.remaining}</div>
-            <div style="font-size:11px; font-weight:900; color:rgba(55,48,163,.70); margin-top:4px;">Remaining Hours</div>
-          </div>
-        </div>
-
-        <div style="margin-bottom:8px; display:flex; justify-content:space-between; font-size:12px; font-weight:900; color:rgba(2,6,23,.60);">
-          <span>Progress</span>
-          <span>${Math.round((hoursData.worked / hoursData.scheduled) * 100)}%</span>
-        </div>
-        <div class="shift-hours-bar">
-          <div class="shift-hours-fill" style="width:${(hoursData.worked / hoursData.scheduled) * 100}%;"></div>
-        </div>
-      </div>
-
-      <div style="height:16px"></div>
-
-      <div class="azCard">
-        ${sectionHeader("Shift Change Request")}
-        <div class="muted" style="line-height:1.5; margin-bottom:12px;">
-          Submit a request to change your current shift assignment. HR will review and respond within 48 hours.
-        </div>
-        
-        <div style="display:grid; gap:12px;">
-          <div>
-            <label style="display:block; font-size:12px; font-weight:900; color:rgba(2,6,23,.60); margin-bottom:6px;">Requested Date</label>
-            <input type="date" id="changeDate" class="inp" style="width:100%;">
-          </div>
-          <div>
-            <label style="display:block; font-size:12px; font-weight:900; color:rgba(2,6,23,.60); margin-bottom:6px;">Desired Shift</label>
-            <select id="changeShift" class="inp" style="width:100%;">
-              <option value="">Select shift...</option>
-              ${shifts.filter(s => s.key !== currentShift).map(s => `
-                <option value="${escapeHtml(s.key)}">${escapeHtml(s.title)} (${escapeHtml(s.times[0])})</option>
-              `).join("")}
-            </select>
-          </div>
-          <div>
-            <label style="display:block; font-size:12px; font-weight:900; color:rgba(2,6,23,.60); margin-bottom:6px;">Reason for Change</label>
-            <textarea id="changeReason" class="inp" rows="3" placeholder="Explain why you need this change..."></textarea>
-          </div>
-        </div>
-
-        <button class="btn primary" id="btnRequestChange" type="button" style="margin-top:14px; width:100%; border-radius:16px;">
-          Submit Change Request
-        </button>
-
-        ${(userData.shiftChangeRequests || []).length > 0 ? `
-          <div style="margin-top:16px; padding-top:16px; border-top:1px solid rgba(229,234,242,.95);">
-            <div style="font-weight:1000; font-size:12px; color:rgba(2,6,23,.70); margin-bottom:10px;">Previous Requests</div>
-            ${(userData.shiftChangeRequests || []).map(req => `
-              <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(2,6,23,.04); border-radius:8px; margin-bottom:8px;">
-                <div>
-                  <div style="font-weight:1000; font-size:12px; color:rgba(2,6,23,.85);">${escapeHtml(req.requestedShift)}</div>
-                  <div style="font-size:11px; color:rgba(2,6,23,.50);">${escapeHtml(req.date)}</div>
-                </div>
-                <span class="shift-status status-${req.status.toLowerCase()}">${escapeHtml(req.status)}</span>
-              </div>
-            `).join("")}
-          </div>
-        ` : ""}
-      </div>
-    `;
-  } else {
-    // Selection interface
-    mainContent = `
-      <div class="azCard" style="background:rgba(29,78,216,.04); border-color:rgba(29,78,216,.20);">
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-          ${azIcon("info")}
-          <div style="font-weight:1000; font-size:13px; color:rgba(29,78,216,1);">Shift Selection Required</div>
-        </div>
-        <div class="muted" style="line-height:1.5; font-size:12px;">
-          Review the available positions and shifts below. Your selection will determine your work schedule 
-          and will be stored in your employee profile for onboarding.
-        </div>
-      </div>
-
-      <div style="height:16px"></div>
-
-      <div class="azCard">
-        ${sectionHeader("Your Role & Shift Relationship")}
-        <div style="font-size:12px; color:rgba(2,6,23,.60); line-height:1.6; margin-bottom:16px;">
-          Understanding how your role aligns with shift operations:
-        </div>
-
-        ${positions.map(pos => `
-          <div class="shift-role-card" style="${currentPosition === pos.key ? 'border-color:rgba(29,78,216,.40); background:rgba(29,78,216,.03);' : ''}">
-            <div class="shift-role-header">
-              <div class="shift-role-icon">
-                ${azIcon(pos.icon)}
-              </div>
-              <div>
-                <div class="shift-role-title">${escapeHtml(pos.title)}</div>
-              </div>
-            </div>
-            <div class="shift-role-desc">
-              ${escapeHtml(pos.description)}
-            </div>
-            ${currentPosition === pos.key ? `
-              <div style="margin-top:12px; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(22,163,74,.12); color:#166534; border-radius:999px; font-size:11px; font-weight:1000;">
-                ${azIcon("check")} Selected
-              </div>
-            ` : `
-              <button class="btn sm ghost select-position-btn" data-position="${escapeHtml(pos.key)}" style="margin-top:12px; border-radius:999px;">
-                Select Position
-              </button>
-            `}
-          </div>
-        `).join("")}
-      </div>
-
-      <div style="height:16px"></div>
-
-      <div class="azCard">
-        ${sectionHeader("Available Shift Options")}
-        
-        ${shifts.map(shift => {
-          const isSelected = currentShift === shift.key;
-          const statusClass = shift.status === "Available" ? "status-available" : shift.status === "Limited" ? "status-limited" : "status-full";
-          const badgeClass = shift.key === "day" ? "badge-day" : shift.key === "afternoon" ? "badge-afternoon" : "badge-night";
-          
-          return `
-            <div class="shift-option-card ${isSelected ? 'selected' : ''} ${shift.status === 'Full' ? 'unavailable' : ''}" data-shift="${escapeHtml(shift.key)}">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
-                <div>
-                  <div style="font-weight:1000; font-size:14px; color:rgba(2,6,23,.85); margin-bottom:4px;">${escapeHtml(shift.title)}</div>
-                  <div style="font-size:12px; color:rgba(2,6,23,.60);">${escapeHtml(shift.type)}</div>
-                </div>
-                <span class="shift-status ${statusClass}">${escapeHtml(shift.status)}</span>
-              </div>
-
-              <div style="margin-bottom:12px;">
-                ${shift.times.map(time => `
-                  <span class="shift-time-badge ${badgeClass}">
-                    ${azIcon("clock")}
-                    ${escapeHtml(time)}
-                  </span>
-                `).join("")}
-              </div>
-
-              <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; font-size:11px; margin-bottom:12px;">
-                <div style="padding:8px; background:rgba(2,6,23,.04); border-radius:8px; text-align:center;">
-                  <div style="font-weight:1000; color:rgba(2,6,23,.85);">${shift.weeklyHours} hrs</div>
-                  <div style="color:rgba(2,6,23,.50); margin-top:2px;">Weekly</div>
-                </div>
-                <div style="padding:8px; background:rgba(2,6,23,.04); border-radius:8px; text-align:center;">
-                  <div style="font-weight:1000; color:rgba(2,6,23,.85);">${escapeHtml(shift.shiftType)}</div>
-                  <div style="color:rgba(2,6,23,.50); margin-top:2px;">Type</div>
-                </div>
-                <div style="padding:8px; background:rgba(2,6,23,.04); border-radius:8px; text-align:center;">
-                  <div style="font-weight:1000; color:${shift.differential > 0 ? '#166534' : 'rgba(2,6,23,.85)'};">
-                    ${shift.differential > 0 ? `+$${shift.differential.toFixed(2)}` : 'Base'}
-                  </div>
-                  <div style="color:rgba(2,6,23,.50); margin-top:2px;">Differential</div>
-                </div>
-              </div>
-
-              ${shift.note ? `
-                <div style="display:flex; align-items:center; gap:8px; padding:10px; background:rgba(99,102,241,.08); border-radius:8px; font-size:11px; color:#3730a3;">
-                  ${azIcon("info")}
-                  ${escapeHtml(shift.note)}
-                </div>
-              ` : ""}
-
-              ${isSelected ? `
-                <div style="margin-top:12px; display:flex; align-items:center; gap:8px; padding:10px; background:rgba(22,163,74,.12); color:#166534; border-radius:8px; font-size:12px; font-weight:1000;">
-                  ${azIcon("check")}
-                  Selected for your schedule
-                </div>
-              ` : shift.status !== 'Full' ? `
-                <button class="btn sm primary select-shift-btn" data-shift="${escapeHtml(shift.key)}" style="margin-top:12px; width:100%; border-radius:999px;">
-                  Select This Shift
-                </button>
-              ` : `
-                <button class="btn sm ghost" disabled style="margin-top:12px; width:100%; border-radius:999px; opacity:.5;">
-                  Shift Full
-                </button>
-              `}
-            </div>
-          `;
-        }).join("")}
-      </div>
-
-      <div style="height:16px"></div>
-
-      <div class="azCard">
-        ${sectionHeader("Shift Selection Workflow")}
-        <div style="font-size:12px; color:rgba(2,6,23,.60); line-height:1.6; margin-bottom:12px;">
-          Follow these steps to complete your shift selection:
-        </div>
-        
-        ${workflowSteps.map((step, idx) => `
-          <div class="workflow-step">
-            <div class="workflow-number">${idx + 1}</div>
-            <div class="workflow-content">
-              <div class="workflow-title">${escapeHtml(step.title)}</div>
-              <div class="workflow-desc">${escapeHtml(step.desc)}</div>
-            </div>
-          </div>
-        `).join("")}
-      </div>
-
-      <div style="height:16px"></div>
-
-      <div class="azCard">
-        ${sectionHeader("Attendance & Punctuality Policy")}
-        <div class="policy-box">
-          <div class="policy-title">
-            ${azIcon("alert")}
-            Corporate Attendance Standards
-          </div>
-          <ul class="policy-list">
-            <li>
-              ${azIcon("check")}
-              <span><strong>Punctual arrival required</strong> - Employees must report to work according to their assigned shift start time</span>
-            </li>
-            <li>
-              ${azIcon("check")}
-              <span><strong>Late arrivals recorded</strong> - All tardiness is documented in your attendance record</span>
-            </li>
-            <li>
-              ${azIcon("check")}
-              <span><strong>Absence reporting</strong> - Must be reported at least 2 hours before shift start</span>
-            </li>
-            <li>
-              ${azIcon("check")}
-              <span><strong>No-call/no-show policy</strong> - May result in disciplinary action per company guidelines</span>
-            </li>
-            <li>
-              ${azIcon("check")}
-              <span><strong>Team operations</strong> - Consistent attendance supports production and warehouse operations</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <div style="height:16px"></div>
-
-      <div class="azCard">
-        ${sectionHeader("Attendance Reminders & Alerts")}
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <div style="display:flex; align-items:flex-start; gap:10px; padding:12px; background:rgba(245,158,11,.08); border-radius:10px; border:1px solid rgba(245,158,11,.20);">
-            ${azIcon("alert")}
-            <div>
-              <div style="font-weight:1000; font-size:12px; color:#92400e; margin-bottom:2px;">High Production Periods</div>
-              <div style="font-size:11px; color:rgba(146,64,14,.80); line-height:1.4;">Certain weeks may require mandatory overtime based on production demand</div>
-            </div>
-          </div>
-          <div style="display:flex; align-items:flex-start; gap:10px; padding:12px; background:rgba(29,78,216,.08); border-radius:10px; border:1px solid rgba(29,78,216,.20);">
-            ${azIcon("calendar")}
-            <div>
-              <div style="font-weight:1000; font-size:12px; color:rgba(29,78,216,1); margin-bottom:2px;">Holiday Schedules</div>
-              <div style="font-size:11px; color:rgba(29,78,216,.80); line-height:1.4;">Holiday work schedules may vary from standard shifts</div>
-            </div>
-          </div>
-          <div style="display:flex; align-items:flex-start; gap:10px; padding:12px; background:rgba(99,102,241,.08); border-radius:10px; border:1px solid rgba(99,102,241,.20);">
-            ${azIcon("info")}
-            <div>
-              <div style="font-weight:1000; font-size:12px; color:#3730a3; margin-bottom:2px;">Pre-Shift Requirements</div>
-              <div style="font-size:11px; color:rgba(55,48,163,.80); line-height:1.4;">Safety meetings may be required before shift start</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div style="height:16px"></div>
-
-      <div class="azCard">
-        ${sectionHeader("Employee Acknowledgment")}
-        <div class="muted" style="line-height:1.5; margin-bottom:12px;">
-          Before confirming your shift selection, please review and acknowledge the following:
-        </div>
-        
-        <div class="ack-checkbox">
-          <input type="checkbox" id="ackReviewed" style="width:18px; height:18px;">
-          <div>
-            <div style="font-weight:1000; font-size:13px; color:rgba(2,6,23,.85); margin-bottom:4px;">I confirm that:</div>
-            <ul style="margin:0; padding-left:16px; font-size:12px; color:rgba(2,6,23,.70); line-height:1.6;">
-              <li>I have reviewed the shift schedule details</li>
-              <li>I am available for this schedule</li>
-              <li>This shift will be stored in my employee profile</li>
-              <li>I understand the attendance expectations</li>
-            </ul>
-          </div>
-        </div>
-
-        <button class="btn primary" id="btnConfirmShift" type="button" style="margin-top:16px; width:100%; border-radius:16px; padding:14px; font-weight:1000;" disabled>
-          ${currentPosition && currentShift ? "Confirm & Save Shift Selection" : "Select Position and Shift Above"}
-        </button>
-      </div>
-    `;
-  }
+  const pos = shift.position || "";
+  const sh = shift.shift || "";
 
   setPage(
     "Shift Selection",
-    isConfirmed ? "Your assigned work schedule" : "Select your position and shift",
-    mainContent
+    "Choose your preferences (HR will confirm).",
+    `
+      <div class="azCard">
+        ${sectionHeader("Position Preference")}
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          ${posCard("assembler","Solar Panel Assembler","Hands-on assembly of solar panels.","$18–$23/hr",pos)}
+          ${posCard("material","Material Handler / Warehouse","Moves materials, inventory support.","$18–$22/hr",pos)}
+          ${posCard("qc","Quality Control / Inspection","Inspect panels for quality and safety.","$19–$23/hr",pos)}
+        </div>
+
+        <div style="height:14px"></div>
+
+        ${sectionHeader("Shift Preference")}
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          ${shiftCard("early","Early Shift","6:00 AM – 2:30 PM",sh)}
+          ${shiftCard("mid","Mid Shift","2:00 PM – 10:30 PM",sh)}
+          ${shiftCard("late","Late Shift","10:00 PM – 6:30 AM",sh)}
+        </div>
+
+        <div style="height:14px"></div>
+
+        ${sectionHeader("Shift Handover Protocol")}
+        <div class="muted" style="line-height:1.55;">
+          <strong>Objective:</strong> Ensure a safe, efficient, and documented transfer of operational responsibility between shifts, maintaining continuity and full traceability of critical information.
+        </div>
+
+        <div style="height:10px"></div>
+
+        <div class="muted" style="line-height:1.55;">
+          <strong>Responsibilities - Outgoing Shift:</strong>
+          <ul class="ul" style="margin-top:8px;">
+            <li>Leave work area in safe and operational condition</li>
+            <li>Complete Digital Handover Form in system</li>
+            <li>Report all incidents, pending items, and special conditions</li>
+            <li>Do not leave post until incoming supervisor signs acceptance</li>
+          </ul>
+        </div>
+
+        <div style="height:10px"></div>
+
+        <div class="muted" style="line-height:1.55;">
+          <strong>Responsibilities - Incoming Shift:</strong>
+          <ul class="ul" style="margin-top:8px;">
+            <li>Arrive punctually at designated meeting point</li>
+            <li>Review and verify received information</li>
+            <li>Formally accept transfer via digital signature</li>
+            <li>Assume responsibility for all reported operations and pending items</li>
+          </ul>
+        </div>
+
+        <div style="height:10px"></div>
+
+        <div class="muted" style="line-height:1.55;">
+          <strong>Mandatory Verification Points:</strong>
+          <ul class="ul" style="margin-top:8px;">
+            <li><strong>Safety:</strong> Incidents/accidents, damaged PPE, unresolved hazardous conditions, pending equipment maintenance</li>
+            <li><strong>Operations:</strong> Incomplete urgent orders, quarantined or damaged merchandise, blocked or full locations, inventory deviations</li>
+            <li><strong>Logistics:</strong> Pending trucks to load/unload, scheduled supplier appointments, pending documentation to process</li>
+          </ul>
+        </div>
+
+        <div style="height:10px"></div>
+
+        <div class="muted" style="line-height:1.55;">
+          <strong>Step-by-Step Process:</strong>
+          <ul class="ul" style="margin-top:8px;">
+            <li><strong>15 Minutes Before Shift End:</strong> Outgoing supervisor prepares report in system; team secures areas and documents pending items</li>
+            <li><strong>Handover Moment (Overlapped):</strong> Physical/digital meeting at designated point; joint review of handover form; visual walkthrough of critical areas if applicable; immediate doubt resolution</li>
+            <li><strong>Completion & Acceptance:</strong> Incoming supervisor verifies understanding; digital acceptance signature in system; automatic confirmation to Shift Control; outgoing shift departs only after confirmation</li>
+          </ul>
+        </div>
+
+        <div style="height:10px"></div>
+
+        <div class="muted" style="line-height:1.55;">
+          <strong>Required Documentation:</strong>
+          <ul class="ul" style="margin-top:8px;">
+            <li>Digital Shift Handover Form (completed in system)</li>
+            <li>Safety Checklist (signed by both supervisors)</li>
+            <li>Incident Report (if applicable)</li>
+            <li>Pending Orders formally transferred</li>
+          </ul>
+        </div>
+
+        <div style="height:10px"></div>
+
+        <div class="muted" style="line-height:1.55;">
+          <strong>Non-Compliance Consequences:</strong>
+          <ul class="ul" style="margin-top:8px;">
+            <li>First occurrence: Verbal warning and training</li>
+            <li>Repeat occurrence: Written warning</li>
+            <li>Serious violation: Suspension and competency reevaluation</li>
+          </ul>
+        </div>
+
+        <div style="height:14px"></div>
+
+        <button class="btn primary" id="btnShiftSave" type="button" style="margin-top:14px;width:100%;border-radius:16px;">
+          Save Preferences
+        </button>
+
+        <div class="small muted" style="margin-top:10px;line-height:1.35;">
+          Preferences only — final assignment is confirmed by HR.
+        </div>
+      </div>
+    `
   );
 
-  // Event handlers for selection interface
-  if (!isConfirmed) {
-    // Position selection
-    document.querySelectorAll(".select-position-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const position = btn.dataset.position;
-        await saveUserPatch({ 
-          shift: { ...shift, position },
-          updatedAt: serverTimestamp()
-        });
-        renderShiftSelection({ ...userData, shift: { ...shift, position } }, saveUserPatch);
-      });
-    });
-
-    // Shift selection
-    document.querySelectorAll(".select-shift-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const shiftKey = btn.dataset.shift;
-        await saveUserPatch({ 
-          shift: { ...shift, shift: shiftKey },
-          updatedAt: serverTimestamp()
-        });
-        renderShiftSelection({ ...userData, shift: { ...shift, shift: shiftKey } }, saveUserPatch);
-      });
-    });
-
-    // Card click selection
-    document.querySelectorAll(".shift-option-card:not(.unavailable)").forEach(card => {
-      card.addEventListener("click", (e) => {
-        if (e.target.closest("button")) return;
-        const shiftKey = card.dataset.shift;
-        if (shiftKey && shiftKey !== currentShift) {
-          saveUserPatch({ 
-            shift: { ...shift, shift: shiftKey },
-            updatedAt: serverTimestamp()
-          }).then(() => {
-            renderShiftSelection({ ...userData, shift: { ...shift, shift: shiftKey } }, saveUserPatch);
-          });
-        }
-      });
-    });
-
-    // Acknowledgment checkbox
-    const ackCheckbox = document.getElementById("ackReviewed");
-    const confirmBtn = document.getElementById("btnConfirmShift");
-    
-    if (ackCheckbox && confirmBtn) {
-      ackCheckbox.addEventListener("change", () => {
-        const canConfirm = ackCheckbox.checked && currentPosition && currentShift;
-        confirmBtn.disabled = !canConfirm;
-        confirmBtn.textContent = canConfirm ? "Confirm & Save Shift Selection" : 
-          !currentPosition || !currentShift ? "Select Position and Shift Above" : "Acknowledge to Continue";
-      });
-    }
-
-    // Final confirmation
-    if (confirmBtn) {
-      confirmBtn.addEventListener("click", async () => {
-        if (!ackCheckbox?.checked || !currentPosition || !currentShift) {
-          uiToast("Please select position, shift, and acknowledge the terms");
-          return;
-        }
-
-        const selectedShiftData = shifts.find(s => s.key === currentShift);
-        const steps = (userData.steps || []).map(s =>
-          s.id === "shift_selection" ? ({ ...s, done: true }) : s
-        );
-
-        await saveUserPatch({ 
-          shift: { 
-            ...shift, 
-            position: currentPosition,
-            shift: currentShift,
-            shiftStartDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            supervisor: "To be assigned by Operations"
-          },
-          steps,
-          stage: "footwear",
-          updatedAt: serverTimestamp()
-        });
-
-        uiToast("Shift selection saved successfully");
-        renderShiftSelection({ 
-          ...userData, 
-          shift: { 
-            ...shift, 
-            position: currentPosition,
-            shift: currentShift,
-            shiftStartDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            supervisor: "To be assigned by Operations"
-          },
-          steps 
-        }, saveUserPatch);
-      });
-    }
-  } else {
-    // Change request handler for confirmed shifts
-    const changeBtn = document.getElementById("btnRequestChange");
-    if (changeBtn) {
-      changeBtn.addEventListener("click", async () => {
-        const date = document.getElementById("changeDate")?.value;
-        const newShift = document.getElementById("changeShift")?.value;
-        const reason = document.getElementById("changeReason")?.value;
-
-        if (!date || !newShift || !reason) {
-          uiToast("Please complete all fields");
-          return;
-        }
-
-        const newRequest = {
-          id: Date.now().toString(),
-          date,
-          requestedShift: shifts.find(s => s.key === newShift)?.title || newShift,
-          reason,
-          status: "Pending Review",
-          submittedAt: new Date().toISOString()
-        };
-
-        const currentRequests = userData.shiftChangeRequests || [];
-        
-        await saveUserPatch({
-          shiftChangeRequests: [...currentRequests, newRequest],
-          updatedAt: serverTimestamp()
-        });
-
-        uiToast("Change request submitted for HR review");
-        document.getElementById("changeDate").value = "";
-        document.getElementById("changeShift").value = "";
-        document.getElementById("changeReason").value = "";
-        
-        renderShiftSelection({
-          ...userData,
-          shiftChangeRequests: [...currentRequests, newRequest]
-        }, saveUserPatch);
-      });
-    }
+  function posCard(key, title, desc, pay, selectedKey) {
+    const selected = selectedKey === key;
+    return `
+      <label class="azCard" style="
+        box-shadow:none;
+        border:1px solid ${selected ? "rgba(22,163,74,.30)" : "rgba(229,234,242,.95)"};
+        background:${selected ? "rgba(22,163,74,.06)" : "#fff"};
+        margin:0;
+      ">
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <input type="radio" name="pos" value="${escapeHtml(key)}" ${selected ? "checked" : ""} style="margin-top:3px;"/>
+          <div style="flex:1;">
+            <div class="azCardTitle">${escapeHtml(title)}</div>
+            <div class="azCardSub" style="margin-top:6px;line-height:1.4;">${escapeHtml(desc)}</div>
+            <div class="azCardSub" style="margin-top:8px;font-weight:1000;">Pay Range: ${escapeHtml(pay)}</div>
+          </div>
+        </div>
+      </label>
+    `;
   }
+
+  function shiftCard(key, title, hours, selectedKey) {
+    const selected = selectedKey === key;
+    return `
+      <label class="azCard" style="
+        box-shadow:none;
+        border:1px solid ${selected ? "rgba(22,163,74,.30)" : "rgba(229,234,242,.95)"};
+        background:${selected ? "rgba(22,163,74,.06)" : "#fff"};
+        margin:0;
+      ">
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <input type="radio" name="shift" value="${escapeHtml(key)}" ${selected ? "checked" : ""} style="margin-top:3px;"/>
+          <div style="flex:1;">
+            <div class="azCardTitle">${escapeHtml(title)}</div>
+            <div class="azCardSub" style="margin-top:6px;">${escapeHtml(hours)}</div>
+          </div>
+        </div>
+      </label>
+    `;
+  }
+
+  document.getElementById("btnShiftSave").onclick = async () => {
+    const position = document.querySelector("input[name=pos]:checked")?.value || "";
+    const shiftKey = document.querySelector("input[name=shift]:checked")?.value || "";
+    if (!position || !shiftKey) return uiToast("Please select 1 position and 1 shift.");
+
+    const steps = (userData.steps || []).map(s =>
+      s.id === "shift_selection" ? ({ ...s, done: true }) : s
+    );
+
+    await saveUserPatch({ shift: { position, shift: shiftKey }, steps, stage: "footwear" });
+    uiToast("Preferences saved.");
+    location.hash = "#footwear";
+  };
 }
 
 function renderI9(userData, saveUserPatch) {
