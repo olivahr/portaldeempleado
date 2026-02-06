@@ -1636,143 +1636,6 @@ function renderFootwear(userData, saveUserPatch, publicData) {
   const steps = userData?.steps || [];
   const done = !!steps.find(s => s.id === "footwear")?.done;
 
-  setPage(
-    fwPublic.programTitle || "Safety Footwear Program",
-    "Safety footwear is required for warehouse and production roles.",
-    `
-      <div class="azCard">
-
-        ${sectionHeader("Safety Footwear Requirement")}
-<div class="muted" style="line-height:1.55;">
-  As part of warehouse onboarding and workplace safety compliance, approved safety footwear is a mandatory requirement for all operational employees.
-  This requirement is necessary to:
-  <ul class="ul" style="margin-top:8px;">
-    <li>Complete onboarding</li>
-    <li>Access operational areas</li>
-    <li>Start work on your first day</li>
-    <li>Maintain compliance with internal safety standards</li>
-  </ul>
-  Safety footwear is not optional.
-</div>
-
-<div style="height:12px"></div>
-
-${sectionHeader("Mandatory for Your First Day")}
-<div class="muted" style="line-height:1.55;">
-  You must report on your first day with approved safety footwear.
-  Failure to meet this requirement may result in:
-  <ul class="ul" style="margin-top:8px;">
-    <li>Your start date being rescheduled</li>
-    <li>Restricted access to work areas</li>
-    <li>Temporary hold on operational onboarding</li>
-    <li>Additional action based on internal policies</li>
-  </ul>
-  Our goal is to prevent injuries and protect every employee.
-</div>
-
-<div style="height:12px"></div>
-
-${sectionHeader("Safety Footwear Standard")}
-<div class="muted" style="line-height:1.55;">
-  Your footwear must meet all of the following:
-  <ul class="ul" style="margin-top:8px;">
-    <li>Protective toe (Steel Toe or Composite Toe)</li>
-    <li>Slip-resistant sole</li>
-    <li>Closed-toe work shoes or work boots</li>
-    <li>New or in excellent condition</li>
-    <li>Suitable for an industrial / warehouse environment</li>
-  </ul>
-
-  Not allowed:
-  <ul class="ul" style="margin-top:8px;">
-    <li>Regular athletic sneakers</li>
-    <li>Sandals or open-toe shoes</li>
-    <li>Shoes without toe protection</li>
-    <li>Heavily worn or damaged footwear</li>
-  </ul>
-</div>
-
-<div style="height:12px"></div>
-
-${sectionHeader("Required Purchase Process")}
-<div class="muted" style="line-height:1.55;">
-  To ensure compliance with safety standards, employees must purchase footwear through the Safety Footwear Store available in the portal.
-  Required steps:
-  <ul class="ul" style="margin-top:8px;">
-    <li>Open the store from the portal</li>
-    <li>Select an approved model</li>
-    <li>Complete your purchase</li>
-    <li>Keep your receipt</li>
-    <li>Have the footwear before your first day</li>
-  </ul>
-  Completing this step is part of onboarding.
-</div>
-
-<div style="height:12px"></div>
-
-${sectionHeader("Safety Footwear Reimbursement Policy")}
-<div class="muted" style="line-height:1.55;">
-  The company offers reimbursement up to <strong>$100</strong> to support compliance with this safety requirement.
-  <div style="height:10px"></div>
-
-  <strong>Eligibility</strong>
-  <ul class="ul" style="margin-top:8px;">
-    <li>You have been officially hired</li>
-    <li>You have started active work</li>
-    <li>Your footwear meets the safety standard</li>
-    <li>Your supervisor confirms usage on the job</li>
-    <li>You provide a valid receipt</li>
-    <li>You are active at the time payroll is processed</li>
-  </ul>
-
-  <div style="height:10px"></div>
-
-  <strong>Reimbursement Processing</strong>
-  <ul class="ul" style="margin-top:8px;">
-    <li>Processed through payroll</li>
-    <li>Typically appears on the first regular paycheck after verification</li>
-    <li>Maximum reimbursement is $100</li>
-    <li>Any amount above $100 is the employee’s responsibility</li>
-  </ul>
-
-  <div style="height:10px"></div>
-
-  <strong>Corporate Notes</strong>
-  <ul class="ul" style="margin-top:8px;">
-    <li>One-time benefit upon initial hire</li>
-    <li>Not a recurring benefit</li>
-    <li>Not considered additional wages</li>
-    <li>Subject to administrative verification</li>
-    <li>The company reserves the right to validate compliance</li>
-  </ul>
-</div>
-
-<div style="height:14px"></div>
-
-${sectionHeader("Acknowledgements")}
-${ackRow("fwAck1", fw.ack1, "I understand safety footwear is required for my role.")}
-${ackRow("fwAck2", fw.ack2, "I will purchase approved footwear before my first shift.")}
-${ackRow("fwAck3", fw.ack3, "I understand purchases must be made through the designated store to qualify.")}
-${ackRow("fwAck4", fw.ack4, "I understand reimbursement is processed after verification.")}
-${ackRow("fwAck5", fw.ack5, "I understand reimbursement will be included in my first paycheck after approval.")}
-
-<div style="height:14px"></div>
-
-<button class="btn primary" id="btnFootwearComplete" type="button"
-  style="display:block;width:100%;text-align:center;border-radius:16px;padding:14px;">
-  Complete Safety Footwear Requirement
-</button>
-
-<div class="small muted" style="margin-top:10px;line-height:1.35;">
-  This step is required to complete your onboarding.
-</div>
-
-<div style="height:14px"></div>
-
-<div class="small muted" style="margin-top:10px;line-height:1.35;">
-  Security note: Do not share your Employee ID or personal info by text message.
-</div>
-
   function ackRow(id, checked, text) {
     return `
       <label class="checkrow" style="
@@ -1787,7 +1650,149 @@ ${ackRow("fwAck5", fw.ack5, "I understand reimbursement will be included in my f
     `;
   }
 
-  const btn = document.getElementById("btnFwSave");
+  setPage(
+    fwPublic.programTitle || "Safety Footwear Program",
+    "Safety footwear is required for warehouse and production roles.",
+    `
+      <div class="azCard">
+
+        ${sectionHeader("Safety Footwear Requirement")}
+        <div class="muted" style="line-height:1.55;">
+          As part of warehouse onboarding and workplace safety compliance, approved safety footwear is a mandatory requirement for all operational employees.
+          This requirement is necessary to:
+          <ul class="ul" style="margin-top:8px;">
+            <li>Complete onboarding</li>
+            <li>Access operational areas</li>
+            <li>Start work on your first day</li>
+            <li>Maintain compliance with internal safety standards</li>
+          </ul>
+          Safety footwear is not optional.
+        </div>
+
+        <div style="height:12px"></div>
+
+        ${sectionHeader("Mandatory for Your First Day")}
+        <div class="muted" style="line-height:1.55;">
+          You must report on your first day with approved safety footwear.
+          Failure to meet this requirement may result in:
+          <ul class="ul" style="margin-top:8px;">
+            <li>Your start date being rescheduled</li>
+            <li>Restricted access to work areas</li>
+            <li>Temporary hold on operational onboarding</li>
+            <li>Additional action based on internal policies</li>
+          </ul>
+          Our goal is to prevent injuries and protect every employee.
+        </div>
+
+        <div style="height:12px"></div>
+
+        ${sectionHeader("Safety Footwear Standard")}
+        <div class="muted" style="line-height:1.55;">
+          Your footwear must meet all of the following:
+          <ul class="ul" style="margin-top:8px;">
+            <li>Protective toe (Steel Toe or Composite Toe)</li>
+            <li>Slip-resistant sole</li>
+            <li>Closed-toe work shoes or work boots</li>
+            <li>New or in excellent condition</li>
+            <li>Suitable for an industrial / warehouse environment</li>
+          </ul>
+
+          Not allowed:
+          <ul class="ul" style="margin-top:8px;">
+            <li>Regular athletic sneakers</li>
+            <li>Sandals or open-toe shoes</li>
+            <li>Shoes without toe protection</li>
+            <li>Heavily worn or damaged footwear</li>
+          </ul>
+        </div>
+
+        <div style="height:12px"></div>
+
+        ${sectionHeader("Required Purchase Process")}
+        <div class="muted" style="line-height:1.55;">
+          To ensure compliance with safety standards, employees must purchase footwear through the Safety Footwear Store available in the portal.
+          Required steps:
+          <ul class="ul" style="margin-top:8px;">
+            <li>Open the store from the portal</li>
+            <li>Select an approved model</li>
+            <li>Complete your purchase</li>
+            <li>Keep your receipt</li>
+            <li>Have the footwear before your first day</li>
+          </ul>
+          Completing this step is part of onboarding.
+        </div>
+
+        <div style="height:12px"></div>
+
+        ${sectionHeader("Safety Footwear Reimbursement Policy")}
+        <div class="muted" style="line-height:1.55;">
+          The company offers reimbursement up to <strong>$100</strong> to support compliance with this safety requirement.
+
+          <div style="height:10px"></div>
+
+          <strong>Eligibility</strong>
+          <ul class="ul" style="margin-top:8px;">
+            <li>You have been officially hired</li>
+            <li>You have started active work</li>
+            <li>Your footwear meets the safety standard</li>
+            <li>Your supervisor confirms usage on the job</li>
+            <li>You provide a valid receipt</li>
+            <li>You are active at the time payroll is processed</li>
+          </ul>
+
+          <div style="height:10px"></div>
+
+          <strong>Reimbursement Processing</strong>
+          <ul class="ul" style="margin-top:8px;">
+            <li>Processed through payroll</li>
+            <li>Typically appears on the first regular paycheck after verification</li>
+            <li>Maximum reimbursement is $100</li>
+            <li>Any amount above $100 is the employee’s responsibility</li>
+          </ul>
+
+          <div style="height:10px"></div>
+
+          <strong>Corporate Notes</strong>
+          <ul class="ul" style="margin-top:8px;">
+            <li>One-time benefit upon initial hire</li>
+            <li>Not a recurring benefit</li>
+            <li>Not considered additional wages</li>
+            <li>Subject to administrative verification</li>
+            <li>The company reserves the right to validate compliance</li>
+          </ul>
+        </div>
+
+        <div style="height:14px"></div>
+
+        ${sectionHeader("Acknowledgements")}
+        ${ackRow("fwAck1", fw.ack1, "I understand safety footwear is required for my role.")}
+        ${ackRow("fwAck2", fw.ack2, "I will purchase approved footwear before my first shift.")}
+        ${ackRow("fwAck3", fw.ack3, "I understand purchases must be made through the designated store to qualify.")}
+        ${ackRow("fwAck4", fw.ack4, "I understand reimbursement is processed after verification.")}
+        ${ackRow("fwAck5", fw.ack5, "I understand reimbursement will be included in my first paycheck after approval.")}
+
+        <div style="height:14px"></div>
+
+        <button class="btn primary" id="btnFootwearComplete" type="button"
+          style="display:block;width:100%;text-align:center;border-radius:16px;padding:14px;">
+          ${done ? "Saved" : "Complete Safety Footwear Requirement"}
+        </button>
+
+        <div class="small muted" style="margin-top:10px;line-height:1.35;">
+          This step is required to complete your onboarding.
+        </div>
+
+        <div style="height:14px"></div>
+
+        <div class="small muted" style="line-height:1.35;">
+          Security note: Do not share your Employee ID or personal info by text message.
+        </div>
+
+      </div>
+    `
+  );
+
+  const btn = document.getElementById("btnFootwearComplete");
 
   const syncBtn = () => {
     const a1 = document.getElementById("fwAck1")?.checked;
@@ -1796,8 +1801,11 @@ ${ackRow("fwAck5", fw.ack5, "I understand reimbursement will be included in my f
     const a4 = document.getElementById("fwAck4")?.checked;
     const a5 = document.getElementById("fwAck5")?.checked;
     const all = !!(a1 && a2 && a3 && a4 && a5);
-    btn.disabled = !all;
-    btn.style.opacity = all ? "1" : ".75";
+
+    if (btn) {
+      btn.disabled = !all;
+      btn.style.opacity = all ? "1" : ".75";
+    }
   };
 
   ["fwAck1", "fwAck2", "fwAck3", "fwAck4", "fwAck5"].forEach(x => {
@@ -1807,27 +1815,29 @@ ${ackRow("fwAck5", fw.ack5, "I understand reimbursement will be included in my f
 
   syncBtn();
 
-  btn.onclick = async () => {
-    const a1 = document.getElementById("fwAck1").checked;
-    const a2 = document.getElementById("fwAck2").checked;
-    const a3 = document.getElementById("fwAck3").checked;
-    const a4 = document.getElementById("fwAck4").checked;
-    const a5 = document.getElementById("fwAck5").checked;
-    if (!a1 || !a2 || !a3 || !a4 || !a5) return uiToast("Please confirm all items to continue.");
+  if (btn) {
+    btn.onclick = async () => {
+      const a1 = document.getElementById("fwAck1").checked;
+      const a2 = document.getElementById("fwAck2").checked;
+      const a3 = document.getElementById("fwAck3").checked;
+      const a4 = document.getElementById("fwAck4").checked;
+      const a5 = document.getElementById("fwAck5").checked;
+      if (!a1 || !a2 || !a3 || !a4 || !a5) return uiToast("Please confirm all items to continue.");
 
-    const newSteps = (steps || []).map(s =>
-      s.id === "footwear" ? ({ ...s, done: true }) : s
-    );
+      const newSteps = (steps || []).map(s =>
+        s.id === "footwear" ? ({ ...s, done: true }) : s
+      );
 
-    await saveUserPatch({
-      footwear: { ack1: a1, ack2: a2, ack3: a3, ack4: a4, ack5: a5 },
-      steps: newSteps,
-      stage: "i9"
-    });
+      await saveUserPatch({
+        footwear: { ack1: a1, ack2: a2, ack3: a3, ack4: a4, ack5: a5 },
+        steps: newSteps,
+        stage: "i9"
+      });
 
-    uiToast("Safety footwear saved.");
-    location.hash = "#i9";
-  };
+      uiToast("Safety footwear saved.");
+      location.hash = "#i9";
+    };
+  }
 }
 
 function renderFootwearShop(publicData) {
