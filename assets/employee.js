@@ -1677,98 +1677,204 @@ function renderShiftSelection(userData, saveUserPatch) {
     `
       <div class="azCard">
         ${sectionHeader("Position Preference")}
-        <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="shift-options">
           ${posCard("assembler","Solar Panel Assembler","Hands-on assembly of solar panels.","$18–$23/hr",pos)}
           ${posCard("material","Material Handler / Warehouse","Moves materials, inventory support.","$18–$22/hr",pos)}
           ${posCard("qc","Quality Control / Inspection","Inspect panels for quality and safety.","$19–$23/hr",pos)}
         </div>
 
-        <div style="height:14px"></div>
+        <div class="section-spacer"></div>
 
         ${sectionHeader("Shift Preference")}
-        <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="shift-options">
           ${shiftCard("early","Early Shift","6:00 AM – 2:30 PM",sh)}
           ${shiftCard("mid","Mid Shift","2:00 PM – 10:30 PM",sh)}
           ${shiftCard("late","Late Shift","10:00 PM – 6:30 AM",sh)}
         </div>
 
-        <div style="height:14px"></div>
+        <div class="section-spacer"></div>
 
         ${sectionHeader("Shift Handover Protocol")}
-        <div class="muted" style="line-height:1.55;">
-          <strong>Objective:</strong> Ensure a safe, efficient, and documented transfer of operational responsibility between shifts, maintaining continuity and full traceability of critical information.
+        
+        <!-- Objective Banner -->
+        <div class="sh-banner">
+          <div class="sh-banner-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <div class="sh-banner-content">
+            <div class="sh-banner-title">Protocol Objective</div>
+            <div class="sh-banner-text">
+              Ensure a safe, efficient, and documented transfer of operational responsibility between shifts, maintaining continuity and full traceability of critical information.
+            </div>
+          </div>
         </div>
 
-        <div style="height:10px"></div>
+        <!-- Responsibilities Grid -->
+        <div class="sh-responsibilities">
+          <div class="sh-resp-card sh-resp-outgoing">
+            <div class="sh-resp-header">
+              <div class="sh-resp-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 18l6-6-6-6"/>
+                </svg>
+              </div>
+              <div class="sh-resp-title">Outgoing Shift</div>
+            </div>
+            <ul class="sh-resp-list">
+              <li>Leave area safe & operational</li>
+              <li>Complete Digital Handover Form</li>
+              <li>Report incidents & pending items</li>
+              <li>Stay until acceptance signed</li>
+            </ul>
+          </div>
 
-        <div class="muted" style="line-height:1.55;">
-          <strong>Responsibilities - Outgoing Shift:</strong>
-          <ul class="ul" style="margin-top:8px;">
-            <li>Leave work area in safe and operational condition</li>
-            <li>Complete Digital Handover Form in system</li>
-            <li>Report all incidents, pending items, and special conditions</li>
-            <li>Do not leave post until incoming supervisor signs acceptance</li>
-          </ul>
+          <div class="sh-resp-card sh-resp-incoming">
+            <div class="sh-resp-header">
+              <div class="sh-resp-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M15 18l-6-6 6-6"/>
+                </svg>
+              </div>
+              <div class="sh-resp-title">Incoming Shift</div>
+            </div>
+            <ul class="sh-resp-list">
+              <li>Arrive at meeting point on time</li>
+              <li>Review & verify all information</li>
+              <li>Accept via digital signature</li>
+              <li>Assume operational responsibility</li>
+            </ul>
+          </div>
         </div>
 
-        <div style="height:10px"></div>
+        <!-- Critical Verification Points -->
+        <div class="sh-verification">
+          <div class="sh-verify-header">
+            <div class="sh-verify-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
+            <div class="sh-verify-title">Mandatory Verification Points</div>
+          </div>
 
-        <div class="muted" style="line-height:1.55;">
-          <strong>Responsibilities - Incoming Shift:</strong>
-          <ul class="ul" style="margin-top:8px;">
-            <li>Arrive punctually at designated meeting point</li>
-            <li>Review and verify received information</li>
-            <li>Formally accept transfer via digital signature</li>
-            <li>Assume responsibility for all reported operations and pending items</li>
-          </ul>
+          <div class="sh-verify-items">
+            <div class="sh-verify-item sh-verify-safety">
+              <span class="sh-verify-badge">SAFETY</span>
+              <div class="sh-verify-text">
+                Incidents/accidents • Damaged PPE • Unresolved hazards • Pending equipment maintenance
+              </div>
+            </div>
+
+            <div class="sh-verify-item sh-verify-operations">
+              <span class="sh-verify-badge">OPERATIONS</span>
+              <div class="sh-verify-text">
+                Incomplete urgent orders • Quarantined/damaged merchandise • Blocked/full locations • Inventory deviations
+              </div>
+            </div>
+
+            <div class="sh-verify-item sh-verify-logistics">
+              <span class="sh-verify-badge">LOGISTICS</span>
+              <div class="sh-verify-text">
+                Pending trucks to load/unload • Scheduled supplier appointments • Pending documentation
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div style="height:10px"></div>
+        <!-- Step-by-Step Process -->
+        <div class="sh-process">
+          <div class="sh-process-title">Step-by-Step Process</div>
+          
+          <div class="sh-timeline">
+            <div class="sh-timeline-line"></div>
 
-        <div class="muted" style="line-height:1.55;">
-          <strong>Mandatory Verification Points:</strong>
-          <ul class="ul" style="margin-top:8px;">
-            <li><strong>Safety:</strong> Incidents/accidents, damaged PPE, unresolved hazardous conditions, pending equipment maintenance</li>
-            <li><strong>Operations:</strong> Incomplete urgent orders, quarantined or damaged merchandise, blocked or full locations, inventory deviations</li>
-            <li><strong>Logistics:</strong> Pending trucks to load/unload, scheduled supplier appointments, pending documentation to process</li>
-          </ul>
+            <div class="sh-timeline-item">
+              <div class="sh-timeline-number">1</div>
+              <div class="sh-timeline-content">
+                <div class="sh-timeline-step">15 Minutes Before Shift End</div>
+                <div class="sh-timeline-desc">
+                  Outgoing supervisor prepares report in system. Team secures areas and documents pending items.
+                </div>
+              </div>
+            </div>
+
+            <div class="sh-timeline-item">
+              <div class="sh-timeline-number">2</div>
+              <div class="sh-timeline-content">
+                <div class="sh-timeline-step">Handover Moment (Overlapped)</div>
+                <div class="sh-timeline-desc">
+                  Physical/digital meeting at designated point. Joint review of handover form. Visual walkthrough of critical areas. Immediate doubt resolution.
+                </div>
+              </div>
+            </div>
+
+            <div class="sh-timeline-item">
+              <div class="sh-timeline-check">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+              <div class="sh-timeline-content">
+                <div class="sh-timeline-step">Completion & Acceptance</div>
+                <div class="sh-timeline-desc">
+                  Incoming supervisor verifies understanding. Digital acceptance signature in system. Automatic confirmation to Shift Control. Outgoing shift departs only after confirmation.
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div style="height:10px"></div>
-
-        <div class="muted" style="line-height:1.55;">
-          <strong>Step-by-Step Process:</strong>
-          <ul class="ul" style="margin-top:8px;">
-            <li><strong>15 Minutes Before Shift End:</strong> Outgoing supervisor prepares report in system; team secures areas and documents pending items</li>
-            <li><strong>Handover Moment (Overlapped):</strong> Physical/digital meeting at designated point; joint review of handover form; visual walkthrough of critical areas if applicable; immediate doubt resolution</li>
-            <li><strong>Completion & Acceptance:</strong> Incoming supervisor verifies understanding; digital acceptance signature in system; automatic confirmation to Shift Control; outgoing shift departs only after confirmation</li>
-          </ul>
+        <!-- Required Documentation -->
+        <div class="sh-docs">
+          <div class="sh-docs-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+            <div class="sh-docs-title">Required Documentation</div>
+          </div>
+          <div class="sh-docs-tags">
+            <span class="sh-doc-tag">Digital Handover Form</span>
+            <span class="sh-doc-tag">Safety Checklist</span>
+            <span class="sh-doc-tag">Incident Report (if applicable)</span>
+            <span class="sh-doc-tag">Pending Orders Transfer</span>
+          </div>
         </div>
 
-        <div style="height:10px"></div>
-
-        <div class="muted" style="line-height:1.55;">
-          <strong>Required Documentation:</strong>
-          <ul class="ul" style="margin-top:8px;">
-            <li>Digital Shift Handover Form (completed in system)</li>
-            <li>Safety Checklist (signed by both supervisors)</li>
-            <li>Incident Report (if applicable)</li>
-            <li>Pending Orders formally transferred</li>
-          </ul>
+        <!-- Non-Compliance Consequences -->
+        <div class="sh-consequences">
+          <div class="sh-cons-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <div class="sh-cons-title">Non-Compliance Consequences</div>
+          </div>
+          <div class="sh-cons-items">
+            <div class="sh-cons-item">
+              <div class="sh-cons-badge sh-cons-first">1st</div>
+              <div class="sh-cons-text">Verbal warning and mandatory training</div>
+            </div>
+            <div class="sh-cons-item">
+              <div class="sh-cons-badge sh-cons-second">2nd</div>
+              <div class="sh-cons-text">Written warning placed in employee file</div>
+            </div>
+            <div class="sh-cons-item">
+              <div class="sh-cons-badge sh-cons-third">3rd</div>
+              <div class="sh-cons-text">Suspension and competency reevaluation</div>
+            </div>
+          </div>
         </div>
 
-        <div style="height:10px"></div>
-
-        <div class="muted" style="line-height:1.55;">
-          <strong>Non-Compliance Consequences:</strong>
-          <ul class="ul" style="margin-top:8px;">
-            <li>First occurrence: Verbal warning and training</li>
-            <li>Repeat occurrence: Written warning</li>
-            <li>Serious violation: Suspension and competency reevaluation</li>
-          </ul>
-        </div>
-
-        <div style="height:14px"></div>
+        <div class="section-spacer"></div>
 
         <button class="btn primary" id="btnShiftSave" type="button" style="margin-top:14px;width:100%;border-radius:16px;">
           Save Preferences
@@ -1784,18 +1890,13 @@ function renderShiftSelection(userData, saveUserPatch) {
   function posCard(key, title, desc, pay, selectedKey) {
     const selected = selectedKey === key;
     return `
-      <label class="azCard" style="
-        box-shadow:none;
-        border:1px solid ${selected ? "rgba(22,163,74,.30)" : "rgba(229,234,242,.95)"};
-        background:${selected ? "rgba(22,163,74,.06)" : "#fff"};
-        margin:0;
-      ">
-        <div style="display:flex;gap:10px;align-items:flex-start;">
-          <input type="radio" name="pos" value="${escapeHtml(key)}" ${selected ? "checked" : ""} style="margin-top:3px;"/>
-          <div style="flex:1;">
+      <label class="azCard shift-card ${selected ? 'selected' : ''}">
+        <div class="shift-card-inner">
+          <input type="radio" name="pos" value="${escapeHtml(key)}" ${selected ? "checked" : ""}/>
+          <div class="shift-card-content">
             <div class="azCardTitle">${escapeHtml(title)}</div>
-            <div class="azCardSub" style="margin-top:6px;line-height:1.4;">${escapeHtml(desc)}</div>
-            <div class="azCardSub" style="margin-top:8px;font-weight:1000;">Pay Range: ${escapeHtml(pay)}</div>
+            <div class="azCardSub">${escapeHtml(desc)}</div>
+            <div class="shift-pay">Pay Range: ${escapeHtml(pay)}</div>
           </div>
         </div>
       </label>
@@ -1805,17 +1906,12 @@ function renderShiftSelection(userData, saveUserPatch) {
   function shiftCard(key, title, hours, selectedKey) {
     const selected = selectedKey === key;
     return `
-      <label class="azCard" style="
-        box-shadow:none;
-        border:1px solid ${selected ? "rgba(22,163,74,.30)" : "rgba(229,234,242,.95)"};
-        background:${selected ? "rgba(22,163,74,.06)" : "#fff"};
-        margin:0;
-      ">
-        <div style="display:flex;gap:10px;align-items:flex-start;">
-          <input type="radio" name="shift" value="${escapeHtml(key)}" ${selected ? "checked" : ""} style="margin-top:3px;"/>
-          <div style="flex:1;">
+      <label class="azCard shift-card ${selected ? 'selected' : ''}">
+        <div class="shift-card-inner">
+          <input type="radio" name="shift" value="${escapeHtml(key)}" ${selected ? "checked" : ""}/>
+          <div class="shift-card-content">
             <div class="azCardTitle">${escapeHtml(title)}</div>
-            <div class="azCardSub" style="margin-top:6px;">${escapeHtml(hours)}</div>
+            <div class="azCardSub">${escapeHtml(hours)}</div>
           </div>
         </div>
       </label>
@@ -1836,7 +1932,6 @@ function renderShiftSelection(userData, saveUserPatch) {
     location.hash = "#footwear";
   };
 }
-
 function renderI9(userData, saveUserPatch) {
   const i9 = userData?.i9 || {};
   const done = !!(userData?.steps || []).find(s => s.id === "i9")?.done;
