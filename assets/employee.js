@@ -1589,13 +1589,14 @@ function renderShiftSelection(userData, saveUserPatch) {
   </ul>
 </div>
 
-<button class="btn primary" id="btnShiftSave" type="button" style="margin-top:14px;width:100%;border-radius:16px;">
-  style="margin-top:14px;width:100%;border-radius:16px;">
-
+<button 
+  class="btn primary" 
+  id="btnShiftSave" 
+  type="button"
+  style="margin-top:14px;width:100%;border-radius:16px;"
+>
   Save Preferences
-
 </button>
-
         <div class="small muted" style="margin-top:10px;line-height:1.35;">
           Preferences only — final assignment is confirmed by HR.
         </div>
