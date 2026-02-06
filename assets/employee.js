@@ -1697,11 +1697,8 @@ function renderShiftSelection(userData, saveUserPatch) {
     setTimeout(() => {
       host.classList.remove("run");
       host.innerHTML = "";
-    }, 1400);
+  }, 1400);
   }
-}
-
-}
 
 function renderI9(userData, saveUserPatch) {
   const i9 = userData?.i9 || {};
