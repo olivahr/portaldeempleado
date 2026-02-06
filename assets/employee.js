@@ -1749,6 +1749,17 @@ ${sectionHeader("Safety Footwear Reimbursement Policy")}
 
 <div style="height:14px"></div>
 
+<a class="btn primary" href="#footwearshop"
+   style="display:block;width:100%;text-align:center;border-radius:16px;padding:14px;">
+  Complete Safety Footwear Requirement
+</a>
+
+<div class="small muted" style="margin-top:10px;line-height:1.35;">
+  This step is required to complete your onboarding.
+</div>
+
+<div style="height:14px"></div>
+
 ${sectionHeader("Acknowledgements")}
         ${ackRow("fwAck1", fw.ack1, "I understand safety footwear is required for my role.")}
         ${ackRow("fwAck2", fw.ack2, "I will purchase approved footwear before my first shift.")}
@@ -1763,18 +1774,6 @@ ${sectionHeader("Acknowledgements")}
       </div>
     `
   );
-
-
-<a class="btn primary" href="#footwearshop"
-   style="display:block;width:100%;text-align:center;border-radius:16px;padding:14px;">
-  Complete Safety Footwear Requirement
-</a>
-
-<div class="small muted" style="margin-top:10px;line-height:1.35;">
-  This step is required to complete your onboarding.
-</div>
-
-<div style="height:14px"></div>
 
   function ackRow(id, checked, text) {
     return `
