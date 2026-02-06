@@ -1380,3 +1380,462 @@ p, li, .muted {
   border: 1px solid #93c5fd !important;
 }
 
+/* ============================================
+   SHIFT HANDOVER PROTOCOL STYLES
+   ============================================ */
+
+/* Spacing utilities */
+.section-spacer {
+  height: 14px;
+}
+
+.shift-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Shift selection cards enhancement */
+.shift-card {
+  box-shadow: none;
+  margin: 0;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.shift-card.selected {
+  border-color: rgba(22, 163, 74, 0.3);
+  background: rgba(22, 163, 74, 0.06);
+}
+
+.shift-card-inner {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.shift-card-inner input {
+  margin-top: 3px;
+}
+
+.shift-card-content {
+  flex: 1;
+}
+
+.shift-pay {
+  margin-top: 8px;
+  font-weight: 1000;
+  color: rgba(2, 6, 23, 0.8);
+}
+
+/* Objective Banner */
+.sh-banner {
+  background: linear-gradient(135deg, rgba(29, 78, 216, 0.08) 0%, rgba(29, 78, 216, 0.03) 100%);
+  border: 1px solid rgba(29, 78, 216, 0.15);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.sh-banner-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(29, 78, 216, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: rgba(29, 78, 216, 0.9);
+}
+
+.sh-banner-content {
+  flex: 1;
+}
+
+.sh-banner-title {
+  font-weight: 1000;
+  font-size: 13px;
+  color: rgba(29, 78, 216, 0.9);
+  margin-bottom: 6px;
+}
+
+.sh-banner-text {
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(2, 6, 23, 0.75);
+}
+
+/* Responsibilities Grid */
+.sh-responsibilities {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.sh-resp-card {
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.sh-resp-outgoing {
+  background: rgba(245, 158, 11, 0.06);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.sh-resp-incoming {
+  background: rgba(22, 163, 74, 0.06);
+  border: 1px solid rgba(22, 163, 74, 0.2);
+}
+
+.sh-resp-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.sh-resp-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sh-resp-outgoing .sh-resp-icon {
+  background: rgba(245, 158, 11, 0.15);
+  color: #b45309;
+}
+
+.sh-resp-incoming .sh-resp-icon {
+  background: rgba(22, 163, 74, 0.15);
+  color: #15803d;
+}
+
+.sh-resp-title {
+  font-weight: 1000;
+  font-size: 12px;
+}
+
+.sh-resp-outgoing .sh-resp-title {
+  color: #b45309;
+}
+
+.sh-resp-incoming .sh-resp-title {
+  color: #15803d;
+}
+
+.sh-resp-list {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 11px;
+  line-height: 1.7;
+  color: rgba(2, 6, 23, 0.7);
+}
+
+/* Verification Points */
+.sh-verification {
+  background: #fff;
+  border: 1px solid rgba(229, 234, 242, 0.95);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+}
+
+.sh-verify-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.sh-verify-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(220, 38, 38, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dc2626;
+}
+
+.sh-verify-title {
+  font-weight: 1000;
+  font-size: 13px;
+  color: rgba(2, 6, 23, 0.9);
+}
+
+.sh-verify-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sh-verify-item {
+  border-radius: 0 10px 10px 0;
+  padding: 12px;
+  border-left: 3px solid;
+}
+
+.sh-verify-safety {
+  background: rgba(220, 38, 38, 0.04);
+  border-left-color: #dc2626;
+}
+
+.sh-verify-operations {
+  background: rgba(29, 78, 216, 0.04);
+  border-left-color: #1d4ed8;
+}
+
+.sh-verify-logistics {
+  background: rgba(124, 58, 237, 0.04);
+  border-left-color: #7c3aed;
+}
+
+.sh-verify-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 1000;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.sh-verify-safety .sh-verify-badge {
+  background: #dc2626;
+}
+
+.sh-verify-operations .sh-verify-badge {
+  background: #1d4ed8;
+}
+
+.sh-verify-logistics .sh-verify-badge {
+  background: #7c3aed;
+}
+
+.sh-verify-text {
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(2, 6, 23, 0.7);
+}
+
+/* Process Timeline */
+.sh-process {
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.02) 0%, rgba(2, 6, 23, 0.06) 100%);
+  border: 1px solid rgba(229, 234, 242, 0.95);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.sh-process-title {
+  font-weight: 1000;
+  font-size: 13px;
+  color: rgba(2, 6, 23, 0.9);
+  margin-bottom: 14px;
+}
+
+.sh-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+.sh-timeline-line {
+  position: absolute;
+  left: 19px;
+  top: 24px;
+  bottom: 24px;
+  width: 2px;
+  background: rgba(29, 78, 216, 0.15);
+}
+
+.sh-timeline-item {
+  display: flex;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+  padding-bottom: 16px;
+}
+
+.sh-timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.sh-timeline-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: #fff;
+  border: 2px solid rgba(29, 78, 216, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: 1000;
+  font-size: 12px;
+  color: rgba(29, 78, 216, 0.8);
+}
+
+.sh-timeline-check {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: rgba(22, 163, 74, 0.1);
+  border: 2px solid rgba(22, 163, 74, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #15803d;
+}
+
+.sh-timeline-content {
+  flex: 1;
+  padding-top: 4px;
+}
+
+.sh-timeline-step {
+  font-weight: 1000;
+  font-size: 12px;
+  color: rgba(2, 6, 23, 0.9);
+  margin-bottom: 4px;
+}
+
+.sh-timeline-desc {
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(2, 6, 23, 0.6);
+}
+
+/* Documentation */
+.sh-docs {
+  background: rgba(2, 6, 23, 0.03);
+  border: 1px solid rgba(229, 234, 242, 0.95);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+.sh-docs-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: rgba(2, 6, 23, 0.6);
+}
+
+.sh-docs-title {
+  font-weight: 1000;
+  font-size: 12px;
+  color: rgba(2, 6, 23, 0.8);
+}
+
+.sh-docs-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sh-doc-tag {
+  background: #fff;
+  border: 1px solid rgba(229, 234, 242, 0.95);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(2, 6, 23, 0.7);
+}
+
+/* Consequences */
+.sh-consequences {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.06) 0%, rgba(220, 38, 38, 0.02) 100%);
+  border: 1px solid rgba(220, 38, 38, 0.15);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.sh-cons-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #dc2626;
+}
+
+.sh-cons-title {
+  font-weight: 1000;
+  font-size: 12px;
+  color: #dc2626;
+}
+
+.sh-cons-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sh-cons-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sh-cons-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 1000;
+  flex-shrink: 0;
+}
+
+.sh-cons-first {
+  background: rgba(245, 158, 11, 0.15);
+  color: #b45309;
+}
+
+.sh-cons-second {
+  background: rgba(249, 115, 22, 0.15);
+  color: #c2410c;
+}
+
+.sh-cons-third {
+  background: rgba(220, 38, 38, 0.15);
+  color: #b91c1c;
+}
+
+.sh-cons-text {
+  font-size: 11px;
+  color: rgba(2, 6, 23, 0.7);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .sh-responsibilities {
+    grid-template-columns: 1fr;
+  }
+  
+  .sh-banner {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .sh-banner-icon {
+    width: 36px;
+    height: 36px;
+  }
+}
