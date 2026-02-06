@@ -1639,11 +1639,11 @@ function renderFootwear(userData, saveUserPatch, publicData) {
   function ackRow(id, checked, text) {
     return `
       <label class="checkrow" style="
-        display:flex;gap:10px;align-items:flex-start;
-        padding:12px;border:1px solid rgba(229,234,242,.95);
-        border-radius:16px;margin-top:10px;
-        background:#fff;
-      ">
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  margin-top:10px;
+">
         <input type="checkbox" id="${escapeHtml(id)}" ${checked ? "checked" : ""}/>
         <span style="font-size:13px;line-height:1.35;">${escapeHtml(text)}</span>
       </label>
