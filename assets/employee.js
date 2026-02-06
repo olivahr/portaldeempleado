@@ -1663,333 +1663,271 @@ function renderProgress(userData, recordData) {
   );
 }
 
-// ===============================
-// CORPORATE SHIFT SELECTION SYSTEM
-// ===============================
-/* ============================================
-   SHIFT HANDOVER PROTOCOL STYLES
-   ============================================ */
+function renderShiftSelection(userData, saveUserPatch) {
+  const shift = userData?.shift || {};
+  const pos = shift.position || "";
+  const sh = shift.shift || "";
 
-/* Spacing utilities */
-.section-spacer {
-  height: 14px;
-}
+  setPage(
+    "Shift Selection",
+    "Choose your preferences (HR will confirm).",
+    `
+      <div class="azCard">
+        ${sectionHeader("Position Preference")}
+        <div class="shift-options">
+          ${posCard("assembler","Solar Panel Assembler","Hands-on assembly of solar panels.","$18–$23/hr",pos)}
+          ${posCard("material","Material Handler / Warehouse","Moves materials, inventory support.","$18–$22/hr",pos)}
+          ${posCard("qc","Quality Control / Inspection","Inspect panels for quality and safety.","$19–$23/hr",pos)}
+        </div>
 
-.shift-options {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+        <div class="section-spacer"></div>
 
-/* Shift selection cards enhancement */
-.shift-card {
-  box-shadow: none;
-  margin: 0;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
+        ${sectionHeader("Shift Preference")}
+        <div class="shift-options">
+          ${shiftCard("early","Early Shift","6:00 AM – 2:30 PM",sh)}
+          ${shiftCard("mid","Mid Shift","2:00 PM – 10:30 PM",sh)}
+          ${shiftCard("late","Late Shift","10:00 PM – 6:30 AM",sh)}
+        </div>
 
-.shift-card.selected {
-  border-color: rgba(22, 163, 74, 0.3);
-  background: rgba(22, 163, 74, 0.06);
-}
+        <div class="section-spacer"></div>
 
-.shift-card-inner {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-}
+        ${sectionHeader("Shift Handover Protocol")}
+        
+        <!-- Objective Banner -->
+        <div class="sh-banner">
+          <div class="sh-banner-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <div class="sh-banner-content">
+            <div class="sh-banner-title">Protocol Objective</div>
+            <div class="sh-banner-text">
+              Ensure a safe, efficient, and documented transfer of operational responsibility between shifts, maintaining continuity and full traceability of critical information.
+            </div>
+          </div>
+        </div>
 
-.shift-card-inner input {
-  margin-top: 3px;
-}
+        <!-- Responsibilities Grid -->
+        <div class="sh-responsibilities">
+          <div class="sh-resp-card sh-resp-outgoing">
+            <div class="sh-resp-header">
+              <div class="sh-resp-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 18l6-6-6-6"/>
+                </svg>
+              </div>
+              <div class="sh-resp-title">Outgoing Shift</div>
+            </div>
+            <ul class="sh-resp-list">
+              <li>Leave area safe & operational</li>
+              <li>Complete Digital Handover Form</li>
+              <li>Report incidents & pending items</li>
+              <li>Stay until acceptance signed</li>
+            </ul>
+          </div>
 
-.shift-card-content {
-  flex: 1;
-}
+          <div class="sh-resp-card sh-resp-incoming">
+            <div class="sh-resp-header">
+              <div class="sh-resp-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M15 18l-6-6 6-6"/>
+                </svg>
+              </div>
+              <div class="sh-resp-title">Incoming Shift</div>
+            </div>
+            <ul class="sh-resp-list">
+              <li>Arrive at meeting point on time</li>
+              <li>Review & verify all information</li>
+              <li>Accept via digital signature</li>
+              <li>Assume operational responsibility</li>
+            </ul>
+          </div>
+        </div>
 
-.shift-pay {
-  margin-top: 8px;
-  font-weight: 1000;
-  color: rgba(2, 6, 23, 0.8);
-}
+        <!-- Critical Verification Points -->
+        <div class="sh-verification">
+          <div class="sh-verify-header">
+            <div class="sh-verify-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
+            <div class="sh-verify-title">Mandatory Verification Points</div>
+          </div>
 
-/* Objective Banner */
-.sh-banner {
-  background: linear-gradient(135deg, rgba(29, 78, 216, 0.08) 0%, rgba(29, 78, 216, 0.03) 100%);
-  border: 1px solid rgba(29, 78, 216, 0.15);
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
+          <div class="sh-verify-items">
+            <div class="sh-verify-item sh-verify-safety">
+              <span class="sh-verify-badge">SAFETY</span>
+              <div class="sh-verify-text">
+                Incidents/accidents • Damaged PPE • Unresolved hazards • Pending equipment maintenance
+              </div>
+            </div>
 
-.sh-banner-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: rgba(29, 78, 216, 0.12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: rgba(29, 78, 216, 0.9);
-}
+            <div class="sh-verify-item sh-verify-operations">
+              <span class="sh-verify-badge">OPERATIONS</span>
+              <div class="sh-verify-text">
+                Incomplete urgent orders • Quarantined/damaged merchandise • Blocked/full locations • Inventory deviations
+              </div>
+            </div>
 
-.sh-banner-content {
-  flex: 1;
-}
+            <div class="sh-verify-item sh-verify-logistics">
+              <span class="sh-verify-badge">LOGISTICS</span>
+              <div class="sh-verify-text">
+                Pending trucks to load/unload • Scheduled supplier appointments • Pending documentation
+              </div>
+            </div>
+          </div>
+        </div>
 
-.sh-banner-title {
-  font-weight: 1000;
-  font-size: 13px;
-  color: rgba(29, 78, 216, 0.9);
-  margin-bottom: 6px;
-}
+        <!-- Step-by-Step Process -->
+        <div class="sh-process">
+          <div class="sh-process-title">Step-by-Step Process</div>
+          
+          <div class="sh-timeline">
+            <div class="sh-timeline-line"></div>
 
-.sh-banner-text {
-  font-size: 12px;
-  line-height: 1.6;
-  color: rgba(2, 6, 23, 0.75);
-  margin-bottom: 8px;
-}
+            <div class="sh-timeline-item">
+              <div class="sh-timeline-number">1</div>
+              <div class="sh-timeline-content">
+                <div class="sh-timeline-step">15 Minutes Before Shift End</div>
+                <div class="sh-timeline-desc">
+                  Outgoing supervisor prepares report in system. Team secures areas and documents pending items.
+                </div>
+              </div>
+            </div>
 
-.sh-banner-note {
-  font-size: 11px;
-  font-weight: 900;
-  color: rgba(22, 163, 74, 0.8);
-  padding: 6px 10px;
-  background: rgba(22, 163, 74, 0.08);
-  border-radius: 8px;
-  border-left: 3px solid rgba(22, 163, 74, 0.3);
-}
+            <div class="sh-timeline-item">
+              <div class="sh-timeline-number">2</div>
+              <div class="sh-timeline-content">
+                <div class="sh-timeline-step">Handover Moment (Overlapped)</div>
+                <div class="sh-timeline-desc">
+                  Physical/digital meeting at designated point. Joint review of handover form. Visual walkthrough of critical areas. Immediate doubt resolution.
+                </div>
+              </div>
+            </div>
 
-/* Responsibilities Grid */
-.sh-responsibilities {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 16px;
-}
+            <div class="sh-timeline-item">
+              <div class="sh-timeline-check">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+              <div class="sh-timeline-content">
+                <div class="sh-timeline-step">Completion & Acceptance</div>
+                <div class="sh-timeline-desc">
+                  Incoming supervisor verifies understanding. Digital acceptance signature in system. Automatic confirmation to Shift Control. Outgoing shift departs only after confirmation.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-.sh-resp-card {
-  border-radius: 16px;
-  padding: 14px;
-}
+        <!-- Required Documentation -->
+        <div class="sh-docs">
+          <div class="sh-docs-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+            <div class="sh-docs-title">Required Documentation</div>
+          </div>
+          <div class="sh-docs-tags">
+            <span class="sh-doc-tag">Digital Handover Form</span>
+            <span class="sh-doc-tag">Safety Checklist</span>
+            <span class="sh-doc-tag">Incident Report (if applicable)</span>
+            <span class="sh-doc-tag">Pending Orders Transfer</span>
+          </div>
+        </div>
 
-.sh-resp-outgoing {
-  background: rgba(245, 158, 11, 0.06);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-}
+        <!-- Non-Compliance Consequences -->
+        <div class="sh-consequences">
+          <div class="sh-cons-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <div class="sh-cons-title">Non-Compliance Consequences</div>
+          </div>
+          <div class="sh-cons-items">
+            <div class="sh-cons-item">
+              <div class="sh-cons-badge sh-cons-first">1st</div>
+              <div class="sh-cons-text">Verbal warning and mandatory training</div>
+            </div>
+            <div class="sh-cons-item">
+              <div class="sh-cons-badge sh-cons-second">2nd</div>
+              <div class="sh-cons-text">Written warning placed in employee file</div>
+            </div>
+            <div class="sh-cons-item">
+              <div class="sh-cons-badge sh-cons-third">3rd</div>
+              <div class="sh-cons-text">Suspension and competency reevaluation</div>
+            </div>
+          </div>
+        </div>
 
-.sh-resp-incoming {
-  background: rgba(22, 163, 74, 0.06);
-  border: 1px solid rgba(22, 163, 74, 0.2);
-}
+        <div class="section-spacer"></div>
 
-.sh-resp-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
+        <button class="btn primary" id="btnShiftSave" type="button" style="margin-top:14px;width:100%;border-radius:16px;">
+          Save Preferences
+        </button>
 
-.sh-resp-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+        <div class="small muted" style="margin-top:10px;line-height:1.35;">
+          Preferences only — final assignment is confirmed by HR.
+        </div>
+      </div>
+    `
+  );
 
-.sh-resp-outgoing .sh-resp-icon {
-  background: rgba(245, 158, 11, 0.15);
-  color: #b45309;
-}
-
-.sh-resp-incoming .sh-resp-icon {
-  background: rgba(22, 163, 74, 0.15);
-  color: #15803d;
-}
-
-.sh-resp-title {
-  font-weight: 1000;
-  font-size: 13px;
-}
-
-.sh-resp-outgoing .sh-resp-title {
-  color: #b45309;
-}
-
-.sh-resp-incoming .sh-resp-title {
-  color: #15803d;
-}
-
-.sh-resp-section {
-  margin-bottom: 12px;
-}
-
-.sh-resp-section:last-child {
-  margin-bottom: 0;
-}
-
-.sh-resp-label {
-  font-weight: 1000;
-  font-size: 11px;
-  color: rgba(2, 6, 23, 0.85);
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.sh-resp-list {
-  margin: 0;
-  padding-left: 16px;
-  font-size: 11px;
-  line-height: 1.7;
-  color: rgba(2, 6, 23, 0.7);
-}
-
-.sh-resp-list li {
-  margin-bottom: 2px;
-}
-
-.sh-resp-note {
-  font-size: 10px;
-  font-weight: 900;
-  color: rgba(2, 6, 23, 0.5);
-  margin-top: 6px;
-  padding: 4px 8px;
-  background: rgba(0, 0, 0, 0.03);
-  border-radius: 6px;
-  font-style: italic;
-}
-
-/* Verification Points */
-.sh-verification {
-  background: #fff;
-  border: 1px solid rgba(229, 234, 242, 0.95);
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
-}
-
-.sh-verify-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.sh-verify-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  background: rgba(220, 38, 38, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #dc2626;
-}
-
-.sh-verify-title {
-  font-weight: 1000;
-  font-size: 13px;
-  color: rgba(2, 6, 23, 0.9);
-}
-
-.sh-verify-items {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.sh-verify-item {
-  border-radius: 0 12px 12px 0;
-  padding: 12px;
-  border-left: 3px solid;
-}
-
-.sh-verify-safety {
-  background: rgba(220, 38, 38, 0.04);
-  border-left-color: #dc2626;
-}
-
-.sh-verify-operations {
-  background: rgba(29, 78, 216, 0.04);
-  border-left-color: #1d4ed8;
-}
-
-.sh-verify-logistics {
-  background: rgba(124, 58, 237, 0.04);
-  border-left-color: #7c3aed;
-}
-
-.sh-verify-badge {
-  display: inline-block;
-  font-size: 10px;
-  font-weight: 1000;
-  padding: 3px 8px;
-  border-radius: 999px;
-  color: #fff;
-  margin-bottom: 8px;
-}
-
-.sh-verify-safety .sh-verify-badge {
-  background: #dc2626;
-}
-
-.sh-verify-operations .sh-verify-badge {
-  background: #1d4ed8;
-}
-
-.sh-verify-logistics .sh-verify-badge {
-  background: #7c3aed;
-}
-
-.sh-verify-text ul {
-  margin: 0;
-  padding-left: 16px;
-  font-size: 11px;
-  line-height: 1.7;
-  color: rgba(2, 6, 23, 0.7);
-}
-
-.sh-verify-text li {
-  margin-bottom: 2px;
-}
-
-.sh-verify-note {
-  font-size: 10px;
-  font-weight: 900;
-  color: rgba(2, 6, 23, 0.5);
-  margin-top: 8px;
-  padding: 4px 8px;
-  background: rgba(0, 0, 0, 0.03);
-  border-radius: 6px;
-  font-style: italic;
-}
-
-/* Responsive adjustments */
-@media (max-width: 720px) {
-  .sh-responsibilities {
-    grid-template-columns: 1fr;
+  function posCard(key, title, desc, pay, selectedKey) {
+    const selected = selectedKey === key;
+    return `
+      <label class="azCard shift-card ${selected ? 'selected' : ''}">
+        <div class="shift-card-inner">
+          <input type="radio" name="pos" value="${escapeHtml(key)}" ${selected ? "checked" : ""}/>
+          <div class="shift-card-content">
+            <div class="azCardTitle">${escapeHtml(title)}</div>
+            <div class="azCardSub">${escapeHtml(desc)}</div>
+            <div class="shift-pay">Pay Range: ${escapeHtml(pay)}</div>
+          </div>
+        </div>
+      </label>
+    `;
   }
-  
-  .sh-banner {
-    flex-direction: column;
-    gap: 10px;
+
+  function shiftCard(key, title, hours, selectedKey) {
+    const selected = selectedKey === key;
+    return `
+      <label class="azCard shift-card ${selected ? 'selected' : ''}">
+        <div class="shift-card-inner">
+          <input type="radio" name="shift" value="${escapeHtml(key)}" ${selected ? "checked" : ""}/>
+          <div class="shift-card-content">
+            <div class="azCardTitle">${escapeHtml(title)}</div>
+            <div class="azCardSub">${escapeHtml(hours)}</div>
+          </div>
+        </div>
+      </label>
+    `;
   }
-  
-  .sh-banner-icon {
-    width: 36px;
-    height: 36px;
-  }
+
+  document.getElementById("btnShiftSave").onclick = async () => {
+    const position = document.querySelector("input[name=pos]:checked")?.value || "";
+    const shiftKey = document.querySelector("input[name=shift]:checked")?.value || "";
+    if (!position || !shiftKey) return uiToast("Please select 1 position and 1 shift.");
+
+    const steps = (userData.steps || []).map(s =>
+      s.id === "shift_selection" ? ({ ...s, done: true }) : s
+    );
+
+    await saveUserPatch({ shift: { position, shift: shiftKey }, steps, stage: "footwear" });
+    uiToast("Preferences saved.");
+    location.hash = "#footwear";
+  };
 }
 function renderI9(userData, saveUserPatch) {
   const i9 = userData?.i9 || {};
