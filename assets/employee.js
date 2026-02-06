@@ -1774,10 +1774,10 @@ function renderFootwear(userData, saveUserPatch, publicData) {
         <div style="height:14px"></div>
 
         <button class="btn primary" id="btnFootwearComplete" type="button"
-          style="display:block;width:100%;text-align:center;border-radius:16px;padding:14px;">
-          ${done ? "Saved" : "Complete Safety Footwear Requirement"}
-        </button>
-
+  style="display:block;width:100%;text-align:center;border-radius:16px;padding:14px;">
+  Complete Safety Footwear Requirement
+</button>
+       
         <div class="small muted" style="margin-top:10px;line-height:1.35;">
           This step is required to complete your onboarding.
         </div>
@@ -1794,20 +1794,23 @@ function renderFootwear(userData, saveUserPatch, publicData) {
 
   const btn = document.getElementById("btnFootwearComplete");
 
-  const syncBtn = () => {
-    const a1 = document.getElementById("fwAck1")?.checked;
-    const a2 = document.getElementById("fwAck2")?.checked;
-    const a3 = document.getElementById("fwAck3")?.checked;
-    const a4 = document.getElementById("fwAck4")?.checked;
-    const a5 = document.getElementById("fwAck5")?.checked;
-    const all = !!(a1 && a2 && a3 && a4 && a5);
+const shopUrl = (fwPublic && fwPublic.shopUrl) ? String(fwPublic.shopUrl) : "";
+const visited = localStorage.getItem("fwShopVisited") === "1";
+  
+ const syncBtn = () => {
+  const a1 = document.getElementById("fwAck1")?.checked;
+  const a2 = document.getElementById("fwAck2")?.checked;
+  const a3 = document.getElementById("fwAck3")?.checked;
+  const a4 = document.getElementById("fwAck4")?.checked;
+  const a5 = document.getElementById("fwAck5")?.checked;
 
-    if (btn) {
-      btn.disabled = !all;
-      btn.style.opacity = all ? "1" : ".75";
-    }
-  };
+  const allAcks = !!(a1 && a2 && a3 && a4 && a5);
 
+  if (btn) {
+    btn.disabled = !allAcks;
+    btn.style.opacity = allAcks ? "1" : ".75";
+  }
+};
   ["fwAck1", "fwAck2", "fwAck3", "fwAck4", "fwAck5"].forEach(x => {
     const el = document.getElementById(x);
     if (el) el.addEventListener("change", syncBtn);
@@ -1816,27 +1819,42 @@ function renderFootwear(userData, saveUserPatch, publicData) {
   syncBtn();
 
   if (btn) {
-    btn.onclick = async () => {
-      const a1 = document.getElementById("fwAck1").checked;
-      const a2 = document.getElementById("fwAck2").checked;
-      const a3 = document.getElementById("fwAck3").checked;
-      const a4 = document.getElementById("fwAck4").checked;
-      const a5 = document.getElementById("fwAck5").checked;
-      if (!a1 || !a2 || !a3 || !a4 || !a5) return uiToast("Please confirm all items to continue.");
+  btn.onclick = async () => {
 
-      const newSteps = (steps || []).map(s =>
-        s.id === "footwear" ? ({ ...s, done: true }) : s
-      );
+  const a1 = document.getElementById("fwAck1").checked;
+  const a2 = document.getElementById("fwAck2").checked;
+  const a3 = document.getElementById("fwAck3").checked;
+  const a4 = document.getElementById("fwAck4").checked;
+  const a5 = document.getElementById("fwAck5").checked;
 
-      await saveUserPatch({
-        footwear: { ack1: a1, ack2: a2, ack3: a3, ack4: a4, ack5: a5 },
-        steps: newSteps,
-        stage: "i9"
-      });
+  if (!a1 || !a2 || !a3 || !a4 || !a5) {
+    uiToast("Confirm all items first.");
+    return;
+  }
 
-      uiToast("Safety footwear saved.");
-      location.hash = "#i9";
-    };
+  const visited = localStorage.getItem("fwShopVisited");
+
+  // 👉 PRIMER TOQUE = abrir tienda
+  if (!visited) {
+    localStorage.setItem("fwShopVisited", "1");
+    window.open(fwPublic.shopUrl, "_blank");
+    return;
+  }
+
+  // 👉 SEGUNDO TOQUE = completar step
+  const newSteps = (steps || []).map(s =>
+    s.id === "footwear" ? ({ ...s, done: true }) : s
+  );
+
+  await saveUserPatch({
+    footwear: { ack1:a1, ack2:a2, ack3:a3, ack4:a4, ack5:a5 },
+    steps: newSteps,
+    stage: "i9"
+  });
+
+  uiToast("Footwear requirement completed.");
+  location.hash = "#i9";
+};
   }
 }
 
