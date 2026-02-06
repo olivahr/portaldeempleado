@@ -1703,7 +1703,7 @@ function renderShiftSelection(userData, saveUserPatch) {
           <div class="sh-banner-content">
             <div class="sh-banner-title">Protocol Objective</div>
             <div class="sh-banner-text">
-              Ensure a safe, efficient, and documented transfer of operational responsibility between shifts, maintaining continuity and full traceability of critical information.
+              Ensure the next shift can continue production without delays, safety risks, or quality issues. All unfinished work, material issues, and equipment problems must be clearly reported before leaving.
             </div>
           </div>
         </div>
@@ -1719,12 +1719,69 @@ function renderShiftSelection(userData, saveUserPatch) {
               </div>
               <div class="sh-resp-title">Outgoing Shift</div>
             </div>
-            <ul class="sh-resp-list">
-              <li>Leave area safe & operational</li>
-              <li>Complete Digital Handover Form</li>
-              <li>Report incidents & pending items</li>
-              <li>Stay until acceptance signed</li>
-            </ul>
+            
+            <div class="sh-resp-section">
+              <div class="sh-resp-label">Production Status</div>
+              <ul class="sh-resp-list">
+                <li>Exact number of panels completed</li>
+                <li>Units still in process</li>
+                <li>Any line downtime during shift</li>
+                <li>Reason for downtime (material, machine, labor)</li>
+              </ul>
+              <div class="sh-resp-note">Esto es lo primero que siempre preguntan.</div>
+            </div>
+
+            <div class="sh-resp-section">
+              <div class="sh-resp-label">Workstation Condition</div>
+              <ul class="sh-resp-list">
+                <li>Tables cleared of glass debris</li>
+                <li>No loose solar cells left exposed</li>
+                <li>Tools returned to shadow boards</li>
+                <li>Trash and scrap disposed</li>
+              </ul>
+              <div class="sh-resp-note">El vidrio y células rotas son peligro real.</div>
+            </div>
+
+            <div class="sh-resp-section">
+              <div class="sh-resp-label">Quality Issues</div>
+              <ul class="sh-resp-list">
+                <li>Any cracked cells found</li>
+                <li>Panels flagged for rework</li>
+                <li>Failed flash test or EL test units</li>
+                <li>Misaligned frames or wiring issues</li>
+              </ul>
+              <div class="sh-resp-note">QA es crítico en solar assembly.</div>
+            </div>
+
+            <div class="sh-resp-section">
+              <div class="sh-resp-label">Material Levels</div>
+              <ul class="sh-resp-list">
+                <li>Low stock on: Cells, Glass, Frames, Junction boxes, Sealant</li>
+                <li>Damaged material reported</li>
+              </ul>
+              <div class="sh-resp-note">Si no se reporta, la línea se para.</div>
+            </div>
+
+            <div class="sh-resp-section">
+              <div class="sh-resp-label">Equipment Status</div>
+              <ul class="sh-resp-list">
+                <li>Laminator running or down</li>
+                <li>Soldering stations working</li>
+                <li>Test stations operational</li>
+                <li>Any machine acting abnormal</li>
+              </ul>
+              <div class="sh-resp-note">Esto ahorra horas de troubleshooting.</div>
+            </div>
+
+            <div class="sh-resp-section">
+              <div class="sh-resp-label">Sign-Off</div>
+              <ul class="sh-resp-list">
+                <li>Digital log completed</li>
+                <li>Supervisor notified</li>
+                <li>Incoming shift briefed if present</li>
+              </ul>
+              <div class="sh-resp-note">Nadie se va sin reportar.</div>
+            </div>
           </div>
 
           <div class="sh-resp-card sh-resp-incoming">
@@ -1736,12 +1793,57 @@ function renderShiftSelection(userData, saveUserPatch) {
               </div>
               <div class="sh-resp-title">Incoming Shift</div>
             </div>
-            <ul class="sh-resp-list">
-              <li>Arrive at meeting point on time</li>
-              <li>Review & verify all information</li>
-              <li>Accept via digital signature</li>
-              <li>Assume operational responsibility</li>
-            </ul>
+
+            <div class="sh-resp-section">
+              <div class="sh-resp-label">Clock-in & PPE</div>
+              <ul class="sh-resp-list">
+                <li>Safety glasses</li>
+                <li>Cut-resistant gloves</li>
+                <li>Anti-static strap if required</li>
+                <li>Steel toe boots</li>
+              </ul>
+              <div class="sh-resp-note">Sin PPE no trabajan. Punto.</div>
+            </div>
+
+            <div class="sh-resp-section">
+              <div class="sh-resp-label">Check the Board</div>
+              <ul class="sh-resp-list">
+                <li>Production board numbers</li>
+                <li>Daily target</li>
+                <li>Current progress</li>
+                <li>Downtime notes</li>
+              </ul>
+              <div class="sh-resp-note">Siempre hay un production board físico o digital.</div>
+            </div>
+
+            <div class="sh-resp-section">
+              <div class="sh-resp-label">Line Walk</div>
+              <ul class="sh-resp-list">
+                <li>Quick walk through the line</li>
+                <li>Look for broken glass</li>
+                <li>Check panel racks</li>
+                <li>Verify materials staged</li>
+              </ul>
+              <div class="sh-resp-note">Los leads hacen esto siempre.</div>
+            </div>
+
+            <div class="sh-resp-section">
+              <div class="sh-resp-label">Ask Questions</div>
+              <ul class="sh-resp-list">
+                <li>Any rework pending?</li>
+                <li>Any bad batch of cells?</li>
+                <li>Any machine issue?</li>
+              </ul>
+              <div class="sh-resp-note">El handover verbal es normal.</div>
+            </div>
+
+            <div class="sh-resp-section">
+              <div class="sh-resp-label">Accept Shift</div>
+              <ul class="sh-resp-list">
+                <li>Digital or verbal acknowledgment</li>
+                <li>Supervisor assigns stations</li>
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -1762,111 +1864,25 @@ function renderShiftSelection(userData, saveUserPatch) {
             <div class="sh-verify-item sh-verify-safety">
               <span class="sh-verify-badge">SAFETY</span>
               <div class="sh-verify-text">
-                Incidents/accidents • Damaged PPE • Unresolved hazards • Pending equipment maintenance
+                Broken glass on floor • Loose wiring on stations • Chemical spills (sealant/cleaners) • Unsafe panel stacking • PPE compliance
               </div>
+              <div class="sh-verify-note">Safety en solar es serio por vidrio y electricidad.</div>
             </div>
 
             <div class="sh-verify-item sh-verify-operations">
               <span class="sh-verify-badge">OPERATIONS</span>
               <div class="sh-verify-text">
-                Incomplete urgent orders • Quarantined/damaged merchandise • Blocked/full locations • Inventory deviations
+                Panels waiting lamination • Panels waiting testing • Rework queue • Production behind schedule • Wrong BOM used
               </div>
+              <div class="sh-verify-note">BOM errors cuestan miles.</div>
             </div>
 
             <div class="sh-verify-item sh-verify-logistics">
               <span class="sh-verify-badge">LOGISTICS</span>
               <div class="sh-verify-text">
-                Pending trucks to load/unload • Scheduled supplier appointments • Pending documentation
+                Finished pallets staged • Crates labeled correctly • Pending pickups • Incoming material not received yet
               </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step-by-Step Process -->
-        <div class="sh-process">
-          <div class="sh-process-title">Step-by-Step Process</div>
-          
-          <div class="sh-timeline">
-            <div class="sh-timeline-line"></div>
-
-            <div class="sh-timeline-item">
-              <div class="sh-timeline-number">1</div>
-              <div class="sh-timeline-content">
-                <div class="sh-timeline-step">15 Minutes Before Shift End</div>
-                <div class="sh-timeline-desc">
-                  Outgoing supervisor prepares report in system. Team secures areas and documents pending items.
-                </div>
-              </div>
-            </div>
-
-            <div class="sh-timeline-item">
-              <div class="sh-timeline-number">2</div>
-              <div class="sh-timeline-content">
-                <div class="sh-timeline-step">Handover Moment (Overlapped)</div>
-                <div class="sh-timeline-desc">
-                  Physical/digital meeting at designated point. Joint review of handover form. Visual walkthrough of critical areas. Immediate doubt resolution.
-                </div>
-              </div>
-            </div>
-
-            <div class="sh-timeline-item">
-              <div class="sh-timeline-check">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-              </div>
-              <div class="sh-timeline-content">
-                <div class="sh-timeline-step">Completion & Acceptance</div>
-                <div class="sh-timeline-desc">
-                  Incoming supervisor verifies understanding. Digital acceptance signature in system. Automatic confirmation to Shift Control. Outgoing shift departs only after confirmation.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Required Documentation -->
-        <div class="sh-docs">
-          <div class="sh-docs-header">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="16" y1="13" x2="8" y2="13"/>
-              <line x1="16" y1="17" x2="8" y2="17"/>
-              <polyline points="10 9 9 9 8 9"/>
-            </svg>
-            <div class="sh-docs-title">Required Documentation</div>
-          </div>
-          <div class="sh-docs-tags">
-            <span class="sh-doc-tag">Digital Handover Form</span>
-            <span class="sh-doc-tag">Safety Checklist</span>
-            <span class="sh-doc-tag">Incident Report (if applicable)</span>
-            <span class="sh-doc-tag">Pending Orders Transfer</span>
-          </div>
-        </div>
-
-        <!-- Non-Compliance Consequences -->
-        <div class="sh-consequences">
-          <div class="sh-cons-header">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="8" x2="12" y2="12"/>
-              <line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            <div class="sh-cons-title">Non-Compliance Consequences</div>
-          </div>
-          <div class="sh-cons-items">
-            <div class="sh-cons-item">
-              <div class="sh-cons-badge sh-cons-first">1st</div>
-              <div class="sh-cons-text">Verbal warning and mandatory training</div>
-            </div>
-            <div class="sh-cons-item">
-              <div class="sh-cons-badge sh-cons-second">2nd</div>
-              <div class="sh-cons-text">Written warning placed in employee file</div>
-            </div>
-            <div class="sh-cons-item">
-              <div class="sh-cons-badge sh-cons-third">3rd</div>
-              <div class="sh-cons-text">Suspension and competency reevaluation</div>
+              <div class="sh-verify-note">Si se equivoca logística, se retrasan envíos.</div>
             </div>
           </div>
         </div>
