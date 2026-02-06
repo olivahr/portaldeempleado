@@ -1504,33 +1504,202 @@ function renderShiftSelection(userData, saveUserPatch) {
     "Shift Selection",
     "Choose your preferences (HR will confirm).",
     `
-      <div class="azCard">
-        ${sectionHeader("Position Preference")}
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          ${posCard("assembler","Solar Panel Assembler","Hands-on assembly of solar panels.","$18–$23/hr",pos)}
-          ${posCard("material","Material Handler / Warehouse","Moves materials, inventory support.","$18–$22/hr",pos)}
-          ${posCard("qc","Quality Control / Inspection","Inspect panels for quality and safety.","$19–$23/hr",pos)}
+      <div class="ss-wrap">
+
+        <!-- Intro / Why this matters -->
+        <div class="ss-hero">
+          <div class="ss-hero-title">Shift selection is required</div>
+          <div class="ss-hero-sub">
+            Select your position and shift preference. HR will review capacity and confirm your final assignment.
+            This step must be completed to continue onboarding.
+          </div>
+
+          <div class="ss-badges">
+            <span class="ss-badge">Warehouse / Production</span>
+            <span class="ss-badge">HR Confirmation</span>
+            <span class="ss-badge">Required Step</span>
+          </div>
         </div>
 
-        <div style="height:14px"></div>
-
-        ${sectionHeader("Shift Preference")}
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          ${shiftCard("early","Early Shift","6:00 AM – 2:30 PM",sh)}
-          ${shiftCard("mid","Mid Shift","2:00 PM – 10:30 PM",sh)}
-          ${shiftCard("late","Late Shift","10:00 PM – 6:30 AM",sh)}
+        <!-- What to expect -->
+        <div class="ss-card">
+          <div class="ss-card-title">What to expect</div>
+          <ul class="ss-list">
+            <li>Preferences are submitted immediately.</li>
+            <li>Final shift assignment depends on staffing, training seats, and business needs.</li>
+            <li>HR may contact you if an alternate shift is needed.</li>
+            <li>Once confirmed, your schedule will appear in the Schedule module.</li>
+          </ul>
         </div>
 
-        <button class="btn primary" id="btnShiftSave" type="button" style="margin-top:14px;width:100%;border-radius:16px;">
+        <!-- Position -->
+        <div class="ss-card">
+          <div class="ss-sec-head">
+            <div class="ss-sec-title">Position Preference</div>
+            <div class="ss-sec-sub">Choose 1 option</div>
+          </div>
+
+          <div class="ss-choice-col">
+            ${posCard("assembler","Solar Panel Assembler","Hands-on assembly of solar panels.","$18–$23/hr",pos)}
+            ${posCard("material","Material Handler / Warehouse","Moves materials, inventory support.","$18–$22/hr",pos)}
+            ${posCard("qc","Quality Control / Inspection","Inspect panels for quality and safety.","$19–$23/hr",pos)}
+          </div>
+
+          <div class="ss-note">
+            Note: Pay range shown is an estimate. Final pay is confirmed by HR based on experience and assignment.
+          </div>
+        </div>
+
+        <!-- Shift -->
+        <div class="ss-card">
+          <div class="ss-sec-head">
+            <div class="ss-sec-title">Shift Preference</div>
+            <div class="ss-sec-sub">Choose 1 option</div>
+          </div>
+
+          <div class="ss-choice-col">
+            ${shiftCard("early","Early Shift","6:00 AM – 2:30 PM",sh)}
+            ${shiftCard("mid","Mid Shift","2:00 PM – 10:30 PM",sh)}
+            ${shiftCard("late","Late Shift","10:00 PM – 6:30 AM",sh)}
+          </div>
+
+          <div class="ss-kv">
+            <div class="k">Attendance</div>
+            <div class="v">Arrive on time. Repeated tardiness may impact assignment.</div>
+
+            <div class="k">Overtime</div>
+            <div class="v">OT may be offered based on business needs and eligibility.</div>
+
+            <div class="k">Training</div>
+            <div class="v">Your first days include safety + role training. Shift choice affects training time slots.</div>
+          </div>
+        </div>
+
+        <!-- Policies / Requirements -->
+        <div class="ss-card">
+          <div class="ss-card-title">Important requirements</div>
+          <ul class="ss-list">
+            <li>Bring required documents for I-9 on your first day (original, unexpired).</li>
+            <li>Safety footwear is mandatory for operational roles (you will complete that step next).</li>
+            <li>HR will confirm your start date/time and check-in instructions.</li>
+            <li>Keep your contact information accurate for updates and confirmations.</li>
+          </ul>
+
+          <div class="ss-alert">
+            <div class="ss-alert-title">Security</div>
+            <div class="ss-alert-sub">
+              Do not share your Employee ID or personal information by text message or social media.
+            </div>
+          </div>
+        </div>
+
+        <!-- Action -->
+        <button class="btn primary ss-save" id="btnShiftSave" type="button">
           Save Preferences
         </button>
 
-        <div class="small muted" style="margin-top:10px;line-height:1.35;">
+        <div class="ss-footnote">
           Preferences only — final assignment is confirmed by HR.
         </div>
+
+        <!-- Confetti container (CSS handles visuals) -->
+        <div id="ssConfetti" class="ss-confetti" aria-hidden="true"></div>
+
       </div>
     `
   );
+
+  // ---------- MARKUP HELPERS (NO inline style) ----------
+  function posCard(key, title, desc, pay, selectedKey) {
+    const selected = selectedKey === key;
+    return `
+      <label class="ss-choice ${selected ? "is-selected" : ""}">
+        <span class="ss-radio">
+          <input type="radio" name="pos" value="${escapeHtml(key)}" ${selected ? "checked" : ""}/>
+        </span>
+
+        <span class="ss-choice-body">
+          <span class="ss-choice-title">${escapeHtml(title)}</span>
+          <span class="ss-choice-sub">${escapeHtml(desc)}</span>
+          <span class="ss-choice-meta">Pay Range: ${escapeHtml(pay)}</span>
+        </span>
+      </label>
+    `;
+  }
+
+  function shiftCard(key, title, hours, selectedKey) {
+    const selected = selectedKey === key;
+    return `
+      <label class="ss-choice ${selected ? "is-selected" : ""}">
+        <span class="ss-radio">
+          <input type="radio" name="shift" value="${escapeHtml(key)}" ${selected ? "checked" : ""}/>
+        </span>
+
+        <span class="ss-choice-body">
+          <span class="ss-choice-title">${escapeHtml(title)}</span>
+          <span class="ss-choice-sub">${escapeHtml(hours)}</span>
+        </span>
+      </label>
+    `;
+  }
+
+  // ---------- Save ----------
+  const btn = document.getElementById("btnShiftSave");
+  if (btn) {
+    btn.onclick = async () => {
+      const position = document.querySelector("input[name=pos]:checked")?.value || "";
+      const shiftKey = document.querySelector("input[name=shift]:checked")?.value || "";
+
+      if (!position || !shiftKey) {
+        uiToast("Please select 1 position and 1 shift.");
+        return;
+      }
+
+      // Complete step in Progress
+      const steps = (userData.steps || []).map(s =>
+        s.id === "shift_selection" ? ({ ...s, done: true }) : s
+      );
+
+      await saveUserPatch({
+        shift: { position, shift: shiftKey },
+        steps,
+        stage: "footwear"
+      });
+
+      // UX: congrats + confetti
+      uiToast("Preferences saved. HR will confirm your final assignment.");
+      fireShiftConfetti();
+
+      // Next step
+      setTimeout(() => {
+        location.hash = "#footwear";
+      }, 700);
+    };
+  }
+
+  function fireShiftConfetti() {
+    const host = document.getElementById("ssConfetti");
+    if (!host) return;
+
+    // reset
+    host.innerHTML = "";
+    host.classList.remove("run");
+    // build particles (CSS animates)
+    const count = 26;
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement("span");
+      p.className = "ss-confetti-piece";
+      p.style.setProperty("--i", String(i)); // (esto NO es estilo visual; solo variable de animación)
+      host.appendChild(p);
+    }
+    host.classList.add("run");
+
+    setTimeout(() => {
+      host.classList.remove("run");
+      host.innerHTML = "";
+    }, 1400);
+  }
+}
 
   function posCard(key, title, desc, pay, selectedKey) {
     const selected = selectedKey === key;
