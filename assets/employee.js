@@ -1521,9 +1521,80 @@ function renderShiftSelection(userData, saveUserPatch) {
           ${shiftCard("late","Late Shift","10:00 PM – 6:30 AM",sh)}
         </div>
 
-        <button class="btn primary" id="btnShiftSave" type="button" style="margin-top:14px;width:100%;border-radius:16px;">
-          Save Preferences
-        </button>
+        
+         <div class="azCard" style="box-shadow:none;border-radius:14px;margin-top:12px;">
+  <div class="azCardTitle">SHIFT SELECTION</div>
+
+  <div class="azCardSub" style="margin-top:8px;line-height:1.55;">
+    Select and Save Your Work Shift
+  </div>
+
+  <div class="muted" style="margin-top:10px;line-height:1.55;">
+    In this section, you will choose your official work shift for onboarding.
+    The shift you select will be saved to your employee profile and will be used for your first day and initial work schedule.
+  </div>
+
+  <div style="height:12px"></div>
+
+  <div style="font-weight:1000;">How It Works</div>
+  <ol class="muted" style="margin:8px 0 0 18px;line-height:1.55;">
+    <li>Review the available shifts and their exact schedules</li>
+    <li>Select the shift that works best for you</li>
+    <li>Click “Save” or “Confirm Shift”</li>
+    <li>The system will display your shift as Saved / Confirmed</li>
+    <li>Your selection will remain visible in your portal profile</li>
+  </ol>
+
+  <div style="height:12px"></div>
+
+  <div style="font-weight:1000;">Important Notes</div>
+  <ul class="muted" style="margin:8px 0 0 18px;line-height:1.55;">
+    <li>Please review your shift carefully before saving.</li>
+    <li>Your selection will be recorded as your onboarding shift.</li>
+    <li>If you need to correct your selection, follow the portal instructions (if editing is enabled) or contact HR/support if applicable.</li>
+  </ul>
+
+  <div style="height:12px"></div>
+
+  <div style="font-weight:1000;">Shift Confirmation</div>
+  <div class="muted" style="margin-top:8px;line-height:1.55;">
+    Once your shift is successfully saved, you will see a message such as:
+  </div>
+  <div class="muted" style="margin-top:8px;line-height:1.55;">
+    ✅ Shift Saved<br/>
+    ✅ Shift Confirmed
+  </div>
+  <div class="muted" style="margin-top:8px;line-height:1.55;">
+    Your selected schedule will also appear in your profile.
+  </div>
+
+  <div style="height:12px"></div>
+
+  <div style="font-weight:1000;">Attendance Reminder</div>
+  <div class="muted" style="margin-top:8px;line-height:1.55;">
+    Employees are expected to report to work according to the shift they select.
+    Punctuality and reliability are important for a smooth onboarding experience.
+  </div>
+
+  <div style="height:12px"></div>
+
+  <div style="font-weight:1000;">Employee Acknowledgment</div>
+  <div class="muted" style="margin-top:8px;line-height:1.55;">
+    By saving your shift, you confirm that:
+  </div>
+  <ul class="muted" style="margin:8px 0 0 18px;line-height:1.55;">
+    <li>You reviewed the selected shift schedule</li>
+    <li>You are available for that schedule</li>
+    <li>You understand it will be stored in your profile for onboarding</li>
+  </ul>
+</div>
+
+<button class="btn primary" id="btnShiftSave" type="button" style="margin-top:14px;width:100%;border-radius:16px;">
+  style="margin-top:14px;width:100%;border-radius:16px;">
+
+  Save Preferences
+
+</button>
 
         <div class="small muted" style="margin-top:10px;line-height:1.35;">
           Preferences only — final assignment is confirmed by HR.
