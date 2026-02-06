@@ -1237,132 +1237,96 @@ body.sp-login{
   margin-bottom:10px;
 }
 
-/* ===== FOOTWEAR ULTRA PREMIUM FULL ===== */
+/* ===== FORCE PREMIUM FOOTWEAR UI ===== */
 
-/* Contenedor principal */
-.azCard{
-  background:#fff;
-  border-radius:26px;
-  padding:26px;
-  box-shadow:
-    0 4px 10px rgba(0,0,0,.04),
-    0 24px 60px rgba(0,0,0,.06);
-}
-
-/* Títulos */
-.azCard h3{
-  font-size:24px;
-  font-weight:800;
-  letter-spacing:-.3px;
-  margin-bottom:18px;
-  color:#0f172a;
-}
-
-/* Texto general dentro */
-.azCard p,
-.azCard li{
-  font-size:15.5px;
-  line-height:1.7;
-  color:#334155;
-}
-
-/* Listas */
-.azCard ul{
-  padding-left:20px;
-}
-.azCard li{
-  margin-bottom:8px;
-}
-
-/* ===== Acknowledgement rows ===== */
-
-.checkrow{
-  display:flex;
-  gap:14px;
-  align-items:flex-start;
-
-  background:linear-gradient(180deg,#f8fafc,#f1f5f9);
-  padding:18px;
-  border-radius:20px;
-  border:1px solid #e2e8f0;
-
-  transition:.25s;
-}
-
-.checkrow:hover{
-  background:#eef2f7;
-  border-color:#bfdbfe;
-  transform:translateY(-2px);
-}
-
-/* checkbox moderno */
-.checkrow input{
-  transform:scale(1.45);
-  accent-color:#2563eb;
-  margin-top:4px;
-}
-
-/* texto del ack */
-.checkrow label{
-  font-size:15.5px;
-  line-height:1.6;
-  color:#0f172a;
-  font-weight:500;
-}
-
-/* ===== BOTÓN SUPER PREMIUM ===== */
-
-#btnFootwearComplete{
-  width:100%;
-  margin-top:14px;
-
-  background:linear-gradient(135deg,#2563eb,#1e40af);
-  border:none;
-  border-radius:22px;
-
-  padding:20px;
-  font-size:18px;
-  font-weight:700;
-  letter-spacing:.4px;
+/* Card principal */
+body .azCard{
+  background:#ffffff !important;
+  border-radius:26px !important;
+  padding:26px !important;
 
   box-shadow:
-    0 10px 30px rgba(37,99,235,.35);
-
-  transition:.25s;
+    0 10px 25px rgba(0,0,0,.05),
+    0 30px 60px rgba(0,0,0,.08) !important;
 }
 
-#btnFootwearComplete:hover{
-  transform:translateY(-3px);
+/* Texto */
+body .azCard p,
+body .azCard li,
+body .azCard span{
+  font-size:16px !important;
+  line-height:1.7 !important;
+  color:#334155 !important;
+}
+
+/* Lists */
+body .azCard ul{
+  padding-left:22px !important;
+}
+
+/* ACK ROWS */
+body .checkrow{
+  background:linear-gradient(180deg,#f8fafc,#eef2f7) !important;
+  padding:20px !important;
+  border-radius:20px !important;
+  border:1px solid #e2e8f0 !important;
+
+  transition:.25s !important;
+}
+
+body .checkrow:hover{
+  background:#e0f2fe !important;
+  transform:translateY(-2px) !important;
+}
+
+body .checkrow input{
+  transform:scale(1.5) !important;
+  accent-color:#2563eb !important;
+}
+
+/* BOTÓN */
+body #btnFootwearComplete{
+  width:100% !important;
+  padding:20px !important;
+
+  background:linear-gradient(135deg,#2563eb,#1e40af) !important;
+  border:none !important;
+  border-radius:22px !important;
+
+  font-size:18px !important;
+  font-weight:700 !important;
+  letter-spacing:.4px !important;
+
   box-shadow:
-    0 16px 36px rgba(37,99,235,.45);
+    0 12px 30px rgba(37,99,235,.35) !important;
+
+  transition:.25s !important;
 }
 
-#btnFootwearComplete:disabled{
-  background:#cbd5f5;
-  box-shadow:none;
+body #btnFootwearComplete:hover{
+  transform:translateY(-3px) !important;
+  box-shadow:
+    0 18px 40px rgba(37,99,235,.45) !important;
 }
 
-/* ===== INFO BOXES ===== */
-
-.small.muted{
-  background:linear-gradient(#f8fafc,#f1f5f9);
-  padding:18px;
-  border-radius:18px;
-  border:1px solid #e2e8f0;
-
-  font-size:14.5px;
-  line-height:1.6;
-  color:#475569;
+body #btnFootwearComplete:disabled{
+  background:#cbd5f5 !important;
+  box-shadow:none !important;
 }
 
-/* Security note especial */
-.small.muted:last-child{
-  background:#fff7ed;
-  border:1px solid #fed7aa;
-  color:#9a3412;
+/* INFO BOXES */
+body .small.muted{
+  background:linear-gradient(#f8fafc,#f1f5f9) !important;
+  padding:18px !important;
+  border-radius:18px !important;
+  border:1px solid #e2e8f0 !important;
+
+  font-size:14.5px !important;
 }
 
-/* Espaciado perfecto entre bloques */
-.azCard > *{
-  margin-bottom:16px;
+/* Security note */
+body .small.muted:last-child{
+  background:#fff7ed !important;
+  border:1px solid #fed7aa !important;
+  color:#9a3412 !important;
 }
