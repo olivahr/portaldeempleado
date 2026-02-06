@@ -1701,60 +1701,6 @@ function renderShiftSelection(userData, saveUserPatch) {
   }
 }
 
-  function posCard(key, title, desc, pay, selectedKey) {
-    const selected = selectedKey === key;
-    return `
-      <label class="azCard" style="
-        box-shadow:none;
-        border:1px solid ${selected ? "rgba(22,163,74,.30)" : "rgba(229,234,242,.95)"};
-        background:${selected ? "rgba(22,163,74,.06)" : "#fff"};
-        margin:0;
-      ">
-        <div style="display:flex;gap:10px;align-items:flex-start;">
-          <input type="radio" name="pos" value="${escapeHtml(key)}" ${selected ? "checked" : ""} style="margin-top:3px;"/>
-          <div style="flex:1;">
-            <div class="azCardTitle">${escapeHtml(title)}</div>
-            <div class="azCardSub" style="margin-top:6px;line-height:1.4;">${escapeHtml(desc)}</div>
-            <div class="azCardSub" style="margin-top:8px;font-weight:1000;">Pay Range: ${escapeHtml(pay)}</div>
-          </div>
-        </div>
-      </label>
-    `;
-  }
-
-  function shiftCard(key, title, hours, selectedKey) {
-    const selected = selectedKey === key;
-    return `
-      <label class="azCard" style="
-        box-shadow:none;
-        border:1px solid ${selected ? "rgba(22,163,74,.30)" : "rgba(229,234,242,.95)"};
-        background:${selected ? "rgba(22,163,74,.06)" : "#fff"};
-        margin:0;
-      ">
-        <div style="display:flex;gap:10px;align-items:flex-start;">
-          <input type="radio" name="shift" value="${escapeHtml(key)}" ${selected ? "checked" : ""} style="margin-top:3px;"/>
-          <div style="flex:1;">
-            <div class="azCardTitle">${escapeHtml(title)}</div>
-            <div class="azCardSub" style="margin-top:6px;">${escapeHtml(hours)}</div>
-          </div>
-        </div>
-      </label>
-    `;
-  }
-
-  document.getElementById("btnShiftSave").onclick = async () => {
-    const position = document.querySelector("input[name=pos]:checked")?.value || "";
-    const shiftKey = document.querySelector("input[name=shift]:checked")?.value || "";
-    if (!position || !shiftKey) return uiToast("Please select 1 position and 1 shift.");
-
-    const steps = (userData.steps || []).map(s =>
-      s.id === "shift_selection" ? ({ ...s, done: true }) : s
-    );
-
-    await saveUserPatch({ shift: { position, shift: shiftKey }, steps, stage: "footwear" });
-    uiToast("Preferences saved.");
-    location.hash = "#footwear";
-  };
 }
 
 function renderI9(userData, saveUserPatch) {
