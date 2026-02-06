@@ -1749,11 +1749,10 @@ ${sectionHeader("Safety Footwear Reimbursement Policy")}
 
 <div style="height:14px"></div>
 
-<a class="btn primary" href="#footwearshop"
-   style="display:block;width:100%;text-align:center;border-radius:16px;padding:14px;">
+<button class="btn primary" id="btnFootwearComplete" type="button"
+  style="display:block;width:100%;text-align:center;border-radius:16px;padding:14px;">
   Complete Safety Footwear Requirement
-</a>
-
+</button>
 <div class="small muted" style="margin-top:10px;line-height:1.35;">
   This step is required to complete your onboarding.
 </div>
@@ -1843,23 +1842,16 @@ function renderFootwearShop(publicData) {
       <div class="azCard">
         ${sectionHeader("Shop Approved Footwear", "Secure")}
         <div class="muted" style="line-height:1.45;">
-          If the in-app view is blocked by the store’s security settings, use “Open in Browser”.
-        </div>
 
         <div style="height:12px"></div>
 
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
           <a class="btn ghost" href="#footwear" style="border-radius:14px;">Back</a>
-          ${url ? `
-            <a class="btn primary" href="${escapeHtml(url)}" target="_blank" rel="noreferrer" style="border-radius:14px;">
-              Open in Browser
-            </a>
-          ` : ""}
+          
         </div>
 
         <div style="height:12px"></div>
 
-        ${url ? `
           <div style="border:1px solid rgba(229,234,242,.95);border-radius:18px;overflow:hidden;height:70vh;background:#fff;">
             <iframe
               src="${escapeHtml(url)}"
