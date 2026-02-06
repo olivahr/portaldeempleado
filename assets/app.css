@@ -1237,69 +1237,132 @@ body.sp-login{
   margin-bottom:10px;
 }
 
-/* ===== PREMIUM SAFETY FOOTWEAR FINAL ===== */
+/* ===== FOOTWEAR ULTRA PREMIUM FULL ===== */
 
+/* Contenedor principal */
 .azCard{
   background:#fff;
-  border-radius:22px;
-  padding:22px;
-  box-shadow:0 10px 30px rgba(0,0,0,.06);
+  border-radius:26px;
+  padding:26px;
+  box-shadow:
+    0 4px 10px rgba(0,0,0,.04),
+    0 24px 60px rgba(0,0,0,.06);
 }
 
-/* texto */
-.azCard .muted{
-  font-size:15px;
+/* Títulos */
+.azCard h3{
+  font-size:24px;
+  font-weight:800;
+  letter-spacing:-.3px;
+  margin-bottom:18px;
+  color:#0f172a;
+}
+
+/* Texto general dentro */
+.azCard p,
+.azCard li{
+  font-size:15.5px;
   line-height:1.7;
-  color:#475569;
+  color:#334155;
 }
 
-/* listas */
+/* Listas */
 .azCard ul{
   padding-left:20px;
-  margin-top:8px;
 }
 .azCard li{
-  margin-bottom:6px;
+  margin-bottom:8px;
 }
 
-/* acknowledgements premium */
+/* ===== Acknowledgement rows ===== */
+
 .checkrow{
-  background:#f8fafc;
-  padding:16px;
-  border-radius:16px;
-  border:1px solid #e5e7eb;
-  transition:.2s;
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+
+  background:linear-gradient(180deg,#f8fafc,#f1f5f9);
+  padding:18px;
+  border-radius:20px;
+  border:1px solid #e2e8f0;
+
+  transition:.25s;
 }
+
 .checkrow:hover{
-  background:#f1f5f9;
-}
-
-.checkrow input{
-  transform:scale(1.25);
-  accent-color:#2563eb;
-}
-
-/* botón premium */
-#btnFootwearComplete{
-  background:linear-gradient(135deg,#2563eb,#1e40af);
-  border:none;
-  font-size:16px;
-  font-weight:600;
-  box-shadow:0 8px 20px rgba(37,99,235,.35);
-  transition:.2s;
-}
-#btnFootwearComplete:hover{
+  background:#eef2f7;
+  border-color:#bfdbfe;
   transform:translateY(-2px);
 }
+
+/* checkbox moderno */
+.checkrow input{
+  transform:scale(1.45);
+  accent-color:#2563eb;
+  margin-top:4px;
+}
+
+/* texto del ack */
+.checkrow label{
+  font-size:15.5px;
+  line-height:1.6;
+  color:#0f172a;
+  font-weight:500;
+}
+
+/* ===== BOTÓN SUPER PREMIUM ===== */
+
+#btnFootwearComplete{
+  width:100%;
+  margin-top:14px;
+
+  background:linear-gradient(135deg,#2563eb,#1e40af);
+  border:none;
+  border-radius:22px;
+
+  padding:20px;
+  font-size:18px;
+  font-weight:700;
+  letter-spacing:.4px;
+
+  box-shadow:
+    0 10px 30px rgba(37,99,235,.35);
+
+  transition:.25s;
+}
+
+#btnFootwearComplete:hover{
+  transform:translateY(-3px);
+  box-shadow:
+    0 16px 36px rgba(37,99,235,.45);
+}
+
 #btnFootwearComplete:disabled{
   background:#cbd5f5;
   box-shadow:none;
 }
 
-/* security note box */
+/* ===== INFO BOXES ===== */
+
 .small.muted{
-  background:#f1f5f9;
-  padding:14px;
-  border-radius:14px;
+  background:linear-gradient(#f8fafc,#f1f5f9);
+  padding:18px;
+  border-radius:18px;
   border:1px solid #e2e8f0;
+
+  font-size:14.5px;
+  line-height:1.6;
+  color:#475569;
+}
+
+/* Security note especial */
+.small.muted:last-child{
+  background:#fff7ed;
+  border:1px solid #fed7aa;
+  color:#9a3412;
+}
+
+/* Espaciado perfecto entre bloques */
+.azCard > *{
+  margin-bottom:16px;
 }
