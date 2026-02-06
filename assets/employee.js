@@ -1762,11 +1762,6 @@ ${sectionHeader("Safety Footwear Reimbursement Policy")}
 
         <div style="height:14px"></div>
 
-        <a class="btn primary" href="#footwearshop"
-           style="display:block;width:100%;text-align:center;border-radius:16px;padding:14px;">
-          Shop Approved Safety Footwear
-        </a>
-
         <div style="height:14px"></div>
 
         ${sectionHeader("Acknowledgements")}
