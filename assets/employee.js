@@ -1705,21 +1705,6 @@ function renderShiftSelection(userData, saveUserPatch) {
     location.hash = "#footwear";
   };
 }
-  document.getElementById("btnShiftSave").onclick = async () => {
-    const position = document.querySelector("input[name=pos]:checked")?.value || "";
-    const shiftKey = document.querySelector("input[name=shift]:checked")?.value || "";
-    if (!position || !shiftKey) return uiToast("Please select 1 position and 1 shift.");
-
-    const steps = (userData.steps || []).map(s =>
-      s.id === "shift_selection" ? ({ ...s, done: true }) : s
-    );
-
-    await saveUserPatch({ shift: { position, shift: shiftKey }, steps, stage: "footwear" });
-    uiToast("Preferences saved.");
-    location.hash = "#footwear";
-  };
-}
-
 function renderI9(userData, saveUserPatch) {
   const i9 = userData?.i9 || {};
   const done = !!(userData?.steps || []).find(s => s.id === "i9")?.done;
