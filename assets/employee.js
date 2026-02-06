@@ -1760,10 +1760,7 @@ ${sectionHeader("Safety Footwear Reimbursement Policy")}
 
 <div style="height:14px"></div>
 
-        <div style="height:14px"></div>
-
-        <div style="height:14px"></div>
-
+        
         ${sectionHeader("Acknowledgements")}
         ${ackRow("fwAck1", fw.ack1, "I understand safety footwear is required for my role.")}
         ${ackRow("fwAck2", fw.ack2, "I will purchase approved footwear before my first shift.")}
