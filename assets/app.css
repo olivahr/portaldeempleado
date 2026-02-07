@@ -1839,3 +1839,505 @@ p, li, .muted {
     height: 36px;
   }
 }
+
+/* ============================================
+   HOME ENHANCEMENTS - Extra Life & Modern Feel
+   Pegar al final de tu CSS existente
+   ============================================ */
+
+/* --- Animaciones Base --- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(29, 78, 216, 0.4);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 20px 5px rgba(29, 78, 216, 0.2);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes badge-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* --- Home Container Animations --- */
+#home .azCard,
+#home .azHero,
+#home .azQuick {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+#home .azCard:nth-child(1) { animation-delay: 0.05s; }
+#home .azCard:nth-child(2) { animation-delay: 0.1s; }
+#home .azCard:nth-child(3) { animation-delay: 0.15s; }
+#home .azCard:nth-child(4) { animation-delay: 0.2s; }
+#home .azCard:nth-child(5) { animation-delay: 0.25s; }
+
+/* --- Enhanced Top Bar --- */
+.azTopRow {
+  background: linear-gradient(135deg, rgba(29, 78, 216, 0.08) 0%, rgba(22, 163, 74, 0.05) 100%);
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(229, 234, 242, 0.8);
+  margin-bottom: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.azTopRow span {
+  background: linear-gradient(135deg, rgba(29, 78, 216, 0.15) 0%, rgba(29, 78, 216, 0.05) 100%) !important;
+  border: 1px solid rgba(29, 78, 216, 0.2);
+  transition: all 0.3s ease;
+}
+
+.azTopRow span:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.2);
+}
+
+/* --- Notification Badges with Pulse --- */
+.azTopIcons .azIconBtn {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.azTopIcons .azIconBtn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(29, 78, 216, 0.25);
+  background: linear-gradient(135deg, #fff 0%, rgba(29, 78, 216, 0.05) 100%);
+}
+
+.azTopIcons .azIconBtn span {
+  animation: badge-pulse 2s infinite;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+}
+
+/* --- Enhanced Onboarding Card --- */
+.azCard[style*="background:linear-gradient(135deg,rgba(29,78,216,.06),rgba(22,163,74,.06))"] {
+  background: linear-gradient(135deg, rgba(29, 78, 216, 0.1) 0%, rgba(22, 163, 74, 0.08) 50%, rgba(245, 158, 11, 0.05) 100%) !important;
+  border: 2px solid rgba(29, 78, 216, 0.15) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.azCard[style*="background:linear-gradient(135deg,rgba(29,78,216,.06),rgba(22,163,74,.06))"]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: shimmer 3s infinite;
+}
+
+.azCard[style*="background:linear-gradient(135deg,rgba(29,78,216,.06),rgba(22,163,74,.06))"]:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(29, 78, 216, 0.15);
+}
+
+/* Progress bar animation */
+.azCard[style*="background:linear-gradient(135deg,rgba(29,78,216,.06),rgba(22,163,74,.06))"] .azBar > div {
+  background: linear-gradient(90deg, rgba(29, 78, 216, 0.8) 0%, rgba(22, 163, 74, 0.8) 50%, rgba(245, 158, 11, 0.8) 100%) !important;
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* --- Quick Actions Grid Enhanced --- */
+.azQuickGrid {
+  gap: 12px !important;
+}
+
+.azQuick {
+  background: linear-gradient(145deg, #ffffff 0%, rgba(249, 250, 251, 0.8) 100%) !important;
+  border: 1px solid rgba(229, 234, 242, 0.9) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.azQuick::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(29, 78, 216, 0.6), rgba(22, 163, 74, 0.6));
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.azQuick:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(2, 6, 23, 0.1);
+}
+
+.azQuick:hover::before {
+  transform: scaleX(1);
+}
+
+.azQuick:active {
+  transform: translateY(-2px) scale(0.98);
+}
+
+.azQuickIcon {
+  background: linear-gradient(135deg, rgba(29, 78, 216, 0.1) 0%, rgba(29, 78, 216, 0.05) 100%) !important;
+  transition: all 0.3s ease;
+}
+
+.azQuick:hover .azQuickIcon {
+  background: linear-gradient(135deg, rgba(29, 78, 216, 0.2) 0%, rgba(29, 78, 216, 0.1) 100%) !important;
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* --- Hero Section Enhanced --- */
+.azHero {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.9) 100%) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.azHero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(29, 78, 216, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float 6s ease-in-out infinite;
+}
+
+.azHero::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -10%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(22, 163, 74, 0.06) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float 8s ease-in-out infinite reverse;
+}
+
+.azHeroInner {
+  position: relative;
+  z-index: 1;
+}
+
+.azHeroTitle {
+  font-size: 15px !important;
+  background: linear-gradient(90deg, rgba(2, 6, 23, 0.85), rgba(29, 78, 216, 0.9));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.azHeroPills .azPill:first-child {
+  background: linear-gradient(135deg, rgba(29, 78, 216, 0.1) 0%, rgba(29, 78, 216, 0.05) 100%) !important;
+  border-color: rgba(29, 78, 216, 0.3) !important;
+  color: rgba(29, 78, 216, 1) !important;
+  transition: all 0.3s ease;
+}
+
+.azHeroPills .azPill:first-child:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 15px rgba(29, 78, 216, 0.2);
+}
+
+/* --- Today's Status Card --- */
+.azCard:has(.azCardTitle:contains("Today's Status")) {
+  background: linear-gradient(145deg, #ffffff 0%, rgba(249, 250, 251, 0.5) 100%) !important;
+}
+
+.azCard:has(.azCardTitle:contains("Today's Status")) [style*="background:rgba(2,6,23,.03)"] {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(249, 250, 251, 0.7) 100%) !important;
+  border: 1px solid rgba(229, 234, 242, 0.8) !important;
+  transition: all 0.3s ease;
+}
+
+.azCard:has(.azCardTitle:contains("Today's Status")) [style*="background:rgba(2,6,23,.03)"]:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(2, 6, 23, 0.08);
+}
+
+/* --- Progress Bar Enhanced --- */
+.azBar {
+  background: linear-gradient(90deg, rgba(2, 6, 23, 0.06) 0%, rgba(2, 6, 23, 0.03) 100%) !important;
+  height: 12px !important;
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.azBar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+.azBar > div {
+  background: linear-gradient(90deg, #2563eb 0%, #22c55e 50%, #f59e0b 100%) !important;
+  border-radius: 999px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.azBar > div::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+/* --- Standard Cards Hover Effects --- */
+.azCard {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.azCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(2, 6, 23, 0.1);
+}
+
+.azCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(29, 78, 216, 0.5), rgba(22, 163, 74, 0.5));
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+  border-radius: 16px 16px 0 0;
+}
+
+.azCard:hover::before {
+  transform: scaleX(1);
+}
+
+/* --- Card Links Enhanced --- */
+.azCardLink {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.azCardLink::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(29, 78, 216, 1), rgba(22, 163, 74, 1));
+  transition: width 0.3s ease;
+}
+
+.azCardLink:hover::after {
+  width: 100%;
+}
+
+.azCardLink:hover {
+  transform: translateX(5px);
+}
+
+.azCardLink svg {
+  transition: transform 0.3s ease;
+}
+
+.azCardLink:hover svg {
+  transform: translateX(5px);
+}
+
+/* --- Messages Preview Card --- */
+.azCard:has(#homeMessagesPreview) {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.8) 100%) !important;
+}
+
+#homeMessagesPreview > div {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+#homeMessagesPreview > div:hover {
+  transform: translateX(5px);
+  background: rgba(29, 78, 216, 0.03) !important;
+  border-color: rgba(29, 78, 216, 0.3) !important;
+}
+
+/* --- Training Card Special --- */
+.azCard:has(.azCardTitle:contains("Training")) {
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%) !important;
+  border-color: rgba(245, 158, 11, 0.2) !important;
+}
+
+.azCard:has(.azCardTitle:contains("Training")) .azIconBtn {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.05) 100%) !important;
+  color: #92400e !important;
+  transition: all 0.3s ease;
+}
+
+.azCard:has(.azCardTitle:contains("Training")) .azIconBtn:hover {
+  transform: rotate(15deg) scale(1.1);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(245, 158, 11, 0.1) 100%) !important;
+}
+
+/* --- Find Shifts & VTO Cards --- */
+.azRow2 .azCard {
+  background: linear-gradient(145deg, #ffffff 0%, rgba(249, 250, 251, 0.6) 100%) !important;
+}
+
+.azRow2 .azCard:first-child:hover {
+  border-color: rgba(29, 78, 216, 0.4) !important;
+}
+
+.azRow2 .azCard:last-child:hover {
+  border-color: rgba(22, 163, 74, 0.4) !important;
+}
+
+/* --- Time Off Card --- */
+.azCard:has(.azCardTitle:contains("Time off")) {
+  background: linear-gradient(145deg, rgba(22, 163, 74, 0.03) 0%, rgba(255, 255, 255, 0.95) 100%) !important;
+}
+
+.azCard:has(.azCardTitle:contains("Time off")) .azIconBtn {
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.1) 0%, rgba(22, 163, 74, 0.05) 100%) !important;
+  color: #166534 !important;
+  transition: all 0.3s ease;
+}
+
+.azCard:has(.azCardTitle:contains("Time off")) .azIconBtn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.2);
+}
+
+/* --- Status Badge Animation --- */
+.azCard span[style*="background:rgba(22,163,74,.12)"] {
+  animation: pulse-soft 2s infinite;
+}
+
+/* --- Scrollbar Styling for Messages --- */
+#chatMessages::-webkit-scrollbar {
+  width: 6px;
+}
+
+#chatMessages::-webkit-scrollbar-track {
+  background: rgba(2, 6, 23, 0.03);
+  border-radius: 3px;
+}
+
+#chatMessages::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(29, 78, 216, 0.3), rgba(22, 163, 74, 0.3));
+  border-radius: 3px;
+}
+
+/* --- Chat Input Focus --- */
+#chatInput:focus {
+  outline: none;
+  border-color: rgba(29, 78, 216, 0.5) !important;
+  box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.1);
+}
+
+/* --- Send Button Enhanced --- */
+#chatSendBtn {
+  background: linear-gradient(135deg, rgba(29, 78, 216, 1) 0%, rgba(29, 78, 216, 0.9) 100%) !important;
+  transition: all 0.3s ease;
+}
+
+#chatSendBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(29, 78, 216, 0.35);
+}
+
+#chatSendBtn:active {
+  transform: translateY(0);
+}
+
+/* --- Mobile Optimizations --- */
+@media (max-width: 420px) {
+  .azTopRow {
+    padding: 12px;
+  }
+  
+  .azQuickGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  .azQuick {
+    min-height: 80px;
+  }
+  
+  .azHero::before,
+  .azHero::after {
+    display: none;
+  }
+}
+
+/* --- Dark Mode Support (optional) --- */
+@media (prefers-color-scheme: dark) {
+  .azCard,
+  .azHero,
+  .azQuick {
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+    border-color: rgba(71, 85, 105, 0.5) !important;
+  }
+  
+  .azCardTitle {
+    color: rgba(248, 250, 252, 0.9) !important;
+  }
+  
+  .azCardSub {
+    color: rgba(148, 163, 184, 0.8) !important;
+  }
+}
