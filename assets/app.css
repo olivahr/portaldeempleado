@@ -1730,3 +1730,57 @@ ul, ol {
     animation: slideInRight 0.3s ease forwards;
 }
 
+<div class="admin-container">
+  <!-- Header -->
+  <div class="admin-header">
+    <div class="admin-brand">
+      <h1>SunPower Admin</h1>
+      <span id="currentEmpBadge" class="admin-badge">None selected</span>
+    </div>
+    <button id="btnLogout" class="admin-btn admin-btn-secondary">Logout</button>
+  </div>
+
+  <!-- Employee Selector -->
+  <div class="admin-selector">
+    <div class="admin-selector-row">
+      <input type="text" id="currentEmpId" class="admin-input" placeholder="Enter Employee ID (SP001)">
+      <button id="btnLoadEmp" class="admin-btn admin-btn-primary">Load Employee</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="admin-tabs">
+    <button class="admin-tab active" data-tab="profile">Profile</button>
+    <button class="admin-tab" data-tab="appointment">Appointment</button>
+    <button class="admin-tab" data-tab="shift">Shift Approval</button>
+    <button class="admin-tab" data-tab="notifications">Notifications</button>
+    <button class="admin-tab" data-tab="chat">Chat</button>
+    <button class="admin-tab" data-tab="manage">Manage IDs</button>
+  </div>
+
+  <!-- Content Sections -->
+  <div id="tab-profile" class="admin-section active">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h3 class="admin-card-title">Employee Profile</h3>
+        <button id="btnSaveProfile" class="admin-btn admin-btn-success">Save Profile</button>
+      </div>
+      <div class="admin-form">
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label class="admin-label">First Name</label>
+            <input type="text" id="profFirstName" class="admin-input-field">
+          </div>
+          <div class="admin-field">
+            <label class="admin-label">Last Name</label>
+            <input type="text" id="profLastName" class="admin-input-field">
+          </div>
+        </div>
+        <!-- More fields... -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="admin-toast-container"></div>
+</div>
