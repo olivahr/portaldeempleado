@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SunPower Admin Portal</title>
+    <link rel="stylesheet" href="./assets/app.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f4f6fb; }
+        
+        .admin-container { display: flex; min-height: 100vh; }
+        
+        /* Sidebar */
+        .sidebar { 
+            width: 280px; 
+            background: #0b1220; 
+            color: white; 
+            position: fixed; 
+            height: 100vh; 
+            overflow-y: auto;
+            padding: 24px;
+            z-index: 100;
+        }
+        .sidebar-header { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+        .logo-dot { width: 12px; height: 12px; background: #22c55e; border-radius: 50%; }
+        .logo-text { font-size: 20px; font-weight: 800; }
+        
+        .nav-menu { display: flex; flex-direction: column; gap: 4px; }
+        .nav-item { 
+            padding: 14px 16px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-item:hover { background: rgba(255,255,255,0.1); }
+        .nav-item.active { background: #2563eb; }
+        .nav-icon { width: 20px; height: 20px; }
+        
+        .sidebar-footer { margin-top: auto; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .btn-logout { 
+            width: 100%; 
+            padding: 12px; 
+            background: rgba(255,255,255,0.1); 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-logout:hover { background: rgba(255,255,255,0.2); }
+        
+        /* Main Content */
+        .main-content { 
+            margin-left: 280px; 
+            flex: 1; 
+            padding: 32px;
+            min-height: 100vh;
+        }
+        
+        .page-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .page-title { font-size: 28px; font-weight: 800; color: #0b1220; }
+        .page-subtitle { color: #6b7280; font-size: 14px; margin-top: 4px; }
+        
+        /* Cards */
+        .card { 
+            background: white; 
+            border-radius: 16px; 
+            padding: 24px; 
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .card-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #0b1220; }
+        
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { 
+            padding: 24px; 
+            border-radius: 12px; 
+            color: white;
+        }
+        .stat-card.blue { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+        .stat-card.green { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .stat-card.orange { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .stat-number { font-size: 36px; font-weight: 800; margin-bottom: 4px; }
+        .stat-label { font-size: 14px; opacity: 0.9; }
+        
+        /* Forms */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: #6b7280; letter-spacing: 0.5px; }
+        .form-input, .form-select, .form-textarea { 
+            padding: 12px 16px; 
+            border: 2px solid #e5e7eb; 
+            border-radius: 10px; 
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { 
+            outline: none; 
+            border-color: #2563eb; 
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+        .form-textarea { resize: vertical; min-height: 80px; }
+        
+        /* Buttons */
+        .btn { 
+            padding: 12px 24px; 
+            border-radius: 10px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            border: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+        .btn-secondary { background: #f3f4f6; color: #374151; }
+        .btn-secondary:hover { background: #e5e7eb; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .btn-danger:hover { background: #fee2e2; }
+        .btn-success { background: #dcfce7; color: #166534; }
+        .btn-success:hover { background: #bbf7d0; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* Employee List */
+        .employee-list { display: flex; flex-direction: column; gap: 12px; }
+        .employee-item { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 16px; 
+            background: #f9fafb; 
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+        .employee-info { display: flex; flex-direction: column; gap: 4px; }
+        .employee-id { font-weight: 700; color: #2563eb; font-size: 16px; }
+        .employee-name { color: #6b7280; font-size: 14px; }
+        .status-badge { 
+            padding: 6px 12px; 
+            border-radius: 20px; 
+            font-size: 12px; 
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-inactive { background: #f3f4f6; color: #6b7280; }
+        
+        /* Info Box */
+        .info-box { 
+            background: #eff6ff; 
+            border-left: 4px solid #2563eb; 
+            padding: 16px; 
+            border-radius: 8px; 
+            margin-bottom: 16px;
+        }
+        .info-box-text { color: #1e40af; font-size: 14px; line-height: 1.6; }
+        
+        /* Chat */
+        .chat-container { 
+            border: 2px solid #e5e7eb; 
+            border-radius: 12px; 
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+        }
+        .chat-header { 
+            padding: 16px; 
+            background: #f9fafb; 
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .chat-avatar { 
+            width: 40px; 
+            height: 40px; 
+            background: #2563eb; 
+            border-radius: 50%; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+        }
+        .chat-messages { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 16px; 
+            background: white;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .chat-input-area { 
+            display: flex; 
+            gap: 12px; 
+            padding: 16px; 
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+        }
+        .chat-input { 
+            flex: 1; 
+            padding: 12px 16px; 
+            border: 2px solid #e5e7eb; 
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        .chat-input:focus { outline: none; border-color: #2563eb; }
+        
+        .message { 
+            max-width: 80%; 
+            padding: 12px 16px; 
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .message.admin { 
+            background: #2563eb; 
+            color: white; 
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .message.employee { 
+            background: #f3f4f6; 
+            color: #0b1220; 
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .message-time { font-size: 11px; opacity: 0.7; margin-top: 4px; }
+        
+        /* Sections */
+        .section { display: none; }
+        .section.active { display: block; }
+        
+        /* Empty State */
+        .empty-state { text-align: center; padding: 48px; color: #6b7280; }
+        .empty-icon { font-size: 48px; margin-bottom: 16px; }
+        
+        /* Alert */
+        .alert { 
+            padding: 16px; 
+            border-radius: 8px; 
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .alert-warning { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+        .alert-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+        .alert-success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; padding: 16px; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+        
+        /* Loading */
+        .loading { text-align: center; padding: 24px; color: #6b7280; }
+        .spinner { 
+            display: inline-block; 
+            width: 20px; 
+            height: 20px; 
+            border: 3px solid #e5e7eb; 
+            border-top-color: #2563eb; 
+            border-radius: 50%; 
+            animation: spin 1s linear infinite; 
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Toast */
+        .toast-container { 
+            position: fixed; 
+            bottom: 24px; 
+            right: 24px; 
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .toast { 
+            padding: 16px 24px; 
+            border-radius: 10px; 
+            color: white; 
+            font-weight: 600;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast.success { background: #22c55e; }
+        .toast.error { background: #ef4444; }
+        .toast.info { background: #3b82f6; }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-dot"></div>
+                <div class="logo-text">SunPower Admin</div>
+            </div>
+            
+            <nav class="nav-menu">
+                <div class="nav-item active" data-section="dashboard">
+                    <span>📊</span> Dashboard
+                </div>
+                <div class="nav-item" data-section="employees">
+                    <span>👥</span> Employee IDs
+                </div>
+                <div class="nav-item" data-section="profiles">
+                    <span>📝</span> Employee Profiles
+                </div>
+                <div class="nav-item" data-section="appointments">
+                    <span>📅</span> First Day Appointments
+                </div>
+                <div class="nav-item" data-section="notifications">
+                    <span>🔔</span> Notifications
+                </div>
+                <div class="nav-item" data-section="chat">
+                    <span>💬</span> Support Chat
+                </div>
+                <div class="nav-item" data-section="settings">
+                    <span>⚙️</span> Settings
+                </div>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <button class="btn-logout" id="btnLogout">Log Out</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="section active">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Dashboard</h1>
+                        <p class="page-subtitle">Welcome back, Administrator</p>
+                    </div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card blue">
+                        <div class="stat-number" id="statTotal">0</div>
+                        <div class="stat-label">Total Employees</div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-number" id="statActive">0</div>
+                        <div class="stat-label">Active Today</div>
+                    </div>
+                    <div class="stat-card orange">
+                        <div class="stat-number" id="statPending">0</div>
+                        <div class="stat-label">Pending Onboarding</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">Quick Actions</div>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="navigateTo('employees')">Add Employee</button>
+                        <button class="btn btn-secondary" onclick="navigateTo('notifications')">Send Notification</button>
+                        <button class="btn btn-secondary" onclick="navigateTo('chat')">View Messages</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Employees Section -->
+            <section id="employees" class="section">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Manage Employee IDs</h1>
+                        <p class="page-subtitle">Add and manage employee access</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">Add New Employee</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Employee ID (Format: SP###)</label>
+                            <input type="text" class="form-input" id="inputEmpId" placeholder="SP001">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-input" id="inputEmpName" placeholder="John Smith">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email (Optional)</label>
+                            <input type="email" class="form-input" id="inputEmpEmail" placeholder="john@email.com">
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: flex-end;">
+                            <button class="btn btn-primary" id="btnAddEmployee" style="width: 100%;">
+                                Add Employee
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">Registered Employees</div>
+                    <div class="info-box">
+                        <div class="info-box-text">
+                            Employees with IDs SP023-SP200 are automatically approved. Click on an employee to view details.
+                        </div>
+                    </div>
+                    <div id="employeeListContainer">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading employees...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Profiles Section -->
+            <section id="profiles" class="section">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Employee Profiles</h1>
+                        <p class="page-subtitle">Manage personal information</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Search Employee ID</label>
+                            <input type="text" class="form-input" id="searchProfileId" placeholder="SP001">
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: flex-end;">
+                            <button class="btn btn-primary" id="btnLoadProfile" style="width: 100%;">
+                                Load Profile
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="profileEditor" style="display: none;">
+                    <div class="card">
+                        <div class="card-title">Personal Information</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">First Name</label>
+                                <input type="text" class="form-input" id="profileFirstName">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" class="form-input" id="profileLastName">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Date of Birth</label>
+                                <input type="date" class="form-input" id="profileDOB">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Phone Number</label>
+                                <input type="tel" class="form-input" id="profilePhone" placeholder="(555) 123-4567">
+                            </div>
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label class="form-label">Street Address</label>
+                                <input type="text" class="form-input" id="profileAddress" placeholder="123 Main St">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">City</label>
+                                <input type="text" class="form-input" id="profileCity">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">State / ZIP</label>
+                                <input type="text" class="form-input" id="profileStateZip" placeholder="CA 90210">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-title">Emergency Contact</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Contact Name</label>
+                                <input type="text" class="form-input" id="profileEmergencyName">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Contact Phone</label>
+                                <input type="tel" class="form-input" id="profileEmergencyPhone">
+                            </div>
+                        </div>
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary" id="btnSaveProfile">Save Profile</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Appointments Section -->
+            <section id="appointments" class="section">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">First Day Appointments</h1>
+                        <p class="page-subtitle">Schedule employee start dates</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Employee ID</label>
+                            <input type="text" class="form-input" id="apptEmpId" placeholder="SP001">
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: flex-end;">
+                            <button class="btn btn-primary" id="btnLoadAppt" style="width: 100%;">
+                                Load Employee
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="apptEditor" style="display: none;">
+                    <div class="card">
+                        <div class="card-title">Appointment Details</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Start Date</label>
+                                <input type="date" class="form-input" id="apptDate">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Check-in Time</label>
+                                <input type="time" class="form-input" id="apptTime">
+                            </div>
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label class="form-label">Facility Address</label>
+                                <input type="text" class="form-input" id="apptAddress" placeholder="1234 Industrial Blvd, Louisville, KY 40218">
+                            </div>
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label class="form-label">Special Instructions</label>
+                                <textarea class="form-textarea" id="apptNotes" placeholder="Parking instructions, building entrance, what to bring, etc."></textarea>
+                            </div>
+                        </div>
+                        <div style="margin-top: 20px; display: flex; gap: 12px;">
+                            <button class="btn btn-primary" id="btnSaveAppt">Save Appointment</button>
+                            <button class="btn btn-secondary" id="btnClearAppt">Clear</button>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-success" id="apptSuccess" style="display: none;">
+                        ✅ Appointment saved successfully! Employee will see this in their portal.
+                    </div>
+                </div>
+            </section>
+
+            <!-- Notifications Section -->
+            <section id="notifications" class="section">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Send Notifications</h1>
+                        <p class="page-subtitle">Communicate with employees</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">Create Notification</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Target</label>
+                            <select class="form-select" id="notifTarget">
+                                <option value="ALL">All Employees</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Type</label>
+                            <select class="form-select" id="notifType">
+                                <option value="info">Info</option>
+                                <option value="warning">Warning</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label class="form-label">Title</label>
+                            <input type="text" class="form-input" id="notifTitle" placeholder="Important Update">
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label class="form-label">Message</label>
+                            <textarea class="form-textarea" id="notifBody" rows="4" placeholder="Enter your message here..."></textarea>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <button class="btn btn-primary" id="btnSendNotif">Send Notification</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chat Section -->
+            <section id="chat" class="section">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Support Chat</h1>
+                        <p class="page-subtitle">Real-time employee support</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label">Select Employee</label>
+                        <select class="form-select" id="chatEmployeeSelect">
+                            <option value="">-- Choose an employee --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="chat-container" id="chatContainer">
+                        <div class="chat-header">
+                            <div class="chat-avatar" id="chatAvatar">?</div>
+                            <div>
+                                <div style="font-weight: 700;" id="chatEmployeeName">Select an employee</div>
+                                <div style="font-size: 12px; color: #6b7280;" id="chatStatus">No conversation selected</div>
+                            </div>
+                        </div>
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="empty-state">
+                                <div class="empty-icon">💬</div>
+                                <p>Select an employee from the dropdown to start chatting</p>
+                            </div>
+                        </div>
+                        <div class="chat-input-area">
+                            <input type="text" class="chat-input" id="chatInput" placeholder="Type your message..." disabled>
+                            <button class="btn btn-primary" id="btnSendChat" disabled>Send</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings" class="section">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Company Settings</h1>
+                        <p class="page-subtitle">Portal configuration</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">Contact Information</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">HR Email</label>
+                            <input type="email" class="form-input" id="settingHrEmail" value="hr@sunpowerc.energy">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">HR Phone (Payroll)</label>
+                            <input type="tel" class="form-input" id="settingHrPhone" value="800-876-4321">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Site Manager Phone</label>
+                            <input type="tel" class="form-input" id="settingManagerPhone" value="502-467-8976">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Supervisor Phone</label>
+                            <input type="tel" class="form-input" id="settingSupervisorPhone" value="615-786-9543">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Safety Phone</label>
+                            <input type="tel" class="form-input" id="settingSafetyPhone" value="502-555-0172">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Safety Footwear Shop URL</label>
+                            <input type="url" class="form-input" id="settingShopUrl" value="https://shop.sunpowerc.energy">
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <button class="btn btn-primary" id="btnSaveSettings">Save Settings</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Application Script -->
+    <script type="module">
+        import { initAdminApp } from './assets/admin.js';
+        
+        // Make navigateTo available globally for inline onclick handlers
+        window.navigateTo = function(sectionId) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                if (item.dataset.section === sectionId) {
+                    item.click();
+                }
+            });
+        };
+        
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initAdminApp);
+        } else {
+            initAdminApp();
+        }
+    </script>
+</body>
+</html>
+
