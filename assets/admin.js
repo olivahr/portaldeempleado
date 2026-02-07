@@ -735,8 +735,4 @@ export function initAdminApp() {
         window.location.href = './index.html';
     });
     
-    // Load initial dashboard data
-    loadDashboard();
-    
-    console.log('✅ SunPower Admin Portal initialized');
-}
+   
