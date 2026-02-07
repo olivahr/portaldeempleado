@@ -1,4 +1,4 @@
-js_content = '''// SunPower Admin Portal - Complete Administration System
+// SunPower Admin Portal - Complete Administration System
 import { db, isFirebaseConfigured } from "./firebase.js";
 import { uiToast } from "./ui.js";
 import {
