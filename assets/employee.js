@@ -1703,7 +1703,7 @@ function renderShiftSelection(userData, saveUserPatch) {
           <div class="sh-banner-content">
             <div class="sh-banner-title">Protocol Objective</div>
             <div class="sh-banner-text">
-              Ensure the next shift can continue production without delays, safety risks, or quality issues. All unfinished work, material issues, and equipment problems must be clearly reported before leaving.
+              Ensure the next shift can continue production without delays, safety risks, or quality issues. All unfinished work, material issues, and equipment problems must be clearly reported before leaving. On the floor what matters is: production keeps running + no one gets hurt + no defective panels ship.
             </div>
           </div>
         </div>
@@ -1728,7 +1728,7 @@ function renderShiftSelection(userData, saveUserPatch) {
                 <li>Any line downtime during shift</li>
                 <li>Reason for downtime (material, machine, labor)</li>
               </ul>
-              <div class="sh-resp-note">Esto es lo primero que siempre preguntan.</div>
+              <div class="sh-resp-note">This is the first thing they always ask.</div>
             </div>
 
             <div class="sh-resp-section">
@@ -1739,7 +1739,7 @@ function renderShiftSelection(userData, saveUserPatch) {
                 <li>Tools returned to shadow boards</li>
                 <li>Trash and scrap disposed</li>
               </ul>
-              <div class="sh-resp-note">El vidrio y células rotas son peligro real.</div>
+              <div class="sh-resp-note">Broken glass and cells are a real hazard.</div>
             </div>
 
             <div class="sh-resp-section">
@@ -1750,7 +1750,7 @@ function renderShiftSelection(userData, saveUserPatch) {
                 <li>Failed flash test or EL test units</li>
                 <li>Misaligned frames or wiring issues</li>
               </ul>
-              <div class="sh-resp-note">QA es crítico en solar assembly.</div>
+              <div class="sh-resp-note">QA is critical in solar assembly.</div>
             </div>
 
             <div class="sh-resp-section">
@@ -1759,7 +1759,7 @@ function renderShiftSelection(userData, saveUserPatch) {
                 <li>Low stock on: Cells, Glass, Frames, Junction boxes, Sealant</li>
                 <li>Damaged material reported</li>
               </ul>
-              <div class="sh-resp-note">Si no se reporta, la línea se para.</div>
+              <div class="sh-resp-note">If not reported, the line stops.</div>
             </div>
 
             <div class="sh-resp-section">
@@ -1770,7 +1770,7 @@ function renderShiftSelection(userData, saveUserPatch) {
                 <li>Test stations operational</li>
                 <li>Any machine acting abnormal</li>
               </ul>
-              <div class="sh-resp-note">Esto ahorra horas de troubleshooting.</div>
+              <div class="sh-resp-note">This saves hours of troubleshooting.</div>
             </div>
 
             <div class="sh-resp-section">
@@ -1780,7 +1780,7 @@ function renderShiftSelection(userData, saveUserPatch) {
                 <li>Supervisor notified</li>
                 <li>Incoming shift briefed if present</li>
               </ul>
-              <div class="sh-resp-note">Nadie se va sin reportar.</div>
+              <div class="sh-resp-note">No one leaves without reporting.</div>
             </div>
           </div>
 
@@ -1802,7 +1802,7 @@ function renderShiftSelection(userData, saveUserPatch) {
                 <li>Anti-static strap if required</li>
                 <li>Steel toe boots</li>
               </ul>
-              <div class="sh-resp-note">Sin PPE no trabajan. Punto.</div>
+              <div class="sh-resp-note">No PPE, no work. Period.</div>
             </div>
 
             <div class="sh-resp-section">
@@ -1813,7 +1813,7 @@ function renderShiftSelection(userData, saveUserPatch) {
                 <li>Current progress</li>
                 <li>Downtime notes</li>
               </ul>
-              <div class="sh-resp-note">Siempre hay un production board físico o digital.</div>
+              <div class="sh-resp-note">There is always a physical or digital production board.</div>
             </div>
 
             <div class="sh-resp-section">
@@ -1824,7 +1824,7 @@ function renderShiftSelection(userData, saveUserPatch) {
                 <li>Check panel racks</li>
                 <li>Verify materials staged</li>
               </ul>
-              <div class="sh-resp-note">Los leads hacen esto siempre.</div>
+              <div class="sh-resp-note">Leads always do this.</div>
             </div>
 
             <div class="sh-resp-section">
@@ -1834,7 +1834,7 @@ function renderShiftSelection(userData, saveUserPatch) {
                 <li>Any bad batch of cells?</li>
                 <li>Any machine issue?</li>
               </ul>
-              <div class="sh-resp-note">El handover verbal es normal.</div>
+              <div class="sh-resp-note">Verbal handover is standard.</div>
             </div>
 
             <div class="sh-resp-section">
@@ -1866,7 +1866,7 @@ function renderShiftSelection(userData, saveUserPatch) {
               <div class="sh-verify-text">
                 Broken glass on floor • Loose wiring on stations • Chemical spills (sealant/cleaners) • Unsafe panel stacking • PPE compliance
               </div>
-              <div class="sh-verify-note">Safety en solar es serio por vidrio y electricidad.</div>
+              <div class="sh-verify-note">Safety in solar is serious because of glass and electricity.</div>
             </div>
 
             <div class="sh-verify-item sh-verify-operations">
@@ -1874,7 +1874,7 @@ function renderShiftSelection(userData, saveUserPatch) {
               <div class="sh-verify-text">
                 Panels waiting lamination • Panels waiting testing • Rework queue • Production behind schedule • Wrong BOM used
               </div>
-              <div class="sh-verify-note">BOM errors cuestan miles.</div>
+              <div class="sh-verify-note">BOM errors cost thousands.</div>
             </div>
 
             <div class="sh-verify-item sh-verify-logistics">
@@ -1882,7 +1882,7 @@ function renderShiftSelection(userData, saveUserPatch) {
               <div class="sh-verify-text">
                 Finished pallets staged • Crates labeled correctly • Pending pickups • Incoming material not received yet
               </div>
-              <div class="sh-verify-note">Si se equivoca logística, se retrasan envíos.</div>
+              <div class="sh-verify-note">If logistics makes a mistake, shipments get delayed.</div>
             </div>
           </div>
         </div>
@@ -1945,6 +1945,7 @@ function renderShiftSelection(userData, saveUserPatch) {
     location.hash = "#footwear";
   };
 }
+
 function renderI9(userData, saveUserPatch) {
   const i9 = userData?.i9 || {};
   const done = !!(userData?.steps || []).find(s => s.id === "i9")?.done;
