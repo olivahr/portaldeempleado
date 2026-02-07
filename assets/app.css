@@ -1729,11 +1729,4 @@ ul, ol {
 .animate-slideIn {
     animation: slideInRight 0.3s ease forwards;
 }
-'''
-
-with open('/mnt/kimi/output/app.css', 'w') as f:
-    f.write(css_content)
-    
-print("✅ app.css created successfully")
-print(f"📄 File size: {len(css_content)} characters")
 
