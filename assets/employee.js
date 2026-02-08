@@ -1252,12 +1252,18 @@ function renderHome(publicData, recordData, userData) {
 
   const pct = clamp((scheduledMin / (maxHours * 60)) * 100, 0, 100);
 
-  // Get next pending step for home display
-  const steps = userData?.steps || [];
+    // Get next pending step for home display
+  const stepsRaw = userData?.steps || [];
+  const shiftApproved = userData?.shift?.approved === true;
+  const steps = stepsRaw.map(s => {
+    if (s.id === "shift_selection" && shiftApproved && !s.done) {
+      return { ...s, done: true };
+    }
+    return s;
+  });
   const nextStep = steps.find(s => !s.done);
   const completedCount = steps.filter(s => s.done).length;
   const totalCount = steps.length;
-
   setPage(
     "Home",
     "Welcome to your SunPower employee portal",
