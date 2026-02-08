@@ -1864,126 +1864,270 @@ function renderFindShifts(recordData) {
 }
 
 // ===============================
-// PROGRESS - Onboarding Steps
+// PROGRESS - CORREGIDO PARA MANEJAR DATOS ANTIGUOS Y NUEVOS
 // ===============================
-function renderProgress(userData, recordData) {
-  const steps = Array.isArray(userData?.steps) ? userData.steps : [];
-  const appt = recordData?.appointment || userData?.appointment || {};
+function renderProgress(userData) {
+  const steps = userData?.steps || [];
+  const shift = userData?.shift || {};
   
-  const displaySteps = steps;
-  const completedSteps = displaySteps.filter(s => s.done);
-  const pendingSteps = displaySteps.filter(s => !s.done);
-  const nextStep = pendingSteps[0];
-  const progressPercent = Math.round((completedSteps.length / displaySteps.length) * 100);
+  // NORMALIZAR PASOS - Convertir pasos antiguos a nuevos
+  const normalizedSteps = steps.map(s => {
+    // Si es el paso antiguo "documents", convertirlo a "photo_badge"
+    if (s.id === "documents" || s.id === "badge") {
+      return { ...s, id: "photo_badge" };
+    }
+    return s;
+  });
   
-  const currentStepIndex = displaySteps.findIndex(s => !s.done);
-
-  const stepsTimeline = displaySteps.map((s, index) => {
-    const isCompleted = s.done;
-    const isCurrent = index === currentStepIndex;
-    const isLocked = index > currentStepIndex;
+  // Asegurar que todos los pasos existan (para usuarios antiguos)
+  const requiredSteps = [
+    { id: "shift_selection", title: "Shift Selection", icon: "calendar" },
+    { id: "footwear", title: "Safety Footwear", icon: "boot" },
+    { id: "i9", title: "I-9 Verification", icon: "fileCheck" },
+    { id: "photo_badge", title: "Photo Badge", icon: "camera" },
+    { id: "firstday", title: "First Day Agenda", icon: "mapPin" }
+  ];
+  
+  // Completar pasos faltantes para usuarios antiguos
+  const completeSteps = requiredSteps.map(req => {
+    const existing = normalizedSteps.find(s => s.id === req.id);
+    if (existing) return existing;
     
-    const statusText = isCompleted ? "Completed" : isCurrent ? "In Progress" : "Locked";
-    const iconSvg = isCompleted ? azIcon("check") : isCurrent ? azIcon("unlock") : azIcon("lock");
-    
-    const descriptions = {
-      shift_selection: "Select your preferred shift and position for warehouse operations",
-      footwear: "Purchase required safety footwear before your first day",
-      i9: "Prepare original documents for I-9 verification on day 1",
-      photo_badge: "Complete photo ID badge at facility (in-person)",
-      firstday: "Final preparation for your first day at the facility"
+    // Si no existe, crearlo como pendiente
+    return { 
+      id: req.id, 
+      done: false,
+      title: req.title,
+      icon: req.icon
     };
+  });
+
+  // Calcular progreso basado en pasos completados
+  const totalSteps = completeSteps.length;
+  const doneSteps = completeSteps.filter(s => s.done).length;
+  
+  // Si el shift está aprobado, marcar shift_selection como done
+  if (shift.approved === true) {
+    const shiftStep = completeSteps.find(s => s.id === "shift_selection");
+    if (shiftStep) shiftStep.done = true;
+  }
+  
+  const progressPercent = Math.round((doneSteps / totalSteps) * 100);
+
+  const stepRow = (s, idx) => {
+    const isDone = s.done;
+    const isCurrent = !isDone && completeSteps.slice(0, idx).every(x => x.done);
     
-    const metaInfo = isCompleted ? "Done" : isCurrent ? "Action required" : `Complete ${displaySteps[index-1]?.label || 'previous step'} first`;
+    // Determinar si está bloqueado
+    let isLocked = false;
+    if (s.id === "footwear" && !shift.approved) isLocked = true;
+    if (s.id === "i9") {
+      const footwearDone = completeSteps.find(x => x.id === "footwear")?.done;
+      if (!shift.approved || !footwearDone) isLocked = true;
+    }
+    if (s.id === "photo_badge") {
+      const footwearDone = completeSteps.find(x => x.id === "footwear")?.done;
+      const i9Done = completeSteps.find(x => x.id === "i9")?.done;
+      if (!shift.approved || !footwearDone || !i9Done) isLocked = true;
+    }
+    if (s.id === "firstday") {
+      const allPrevDone = completeSteps.filter(x => x.id !== "firstday").every(x => x.done);
+      if (!allPrevDone) isLocked = true;
+    }
+
+    const statusIcon = isDone 
+      ? `<div style="color:rgba(22,163,74,1);">${azIcon("checkCircle")}</div>`
+      : isLocked
+        ? `<div style="color:rgba(2,6,23,.25);">${azIcon("lock")}</div>`
+        : isCurrent
+          ? `<div style="color:rgba(29,78,216,1);">${azIcon("circle")}</div>`
+          : `<div style="color:rgba(2,6,23,.25);">${azIcon("circle")}</div>`;
+
+    const titleStyle = isDone 
+      ? 'text-decoration:line-through;color:rgba(2,6,23,.50);' 
+      : isLocked 
+        ? 'color:rgba(2,6,23,.40);' 
+        : 'color:rgba(2,6,23,.85);';
+
+    const href = isLocked ? 'javascript:void(0)' : `#${s.id === 'shift_selection' ? 'shift' : s.id}`;
+    const clickAttr = isLocked ? 'onclick="event.preventDefault(); uiToast(\\'Complete previous steps first\\');"' : '';
 
     return `
-      <div class="progress-item ${isCompleted ? 'completed' : isCurrent ? 'current' : 'locked'}">
-        <div class="progress-item-icon">${iconSvg}</div>
-        <div class="progress-item-card">
-          <div class="progress-item-header">
-            <div class="progress-item-title">${escapeHtml(s.label)}</div>
-            <div class="progress-item-status">${statusText}</div>
-          </div>
-          <div class="azCardSub" style="margin-top:6px;">${descriptions[s.id] || ''}</div>
-          <div class="azCardSub" style="margin-top:8px;font-size:11px;">
-            ${azIcon(isCompleted ? "checkCircle" : isCurrent ? "info" : "lock")} ${metaInfo}
+      <a href="${href}" ${clickAttr} style="
+        display:flex;align-items:center;gap:12px;
+        padding:12px 0;border-bottom:1px solid rgba(229,234,242,.95);
+        text-decoration:none;${isLocked ? 'cursor:not-allowed;' : 'cursor:pointer;'}
+      " onmouseover="${!isLocked ? 'this.style.background=\\'rgba(29,78,216,.02)\\'' : ''}" 
+         onmouseout="${!isLocked ? 'this.style.background=\\'transparent\\'' : ''}"
+         style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;transition:all .2s;">
+        ${statusIcon}
+        <div style="flex:1;">
+          <div style="font-weight:1000;font-size:14px;${titleStyle}">${escapeHtml(s.title || s.id)}</div>
+          <div style="font-size:12px;color:rgba(2,6,23,.50);margin-top:2px;">
+            ${isDone ? 'Completed' : isLocked ? 'Locked' : isCurrent ? 'In Progress' : 'Pending'}
           </div>
         </div>
-      </div>
+        ${!isDone && !isLocked ? `<div style="color:rgba(29,78,216,1);">${azIcon("chevronRight")}</div>` : ''}
+      </a>
     `;
-  }).join("");
+  };
 
   setPage(
-    "Progress",
-    "Your onboarding journey",
+    "Your Progress",
+    `Step ${doneSteps + 1} of ${totalSteps}`,
     `
-      <div class="azCard" style="background:linear-gradient(135deg,rgba(29,78,216,.08),rgba(22,163,74,.04));border-color:rgba(29,78,216,.20);padding:24px;">
-        <div style="text-align:center;margin-bottom:20px;">
-          <div style="width:64px;height:64px;border-radius:999px;background:rgba(255,255,255,.80);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:rgba(29,78,216,1);box-shadow:0 4px 12px rgba(0,0,0,.08);">
-            ${azIcon("award")}
-          </div>
-          <div style="font-weight:1000;font-size:24px;color:rgba(2,6,23,.85);margin-bottom:8px;">${progressPercent}% Complete</div>
-          <div style="font-size:14px;color:rgba(2,6,23,.60);">
-            ${nextStep ? `Next: ${nextStep.label}. Complete all steps to finish onboarding.` : 'All steps completed! Ready for your first day.'}
+      <div class="azCard" style="text-align:center;padding:28px 24px 24px;">
+        <div style="position:relative;width:140px;height:140px;margin:0 auto 20px;">
+          <svg viewBox="0 0 36 36" style="transform:rotate(-90deg);width:100%;height:100%;">
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
+              fill="none" stroke="rgba(229,234,242,.95)" stroke-width="3" />
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
+              fill="none" stroke="rgba(29,78,216,1)" stroke-width="3" 
+              stroke-dasharray="${progressPercent}, 100" 
+              style="transition:stroke-dasharray .6s ease;" />
+          </svg>
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">
+            <div style="font-weight:1000;font-size:32px;color:rgba(2,6,23,.85);">${progressPercent}%</div>
+            <div style="font-size:11px;color:rgba(2,6,23,.50);text-transform:uppercase;letter-spacing:.5px;">Complete</div>
           </div>
         </div>
         
-        <div style="height:12px;background:rgba(255,255,255,.50);border-radius:999px;overflow:hidden;">
-          <div style="height:100%;width:${progressPercent}%;background:linear-gradient(90deg,rgba(29,78,216,.8),rgba(22,163,74,.8));border-radius:999px;transition:width .3s ease;"></div>
+        <div style="font-weight:1000;font-size:16px;color:rgba(2,6,23,.85);margin-bottom:4px;">
+          ${doneSteps === totalSteps ? 'All Steps Completed!' : 'Keep Going!'}
         </div>
-
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px;">
-          <div style="text-align:center;">
-            <div style="font-weight:1000;font-size:28px;color:rgba(29,78,216,1);">${completedSteps.length}</div>
-            <div style="font-size:11px;color:rgba(2,6,23,.60);text-transform:uppercase;letter-spacing:0.5px;">Done</div>
-          </div>
-          <div style="text-align:center;">
-            <div style="font-weight:1000;font-size:28px;color:rgba(245,158,11,1);">${pendingSteps.length}</div>
-            <div style="font-size:11px;color:rgba(2,6,23,.60);text-transform:uppercase;letter-spacing:0.5px;">Pending</div>
-          </div>
-          <div style="text-align:center;">
-            <div style="font-weight:1000;font-size:28px;color:rgba(2,6,23,.40);">${displaySteps.length}</div>
-            <div style="font-size:11px;color:rgba(2,6,23,.60);text-transform:uppercase;letter-spacing:0.5px;">Total</div>
-          </div>
+        <div class="muted" style="font-size:13px;">
+          ${doneSteps === totalSteps 
+            ? 'You\\'re ready for your first day at SunPower.' 
+            : `Complete the remaining ${totalSteps - doneSteps} steps to finish onboarding.`}
         </div>
       </div>
 
       <div class="azCard" style="margin-top:16px;">
-        ${sectionHeader("Onboarding Steps")}
-        <div class="progress-timeline">
-          ${stepsTimeline}
-        </div>
+        <div class="azCardTitle" style="margin-bottom:8px;">Onboarding Steps</div>
+        ${completeSteps.map((s, i) => stepRow(s, i)).join('')}
       </div>
 
-      ${nextStep ? `
-        <a class="btn primary" href="#${nextStep.id === 'shift_selection' ? 'shift' : nextStep.id}" style="display:block;width:100%;text-align:center;border-radius:16px;padding:16px;margin-top:20px;">
-          Continue to ${escapeHtml(nextStep.label)}
-        </a>
+      ${doneSteps === totalSteps ? `
+        <div class="azCard" style="margin-top:16px;background:linear-gradient(135deg,rgba(22,163,74,.08),rgba(22,163,74,.02));border-color:rgba(22,163,74,.25);text-align:center;padding:24px;">
+          <div style="font-weight:1000;font-size:16px;color:rgba(22,163,74,1);margin-bottom:8px;">🎉 Congratulations!</div>
+          <div class="muted" style="font-size:13px;margin-bottom:16px;">
+            You have completed all onboarding requirements.<br>
+            We look forward to seeing you on your first day!
+          </div>
+          <a class="btn primary" href="#firstday" style="display:block;width:100%;border-radius:16px;padding:14px;">
+            View First Day Details
+          </a>
+        </div>
       ` : ''}
-
-      <div class="azCard" style="margin-top:16px;background:rgba(2,6,23,.03);">
-        <div class="azCardTitle">Facility Information</div>
-        <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div>
-            <div style="font-size:11px;color:rgba(2,6,23,.50);text-transform:uppercase;letter-spacing:0.5px;">Location</div>
-            <div style="font-weight:1000;font-size:13px;color:rgba(2,6,23,.85);margin-top:4px;">${safe(appt.address, "To be assigned")}</div>
-          </div>
-          <div>
-            <div style="font-size:11px;color:rgba(2,6,23,.50);text-transform:uppercase;letter-spacing:0.5px;">Start Time</div>
-            <div style="font-weight:1000;font-size:13px;color:rgba(2,6,23,.85);margin-top:4px;">${safe(appt.time, "TBD")}</div>
-          </div>
-          <div>
-            <div style="font-size:11px;color:rgba(2,6,23,.50);text-transform:uppercase;letter-spacing:0.5px;">Start Date</div>
-            <div style="font-weight:1000;font-size:13px;color:rgba(2,6,23,.85);margin-top:4px;">${safe(appt.date, "TBD")}</div>
-          </div>
-          <div>
-            <div style="font-size:11px;color:rgba(2,6,23,.50);text-transform:uppercase;letter-spacing:0.5px;">Contact</div>
-            <div style="font-weight:1000;font-size:13px;color:rgba(2,6,23,.85);margin-top:4px;">HR Onboarding</div>
-          </div>
-        </div>
-      </div>
     `
   );
+}
+
+// ===============================
+// DEFAULT USER DOC - CORREGIDO
+// ===============================
+function defaultUserDoc(uid, email) {
+  const now = new Date().toISOString();
+  return {
+    uid,
+    email,
+    role: "employee",
+    createdAt: now,
+    updatedAt: now,
+    employeeId: null,
+    shift: {
+      position: "",
+      shift: "",
+      status: "",
+      approved: false
+    },
+    i9: {
+      status: "pending",
+      documents: []
+    },
+    footwear: {},
+    photo: null, // Para la foto del badge
+    steps: [
+      { id: "shift_selection", done: false, title: "Shift Selection", icon: "calendar" },
+      { id: "footwear", done: false, title: "Safety Footwear", icon: "boot" },
+      { id: "i9", done: false, title: "I-9 Verification", icon: "fileCheck" },
+      { id: "photo_badge", done: false, title: "Photo Badge", icon: "camera" },
+      { id: "firstday", done: false, title: "First Day Agenda", icon: "mapPin" }
+    ],
+    stage: "shift_selection"
+  };
+}
+
+// ===============================
+// ROUTER - CORREGIDO PARA MANEJAR IDs ANTIGUOS
+// ===============================
+function route(hash) {
+  const id = hash.replace(/^#/, "") || "home";
+  const user = auth.currentUser;
+  
+  // Normalizar IDs antiguos
+  let normalizedId = id;
+  if (id === "documents" || id === "badge") normalizedId = "photo_badge";
+  if (id === "shift") normalizedId = "shift_selection";
+
+  if (!user) {
+    if (id === "admin") renderAdminLogin();
+    else renderLanding();
+    return;
+  }
+
+  loadUser(user.uid, async (data) => {
+    const saveUserPatch = async (patch) => {
+      try {
+        const ref = doc(db, "users", user.uid);
+        await updateDoc(ref, { ...patch, updatedAt: serverTimestamp() });
+      } catch (e) {
+        console.error("Save error:", e);
+        uiToast("Error saving. Please try again.");
+      }
+    };
+
+    const publicSnap = await getDoc(doc(db, "public", "content"));
+    const publicData = publicSnap.exists() ? publicSnap.data() : {};
+
+    switch (normalizedId) {
+      case "home":
+        renderHome(data, publicData);
+        break;
+      case "progress":
+        renderProgress(data);
+        break;
+      case "shift_selection":
+      case "shift":
+        renderShiftSelection(data, saveUserPatch);
+        break;
+      case "footwear":
+        renderFootwear(data, saveUserPatch, publicData);
+        break;
+      case "i9":
+        renderI9(data, saveUserPatch);
+        break;
+      case "photo_badge":
+      case "badge":
+      case "documents":
+        renderPhotoBadge(data, saveUserPatch);
+        break;
+      case "firstday":
+        renderFirstDay(data, publicData);
+        break;
+      case "chat":
+        renderChat(data);
+        break;
+      case "profile":
+        renderProfile(data, saveUserPatch);
+        break;
+      case "admin":
+        renderAdmin();
+        break;
+      default:
+        renderHome(data, publicData);
+    }
+  });
 }
 
 // ===============================
