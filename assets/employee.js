@@ -2495,11 +2495,12 @@ function renderFootwear(userData, saveUserPatch, publicData) {
   Open Safety Footwear Store
 </button>
 
-<button class="btn ghost" id="btnImBack"
-  style="display:block;width:100%;text-align:center;margin-top:10px;border-radius:16px;">
-  I’m Back From The Store (Unlock Next Step)
-</button>
-
+${showBackBtn ? `
+  <button class="btn ghost" id="btnImBack"
+    style="display:block;width:100%;text-align:center;margin-top:10px;border-radius:16px;">
+    I'm Back From The Store (Unlock Next Step)
+  </button>
+` : ``}
         <div class="small muted" style="margin-top:10px;line-height:1.4;text-align:center;">
           After you finish shopping, return to this page to complete the acknowledgements and continue to the next step.
         </div>
