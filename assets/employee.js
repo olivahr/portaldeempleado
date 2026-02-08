@@ -1252,9 +1252,9 @@ function renderHome(publicData, recordData, userData) {
 
   const pct = clamp((scheduledMin / (maxHours * 60)) * 100, 0, 100);
 
-    // Get next pending step for home display
+      // Get next pending step for home display
   const stepsRaw = userData?.steps || [];
-  const shiftApproved = userData?.shift?.approved === true;
+  const shiftApproved = (recordData?.shift?.approved === true) || (userData?.shift?.approved === true);
   const steps = stepsRaw.map(s => {
     if (s.id === "shift_selection" && shiftApproved && !s.done) {
       return { ...s, done: true };
