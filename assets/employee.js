@@ -2044,11 +2044,11 @@ function renderShiftSelection(userData, saveUserPatch) {
             <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
               <div>
                 <div style="font-size:11px;color:rgba(2,6,23,.50);">Position</div>
-                <div style="font-weight:1000;font-size:14px;color:rgba(2,6,23,.85);margin-top:4px;">${escapeHtml(shift.position || 'Not selected')}</div>
+                <div style="font-weight:1000;font-size:14px;color:rgba(2,6,23,.85);margin-top:4px;">${escapeHtml(formatPosition(shift.position))}</div>
               </div>
               <div>
                 <div style="font-size:11px;color:rgba(2,6,23,.50);">Shift</div>
-                <div style="font-weight:1000;font-size:14px;color:rgba(2,6,23,.85);margin-top:4px;">${escapeHtml(shift.shift || 'Not selected')}</div>
+                <div style="font-weight:1000;font-size:14px;color:rgba(2,6,23,.85);margin-top:4px;">${escapeHtml(formatShift(shift.shift))}</div>
               </div>
               <div>
                 <div style="font-size:11px;color:rgba(2,6,23,.50);">Status</div>
@@ -2089,11 +2089,11 @@ function renderShiftSelection(userData, saveUserPatch) {
             <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
               <div>
                 <div style="font-size:11px;color:rgba(2,6,23,.50);">Position</div>
-                <div style="font-weight:1000;font-size:14px;color:rgba(2,6,23,.85);margin-top:4px;">${escapeHtml(shift.position || 'Not selected')}</div>
+                <div style="font-weight:1000;font-size:14px;color:rgba(2,6,23,.85);margin-top:4px;">${escapeHtml(formatPosition(shift.position))}</div>
               </div>
               <div>
                 <div style="font-size:11px;color:rgba(2,6,23,.50);">Shift</div>
-                <div style="font-weight:1000;font-size:14px;color:rgba(2,6,23,.85);margin-top:4px;">${escapeHtml(shift.shift || 'Not selected')}</div>
+                <div style="font-weight:1000;font-size:14px;color:rgba(2,6,23,.85);margin-top:4px;">${escapeHtml(formatShift(shift.shift))}</div>
               </div>
             </div>
           </div>
@@ -2205,6 +2205,26 @@ function renderShiftSelection(userData, saveUserPatch) {
   };
 }
 
+// Helper functions para formatear
+function formatPosition(key) {
+  const positions = {
+    assembler: "Solar Panel Assembler",
+    material: "Material Handler",
+    qc: "Quality Control Inspector",
+    shipping: "Shipping & Receiving"
+  };
+  return positions[key] || key;
+}
+
+function formatShift(key) {
+  const shifts = {
+    early: "Early Shift (6:00 AM – 2:30 PM)",
+    mid: "Mid Shift (2:00 PM – 10:30 PM)",
+    late: "Late Shift (10:00 PM – 6:30 AM)",
+    weekend: "Weekend Shift (Fri-Sun)"
+  };
+  return shifts[key] || key;
+}
 // ===============================
 // FOOTWEAR - CON BOTÓN CONTINUE DESPUÉS DE TIENDA
 // ===============================
