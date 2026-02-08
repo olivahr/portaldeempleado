@@ -22,11 +22,6 @@ const CHAT_COL = (empId) => collection(db, "employeeRecords", empId, "chatMessag
 const EMP_ID_RANGE = { min: 23, max: 200 };
 const AUTO_CREATE_ALLOWED_ID = true;
 
-// ---------- Admin emails (solo estos ven el botón admin) ----------
-const ADMIN_EMAILS = [
-  "tu-email-admin@sunpowerc.energy", // ← REEMPLAZA CON TU EMAIL REAL
-  // Puedes agregar más emails de admin aquí
-];
 
 // ---------- Route helpers ----------
 function routeName() {
