@@ -232,7 +232,7 @@ function clearAppointment() {
     if ($('apptSuccess')) $('apptSuccess').style.display = 'none';
 }
 
-// ==================== SHIFT APPROVAL ====================
+// ==================== SHIFT APPROVAL - CORREGIDO ====================
 async function loadShiftData() {
     const pendingDiv = $('shiftPending');
     const approvedDiv = $('shiftApproved');
@@ -246,86 +246,178 @@ async function loadShiftData() {
     }
     
     try {
-        const snap = await getDoc(doc(db, "employeeRecords", currentEmpId));
-        const data = snap.exists() ? snap.data() : {};
-        const shift = data.shift || {};
+        // Buscar en USERS collection donde employeeId == currentEmpId
+        const usersQuery = query(collection(db, "users"), where("employeeId", "==", currentEmpId));
+        const usersSnap = await getDocs(usersQuery);
         
-        if (!shift.position) {
+        let shift = null;
+        let userDocId = null;
+        
+        if (!usersSnap.empty) {
+            const userDoc = usersSnap.docs[0];
+            userDocId = userDoc.id;
+            const userData = userDoc.data();
+            shift = userData.shift || {};
+        }
+        
+        // Si no hay en users, buscar en employeeRecords como fallback
+        if (!shift || !shift.position) {
+            const recordSnap = await getDoc(doc(db, "employeeRecords", currentEmpId));
+            const recordData = recordSnap.exists() ? recordSnap.data() : {};
+            shift = recordData.shift || {};
+        }
+        
+        // Guardar userDocId para usarlo en approveShift
+        window.currentUserDocId = userDocId;
+        
+        if (!shift || !shift.position) {
             if (pendingDiv) pendingDiv.style.display = 'none';
             if (approvedDiv) approvedDiv.style.display = 'none';
             if (noneDiv) noneDiv.style.display = 'block';
+            
+            if ($('shiftPosition')) $('shiftPosition').textContent = 'Not selected';
+            if ($('shiftTime')) $('shiftTime').textContent = 'Not selected';
+            if ($('shiftDate')) $('shiftDate').textContent = '--';
             return;
         }
         
-        if ($('shiftPosition')) $('shiftPosition').textContent = shift.position || 'Not selected';
-        if ($('shiftTime')) $('shiftTime').textContent = shift.shift || 'Not selected';
+        // Mostrar datos del shift
+        if ($('shiftPosition')) $('shiftPosition').textContent = formatPosition(shift.position);
+        if ($('shiftTime')) $('shiftTime').textContent = formatShift(shift.shift);
         if ($('shiftDate')) {
-            $('shiftDate').textContent = shift.selectedAt ? 
-                new Date(shift.selectedAt.toDate()).toLocaleDateString() : 'Unknown';
+            const dateText = shift.submittedAt ? 
+                new Date(shift.submittedAt.toDate?.() || shift.submittedAt).toLocaleDateString() : 
+                (shift.updatedAt ? new Date(shift.updatedAt.toDate?.() || shift.updatedAt).toLocaleDateString() : 'Unknown');
+            $('shiftDate').textContent = dateText;
         }
         
-        if (shift.approved) {
+        // Mostrar estado
+        if (shift.approved === true) {
             if (pendingDiv) pendingDiv.style.display = 'none';
             if (approvedDiv) approvedDiv.style.display = 'block';
             if (noneDiv) noneDiv.style.display = 'none';
-        } else {
+        } else if (shift.status === 'pending' || (shift.position && shift.shift)) {
             if (pendingDiv) pendingDiv.style.display = 'block';
             if (approvedDiv) approvedDiv.style.display = 'none';
             if (noneDiv) noneDiv.style.display = 'none';
+        } else {
+            if (pendingDiv) pendingDiv.style.display = 'none';
+            if (approvedDiv) approvedDiv.style.display = 'none';
+            if (noneDiv) noneDiv.style.display = 'block';
         }
         
     } catch (error) {
         console.error("Shift load error:", error);
+        showToast('Error loading shift data', 'error');
     }
 }
 
 async function approveShift() {
-    if (!currentEmpId) return;
+    if (!currentEmpId) {
+        showToast('No employee selected', 'error');
+        return;
+    }
     
     try {
-        await updateDoc(doc(db, "employeeRecords", currentEmpId), {
-            'shift.approved': true,
-            'shift.approvedAt': serverTimestamp(),
-            'shift.approvedBy': 'admin'
-        });
-        
+        // Aprobar en USERS collection
         const usersQuery = query(collection(db, "users"), where("employeeId", "==", currentEmpId));
         const usersSnap = await getDocs(usersQuery);
         
-        const promises = [];
-        usersSnap.forEach((userDoc) => {
-            promises.push(updateDoc(doc(db, "users", userDoc.id), {
-                'shift.approved': true
-            }));
-        });
-        await Promise.all(promises);
+        if (!usersSnap.empty) {
+            const userDoc = usersSnap.docs[0];
+            await updateDoc(doc(db, "users", userDoc.id), {
+                'shift.approved': true,
+                'shift.approvedAt': serverTimestamp(),
+                'shift.approvedBy': 'admin',
+                'shift.status': 'approved',
+                updatedAt: serverTimestamp()
+            });
+        }
+        
+        // También actualizar en employeeRecords para mantener sincronización
+        try {
+            await updateDoc(doc(db, "employeeRecords", currentEmpId), {
+                'shift.approved': true,
+                'shift.approvedAt': serverTimestamp(),
+                'shift.approvedBy': 'admin',
+                'shift.status': 'approved',
+                updatedAt: serverTimestamp()
+            });
+        } catch (e) {
+            console.log("Could not update employeeRecords, but user was updated");
+        }
         
         showToast('Shift approved!', 'success');
         loadShiftData();
         
     } catch (error) {
         showToast(`Error: ${error.message}`, 'error');
+        console.error(error);
     }
 }
 
 async function rejectShift() {
-    if (!currentEmpId) return;
+    if (!currentEmpId) {
+        showToast('No employee selected', 'error');
+        return;
+    }
     
     try {
-        await updateDoc(doc(db, "employeeRecords", currentEmpId), {
-            'shift': deleteField(),
-            shiftRejected: true,
-            shiftRejectedAt: serverTimestamp()
-        });
+        // Rechazar en USERS collection
+        const usersQuery = query(collection(db, "users"), where("employeeId", "==", currentEmpId));
+        const usersSnap = await getDocs(usersQuery);
+        
+        if (!usersSnap.empty) {
+            const userDoc = usersSnap.docs[0];
+            await updateDoc(doc(db, "users", userDoc.id), {
+                'shift': deleteField(),
+                shiftRejected: true,
+                shiftRejectedAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            });
+        }
+        
+        // También actualizar en employeeRecords
+        try {
+            await updateDoc(doc(db, "employeeRecords", currentEmpId), {
+                'shift': deleteField(),
+                shiftRejected: true,
+                shiftRejectedAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            });
+        } catch (e) {
+            console.log("Could not update employeeRecords");
+        }
         
         showToast('Shift rejected. Employee must select again.', 'info');
         loadShiftData();
         
     } catch (error) {
         showToast(`Error: ${error.message}`, 'error');
+        console.error(error);
     }
 }
 
+// Helper functions para formatear
+function formatPosition(key) {
+    const positions = {
+        assembler: "Solar Panel Assembler",
+        material: "Material Handler",
+        qc: "Quality Control Inspector",
+        shipping: "Shipping & Receiving"
+    };
+    return positions[key] || key || 'Not selected';
+}
+
+function formatShift(key) {
+    const shifts = {
+        early: "Early Shift (6AM - 2:30PM)",
+        mid: "Mid Shift (2PM - 10:30PM)",
+        late: "Late Shift (10PM - 6:30AM)",
+        weekend: "Weekend Shift (Fri-Sun)"
+    };
+    return shifts[key] || key || 'Not selected';
+}
 // ==================== PROGRESO / STEPS ====================
 async function loadProgressData() {
     if (!currentEmpId) return;
