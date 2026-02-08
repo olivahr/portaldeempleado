@@ -222,11 +222,6 @@ async function ensureUserDocExists(user) {
 }
 
 // ---------- VERIFICACIÓN DE ADMIN POR EMAIL ----------
-async function isAdminUser(user) {
-  if (!user || !isFirebaseConfigured()) return false;
-  
-async function ensureEmployeeId(user) {
-  if (!isFirebaseConfigured()) return "PREVIEW";
 
   const userRef = doc(db, "users", user.uid);
   const snap = await getDoc(userRef);
