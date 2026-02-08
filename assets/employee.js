@@ -225,11 +225,6 @@ async function ensureUserDocExists(user) {
 async function isAdminUser(user) {
   if (!user || !isFirebaseConfigured()) return false;
   
-  // Solo los emails en la lista ADMIN_EMAILS pueden ver el botón admin
-  const userEmail = user.email?.toLowerCase().trim();
-  return ADMIN_EMAILS.includes(userEmail);
-}
-
 async function ensureEmployeeId(user) {
   if (!isFirebaseConfigured()) return "PREVIEW";
 
@@ -3537,7 +3532,7 @@ function renderRoute(userData, saveUserPatch, publicData, recordData, ctx) {
 export async function initEmployeeApp() {
   const badge = document.getElementById("userBadge");
   const statusChip = document.getElementById("statusShift");
-  const adminBtn = document.getElementById("btnAdminGo");
+  
 
   ensureChromeOnce();
   setActiveTabsAndSidebar();
@@ -3545,7 +3540,7 @@ export async function initEmployeeApp() {
   if (!isFirebaseConfigured()) {
     uiSetText(badge, "Preview");
     if (statusChip) uiSetText(statusChip, "offline");
-    if (adminBtn) adminBtn.style.display = "none";
+    
 
     const demoUser = defaultUserDoc({ email: "preview@demo", displayName: "Preview User", uid: "preview" });
     const demoPublic = defaultPublicContent();
@@ -3599,12 +3594,8 @@ export async function initEmployeeApp() {
         statusChip.classList.add("ok");
       }
 
-      // ---------- ADMIN: Solo emails autorizados ven el botón ----------
-      const isAdmin = await isAdminUser(user);
-      if (adminBtn) {
-        adminBtn.style.display = isAdmin ? "" : "none";
-      }
-
+      // ---------- ADMIN:  ----------
+     
       await ensureUserDocExists(user);
 
       const empId = await ensureEmployeeId(user);
