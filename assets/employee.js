@@ -2373,7 +2373,8 @@ function renderFootwear(userData, saveUserPatch, publicData) {
   const fwPublic = publicData?.footwear || defaultPublicContent().footwear;
   const fw = userData?.footwear || {};
   const visitedStore = userData?.footwear?.visitedStore === true;
-
+  const showBackBtn =
+  sessionStorage.getItem("fw_store_opened") === "1" && !visitedStore;
   // ---------- LOCKED ----------
   if (isLocked) {
     setPage(
@@ -2537,36 +2538,33 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     `
   );
 
-// ----------- STORE BUTTON BEHAVIOR -----------
+// -------- STORE BUTTON BEHAVIOR --------
 const btnGoStore = document.getElementById("btnGoStore");
 const btnImBack  = document.getElementById("btnImBack");
 
+// 1) ABRIR TIENDA: solo marcamos que abrió la tienda (sessionStorage)
+//    NO pongas visitedStore aquí.
 if (btnGoStore) {
-  btnGoStore.onclick = async () => {
-    try {
-      await saveUserPatch({
-        footwear: { ...(fw || {}), visitedStore: true, visitedAt: Date.now() }
-      });
-      await new Promise(r => setTimeout(r, 250));
-    } catch (e) {}
-
+  btnGoStore.onclick = () => {
+    try { sessionStorage.setItem("fw_store_opened", "1"); } catch (e) {}
     window.location.href = fwPublic.shopUrl;
   };
 }
 
+// 2) I'M BACK: aquí SÍ marcamos visitedStore:true y recargamos la página
 if (btnImBack) {
   btnImBack.onclick = async () => {
     try {
       await saveUserPatch({
         footwear: { ...(fw || {}), visitedStore: true, visitedAt: Date.now() }
       });
-      await new Promise(r => setTimeout(r, 250));
+      try { sessionStorage.removeItem("fw_store_opened"); } catch (e) {}
     } catch (e) {}
 
-    window.location.reload(); // mata el cache del iPhone al volver
+    // fuerza re-render en iPhone/Safari
+    window.location.reload();
   };
 }
-
   // If acks not unlocked, stop here
   if (!visitedStore) return;
 
