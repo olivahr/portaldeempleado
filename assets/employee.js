@@ -2363,21 +2363,16 @@ function formatShiftDisplay(key) {
 // FOOTWEAR
 // ===============================
 function renderFootwear(userData, saveUserPatch, publicData) {
-  // --- NEW: Lock rule based on approved shift (real approval) ---
   const shiftApproved = !!userData?.shift?.approved;
-
   const steps = userData?.steps || [];
   const stepFootwear = steps.find(s => s.id === "footwear");
   const isDone = !!stepFootwear?.done;
 
-  // "locked" ONLY if shift is not approved
   const isLocked = !shiftApproved;
 
-  // Public content
   const fwPublic = publicData?.footwear || defaultPublicContent().footwear;
-
-  // User saved data
   const fw = userData?.footwear || {};
+  const visitedStore = !!fw.visitedStore; // gate para mostrar acks
 
   // ---------- LOCKED ----------
   if (isLocked) {
@@ -2418,7 +2413,8 @@ function renderFootwear(userData, saveUserPatch, publicData) {
             Remember: approved safety shoes are required on your first day.
           </div>
 
-          <a class="btn ghost" href="${escapeHtml(fwPublic.shopUrl)}" rel="noopener" style="display:block;width:100%;text-align:center;margin:0 auto 12px;border-radius:16px;">
+          <a class="btn ghost" href="${escapeHtml(fwPublic.shopUrl)}" rel="noopener"
+             style="display:block;width:100%;text-align:center;margin:0 auto 12px;border-radius:16px;">
             Open Safety Footwear Store
           </a>
 
@@ -2431,23 +2427,24 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     return;
   }
 
-  // Helpers
+  // ---------- HELPERS ----------
   function ackRow(id, checked, text) {
+    // touch friendly (sin onmouseover)
     return `
-      <label class="checkrow" style="
+      <label class="checkrow" for="${escapeHtml(id)}" style="
         display:flex;gap:12px;align-items:flex-start;
         padding:14px;border:1px solid rgba(229,234,242,.95);
-        border-radius:16px;margin-top:10px;cursor:pointer;
-        background:#fff;transition:all .2s;
-      " onmouseover="this.style.borderColor='rgba(29,78,216,.30)';this.style.background='rgba(29,78,216,.02)'" 
-      onmouseout="this.style.borderColor='rgba(229,234,242,.95)';this.style.background='#fff'">
-        <input type="checkbox" id="${escapeHtml(id)}" ${checked ? "checked" : ""} style="width:20px;height:20px;margin-top:2px;accent-color:#2563eb;"/>
+        border-radius:16px;margin-top:10px;cursor:pointer;background:#fff;
+      ">
+        <input type="checkbox" id="${escapeHtml(id)}" ${checked ? "checked" : ""}
+          style="width:20px;height:20px;margin-top:2px;accent-color:#2563eb;"/>
         <span style="font-size:13px;line-height:1.5;color:rgba(2,6,23,.80);">${escapeHtml(text)}</span>
       </label>
     `;
   }
 
-  // ---------- REQUIRED (NOT DONE YET) ----------
+  // ---------- PAGE: ALWAYS SHOW INFO + STORE ----------
+  // ACKS SECTION is conditional (visitedStore)
   setPage(
     fwPublic.programTitle || "Safety Footwear Program",
     "Required for all warehouse and production positions",
@@ -2458,8 +2455,9 @@ function renderFootwear(userData, saveUserPatch, publicData) {
           <div class="azCardTitle" style="color:rgba(220,38,38,1);">Mandatory Requirement</div>
         </div>
         <div class="muted" style="line-height:1.6;">
-          Approved safety footwear is <strong>mandatory</strong> for all operational positions. 
-          You must have proper safety shoes <strong>before your first day</strong>. 
+          Approved safety footwear is <strong>mandatory</strong> for all operational positions
+          (warehouse, production, assembly, maintenance, and any role entering active work zones).
+          You must have proper safety shoes <strong>before your first day</strong>.
           Failure to comply may result in rescheduling your start date.
         </div>
       </div>
@@ -2467,8 +2465,8 @@ function renderFootwear(userData, saveUserPatch, publicData) {
       <div class="azCard" style="margin-top:16px;">
         ${sectionHeader("Program Overview")}
         <div class="muted" style="line-height:1.7;">
-          SunPower provides a <strong>$100 reimbursement</strong> for approved safety footwear 
-          purchased through our designated vendor. This benefit is processed in your <strong>first paycheck</strong> 
+          SunPower provides a <strong>$100 reimbursement</strong> for approved safety footwear
+          purchased through our designated vendor. This benefit is processed in your <strong>first paycheck</strong>
           after verification of purchase and first-week attendance.
         </div>
 
@@ -2491,45 +2489,67 @@ function renderFootwear(userData, saveUserPatch, publicData) {
           Keep your receipt for verification. Use your employee ID at checkout if prompted.
         </div>
 
-        <a class="btn primary" id="btnOpenFootwearStore"
-           href="${escapeHtml(fwPublic.shopUrl)}"
-           rel="noopener"
-           style="display:block;width:100%;text-align:center;margin-top:12px;border-radius:16px;">
+        <button class="btn primary" id="btnGoStore"
+          style="display:block;width:100%;text-align:center;margin-top:12px;border-radius:16px;">
           Open Safety Footwear Store
-        </a>
-
-        <div class="small muted" style="margin-top:10px;line-height:1.4;text-align:center;">
-          After you finish shopping, return here to complete the acknowledgements and continue to I-9.
-        </div>
-      </div>
-
-      <div class="azCard" style="margin-top:16px;">
-        ${sectionHeader("Required Acknowledgements")}
-        ${ackRow("fwAck1", fw.ack1, "I understand that safety footwear is mandatory and must be worn at all times in operational areas.")}
-        ${ackRow("fwAck2", fw.ack2, "I will purchase approved safety footwear before my first scheduled work day.")}
-        ${ackRow("fwAck3", fw.ack3, "I understand that purchases must be made through the designated vendor to qualify for reimbursement.")}
-        ${ackRow("fwAck4", fw.ack4, "I understand that reimbursement requires proof of purchase and completion of first week.")}
-        ${ackRow("fwAck5", fw.ack5, "I acknowledge that failure to wear proper safety equipment may result in disciplinary action.")}
-
-        <button class="btn primary" id="btnFootwearComplete" type="button"
-          style="display:block;width:100%;text-align:center;border-radius:16px;padding:16px;margin-top:20px;">
-          Confirm All Items Above
         </button>
 
-        <a class="btn ghost" id="btnFootwearContinueI9" href="#i9"
-          style="display:none;width:100%;text-align:center;border-radius:16px;padding:16px;margin-top:12px;">
-          Continue to I-9 Verification
-        </a>
-
-        <div class="small muted" style="margin-top:12px;line-height:1.4;text-align:center;">
-          By completing this step, you certify that you understand and agree to all requirements above.
+        <div class="small muted" style="margin-top:10px;line-height:1.4;text-align:center;">
+          After you finish shopping, return to this page to complete the acknowledgements and continue to the next step.
         </div>
       </div>
+
+      ${
+        !visitedStore
+          ? `
+            <div class="azCard" style="margin-top:16px;border:1px dashed rgba(29,78,216,.35);background:rgba(29,78,216,.03);">
+              <div class="azCardTitle">Next Step Locked</div>
+              <div class="muted" style="line-height:1.6;margin-top:8px;">
+                To continue, please open the vendor store first. Once you return, the acknowledgement section will unlock.
+              </div>
+            </div>
+          `
+          : `
+            <div class="azCard" style="margin-top:16px;">
+              ${sectionHeader("Required Acknowledgements")}
+              ${ackRow("fwAck1", fw.ack1, "I understand that safety footwear is mandatory and must be worn at all times in operational areas.")}
+              ${ackRow("fwAck2", fw.ack2, "I will purchase approved safety footwear before my first scheduled work day.")}
+              ${ackRow("fwAck3", fw.ack3, "I understand that purchases must be made through the designated vendor to qualify for reimbursement.")}
+              ${ackRow("fwAck4", fw.ack4, "I understand that reimbursement requires proof of purchase and completion of first week.")}
+              ${ackRow("fwAck5", fw.ack5, "I acknowledge that failure to wear proper safety equipment may result in disciplinary action.")}
+
+              <button class="btn primary" id="btnFootwearNext" type="button"
+                style="display:block;width:100%;text-align:center;border-radius:16px;padding:16px;margin-top:20px;opacity:.6;" disabled>
+                Continue to I-9 Verification
+              </button>
+
+              <div class="small muted" style="margin-top:12px;line-height:1.4;text-align:center;">
+                This button will unlock after all acknowledgements are selected.
+              </div>
+            </div>
+          `
+      }
     `
   );
 
-  const btnComplete = document.getElementById("btnFootwearComplete");
-  const btnContinueI9 = document.getElementById("btnFootwearContinueI9");
+  // ---------- STORE BUTTON BEHAVIOR ----------
+  const btnGoStore = document.getElementById("btnGoStore");
+  if (btnGoStore) {
+    btnGoStore.onclick = async () => {
+      // marca visitedStore antes de salir, así cuando le den Back ya salen los acks
+      try {
+        await saveUserPatch({ footwear: { ...(fw || {}), visitedStore: true } });
+      } catch (e) {}
+
+      window.location.href = fwPublic.shopUrl;
+    };
+  }
+
+  // If acks not unlocked, stop here
+  if (!visitedStore) return;
+
+  // ---------- ACKS + NEXT STEP ----------
+  const btnNext = document.getElementById("btnFootwearNext");
 
   const readAcks = () => {
     const a1 = !!document.getElementById("fwAck1")?.checked;
@@ -2540,70 +2560,70 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     return { a1, a2, a3, a4, a5, all: !!(a1 && a2 && a3 && a4 && a5) };
   };
 
-  const syncBtn = () => {
+  const syncNext = () => {
     const st = readAcks();
-    if (!btnComplete) return;
-
-    btnComplete.disabled = !st.all;
-    btnComplete.style.opacity = st.all ? "1" : ".6";
-    btnComplete.textContent = st.all
-      ? "Complete Safety Footwear Requirement"
-      : "Confirm All Items Above";
+    if (!btnNext) return;
+    btnNext.disabled = !st.all;
+    btnNext.style.opacity = st.all ? "1" : ".6";
   };
 
-  // Optional: autosave acks so when they come back from store, checks remain saved
-  let ackSaveTimer = null;
-  const autosaveAcks = () => {
+  // Autosave acks (para que si refresca, se queden marcados)
+  let t = null;
+  const autosave = () => {
     const st = readAcks();
-    clearTimeout(ackSaveTimer);
-    ackSaveTimer = setTimeout(() => {
+    clearTimeout(t);
+    t = setTimeout(() => {
       saveUserPatch({
-        footwear: { ack1: st.a1, ack2: st.a2, ack3: st.a3, ack4: st.a4, ack5: st.a5 }
+        footwear: {
+          ...(fw || {}),
+          visitedStore: true,
+          ack1: st.a1,
+          ack2: st.a2,
+          ack3: st.a3,
+          ack4: st.a4,
+          ack5: st.a5
+        }
       }).catch(() => {});
     }, 250);
   };
 
-  ["fwAck1", "fwAck2", "fwAck3", "fwAck4", "fwAck5"].forEach(id => {
+  ["fwAck1","fwAck2","fwAck3","fwAck4","fwAck5"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener("change", () => {
-      syncBtn();
-      autosaveAcks();
+      syncNext();
+      autosave();
     });
   });
 
-  syncBtn();
+  syncNext();
 
-  if (btnComplete) {
-    btnComplete.onclick = async () => {
+  if (btnNext) {
+    btnNext.onclick = async () => {
       const st = readAcks();
       if (!st.all) {
-        uiToast("Please confirm all requirements.");
+        uiToast("Please confirm all acknowledgements.");
         return;
       }
 
+      // mark footwear step done
       const newSteps = (steps || []).map(s =>
         s.id === "footwear" ? ({ ...s, done: true, doneAt: Date.now() }) : s
       );
-
-      // if footwear step doesn't exist yet, add it
       if (!newSteps.find(s => s.id === "footwear")) {
         newSteps.push({ id: "footwear", done: true, doneAt: Date.now() });
       }
 
       await saveUserPatch({
-        footwear: { ack1: st.a1, ack2: st.a2, ack3: st.a3, ack4: st.a4, ack5: st.a5 },
+        footwear: {
+          ...(fw || {}),
+          visitedStore: true,
+          ack1: st.a1, ack2: st.a2, ack3: st.a3, ack4: st.a4, ack5: st.a5
+        },
         steps: newSteps,
         stage: "i9"
       });
 
-      triggerConfetti();
-      uiToast("Safety footwear requirement completed!");
-
-      // Show continue button immediately
-      if (btnContinueI9) {
-        btnContinueI9.style.display = "block";
-      }
-      // Optionally jump them right away
+      uiToast("Safety footwear step completed!");
       location.hash = "#i9";
     };
   }
