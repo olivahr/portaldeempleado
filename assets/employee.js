@@ -1898,8 +1898,14 @@ function renderProgress(userData, recordData) {
   const steps = Array.isArray(userData?.steps) ? userData.steps : [];
   const appt = recordData?.appointment || userData?.appointment || {};
   
-  const displaySteps = steps;
-  const completedSteps = displaySteps.filter(s => s.done);
+  const shiftApproved = userData?.shift?.approved === true;
+const displaySteps = steps.map(s => {
+  if (s.id === "shift_selection" && shiftApproved && !s.done) {
+    return { ...s, done: true };
+  }
+  return s;
+});
+const completedSteps = displaySteps.filter(s => s.done);
   const pendingSteps = displaySteps.filter(s => !s.done);
   const nextStep = pendingSteps[0];
   const progressPercent = Math.round((completedSteps.length / displaySteps.length) * 100);
@@ -2044,7 +2050,14 @@ function renderShiftSelection(userData, saveUserPatch) {
     approved: false 
   };
   
-  const steps = userData?.steps || [];
+const stepsRaw = userData?.steps || [];
+const shiftApproved = userData?.shift?.approved === true;
+const steps = stepsRaw.map(s => {
+  if (s.id === "shift_selection" && shiftApproved && !s.done) {
+    return { ...s, done: true };
+  }
+  return s;
+});
   
   console.log("Shift data:", shift);
   console.log("Position:", shift.position);
