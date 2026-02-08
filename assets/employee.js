@@ -2006,20 +2006,28 @@ function getStepStatus(stepId, userData) {
 }
 
 // ===============================
-// SHIFT SELECTION - VERSION CORREGIDA
+// SHIFT SELECTION - CORREGIDO
 // ===============================
 
 function renderShiftSelection(userData, saveUserPatch) {
-  const shift = userData?.shift || {};
+  // Asegurar que shift existe con valores por defecto
+  const shift = userData?.shift || { 
+    position: "", 
+    shift: "", 
+    status: "", 
+    approved: false 
+  };
+  
   const steps = userData?.steps || [];
   
-  console.log("Current shift data:", shift);
-  
-  // CORRECCIÓN 1: Verificar tanto el booleano como el string status
-  const isApproved = shift.approved === true || shift.status === "approved";
-  
-  // MOSTRAR ESTADO APROBADO
-  if (isApproved) {
+  console.log("Shift data:", shift);
+  console.log("Position:", shift.position);
+  console.log("Shift:", shift.shift);
+  console.log("Status:", shift.status);
+  console.log("Approved:", shift.approved);
+
+  // CASO 1: APROBADO - Mostrar pantalla de aprobado
+  if (shift.approved === true) {
     setPage(
       "Shift Selection",
       "Approved - Ready for next step",
@@ -2065,8 +2073,8 @@ function renderShiftSelection(userData, saveUserPatch) {
     return;
   }
   
-  // MOSTRAR ESTADO PENDIENTE (enviado pero no aprobado)
-  if (shift.status === "pending" && !isApproved) {
+  // CASO 2: PENDIENTE - Mostrar pantalla de pendiente
+  if (shift.status === "pending" && shift.position && shift.shift) {
     setPage(
       "Shift Selection",
       "Pending HR Approval",
@@ -2103,25 +2111,13 @@ function renderShiftSelection(userData, saveUserPatch) {
               </div>
             </div>
           </div>
-          
-          <div style="margin-top:20px;">
-            <button class="btn ghost" id="btnCheckStatus" type="button" style="width:100%;border-radius:16px;padding:14px;">
-              Check Status
-            </button>
-          </div>
         </div>
       `
     );
-    
-    // Agregar listener para refrescar estado
-    document.getElementById("btnCheckStatus")?.addEventListener("click", () => {
-      location.reload(); // Recargar para obtener datos actualizados
-    });
-    
     return;
   }
 
-  // FORMULARIO DE SELECCIÓN (estado draft o vacío)
+  // CASO 3: FORMULARIO DE SELECCIÓN - Estado inicial o draft
   const currentPos = shift.position || "";
   const currentShift = shift.shift || "";
 
@@ -2182,8 +2178,8 @@ function renderShiftSelection(userData, saveUserPatch) {
       
       // Save position immediately
       const newShiftData = {
-        ...shift,
         position: posValue,
+        shift: currentShift,
         status: "draft",
         approved: false,
         updatedAt: new Date().toISOString()
@@ -2215,7 +2211,7 @@ function renderShiftSelection(userData, saveUserPatch) {
       
       // Save shift immediately
       const newShiftData = {
-        ...shift,
+        position: currentPos || shift.position,
         shift: shiftValue,
         status: "draft",
         approved: false,
@@ -2228,36 +2224,94 @@ function renderShiftSelection(userData, saveUserPatch) {
   });
 
   // Submit button
-  document.getElementById("btnSubmitShift").onclick = async () => {
-    const selectedPos = document.querySelector('input[name="position"]:checked')?.value;
-    const selectedShift = document.querySelector('input[name="shift"]:checked')?.value;
-    
-    if (!selectedPos || !selectedShift) {
-      uiToast("Please select both position and shift.");
-      return;
-    }
+  const submitBtn = document.getElementById("btnSubmitShift");
+  if (submitBtn) {
+    submitBtn.onclick = async () => {
+      const selectedPos = document.querySelector('input[name="position"]:checked')?.value;
+      const selectedShift = document.querySelector('input[name="shift"]:checked')?.value;
+      
+      if (!selectedPos || !selectedShift) {
+        uiToast("Please select both position and shift.");
+        return;
+      }
 
-    // CORRECCIÓN 2: Enviar como pending, NO como approved
-    const finalShiftData = {
-      position: selectedPos,
-      shift: selectedShift,
-      status: "pending",      // <-- Esto es lo que ve el admin
-      approved: false,        // <-- Booleano explícito
-      submittedAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    };
-    
-    console.log("Submitting for approval:", finalShiftData);
-    await saveUserPatch({ shift: finalShiftData });
-    
-    uiToast("Submitted for HR approval!");
-    
-    // CORRECCIÓN 3: Forzar recarga para mostrar estado pending
-    setTimeout(() => {
+      // Submit as pending
+      const finalShiftData = {
+        position: selectedPos,
+        shift: selectedShift,
+        status: "pending",
+        approved: false,
+        submittedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+      
+      console.log("Submitting for approval:", finalShiftData);
+      await saveUserPatch({ shift: finalShiftData });
+      
+      uiToast("Submitted for HR approval!");
       location.hash = "#shift";
-      location.reload();
-    }, 500);
+    };
+  }
+}
+
+// Helper: Render position card
+function renderPositionCard(key, title, desc, pay, selectedKey) {
+  const isSelected = selectedKey === key;
+  return `
+    <div class="azCard position-option" data-value="${key}" 
+      style="cursor:pointer;margin:0;transition:all .2s;${isSelected ? 'border-color:rgba(29,78,216,.50);background:rgba(29,78,216,.04);' : ''}">
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <input type="radio" name="position" value="${key}" ${isSelected ? 'checked' : ''} 
+          style="width:20px;height:20px;margin-top:2px;accent-color:#2563eb;cursor:pointer;">
+        <div style="flex:1;">
+          <div style="font-weight:1000;font-size:15px;color:rgba(2,6,23,.85);">${escapeHtml(title)}</div>
+          <div style="font-size:13px;color:rgba(2,6,23,.60);margin-top:4px;line-height:1.4;">${escapeHtml(desc)}</div>
+          <div style="margin-top:8px;font-weight:1000;color:rgba(22,163,74,1);font-size:13px;background:rgba(22,163,74,.08);display:inline-block;padding:4px 10px;border-radius:20px;">${escapeHtml(pay)}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Helper: Render shift card
+function renderShiftCard(key, title, hours, desc, selectedKey) {
+  const isSelected = selectedKey === key;
+  return `
+    <div class="azCard shift-option" data-value="${key}" 
+      style="cursor:pointer;margin:0;transition:all .2s;${isSelected ? 'border-color:rgba(29,78,216,.50);background:rgba(29,78,216,.04);' : ''}">
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <input type="radio" name="shift" value="${key}" ${isSelected ? 'checked' : ''} 
+          style="width:20px;height:20px;margin-top:2px;accent-color:#2563eb;cursor:pointer;">
+        <div style="flex:1;">
+          <div style="font-weight:1000;font-size:15px;color:rgba(2,6,23,.85);">${escapeHtml(title)}</div>
+          <div style="font-size:13px;color:rgba(29,78,216,1);font-weight:1000;margin-top:4px;">${escapeHtml(hours)}</div>
+          <div style="font-size:12px;color:rgba(2,6,23,.50);margin-top:4px;">${escapeHtml(desc)}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Helper: Format position for display
+function formatPositionDisplay(key) {
+  const positions = {
+    assembler: "Solar Panel Assembler",
+    material: "Material Handler",
+    qc: "Quality Control Inspector",
+    shipping: "Shipping & Receiving"
   };
+  return positions[key] || key || "Not selected";
+}
+
+// Helper: Format shift for display
+function formatShiftDisplay(key) {
+  const shifts = {
+    early: "Early Shift (6AM - 2:30PM)",
+    mid: "Mid Shift (2PM - 10:30PM)",
+    late: "Late Shift (10PM - 6:30AM)",
+    weekend: "Weekend Shift (Fri-Sun)"
+  };
+  return shifts[key] || key || "Not selected";
 }
 
 // ===============================
