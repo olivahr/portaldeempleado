@@ -2373,8 +2373,15 @@ function renderFootwear(userData, saveUserPatch, publicData) {
   const fwPublic = publicData?.footwear || defaultPublicContent().footwear;
   const fw = userData?.footwear || {};
   const visitedStore = userData?.footwear?.visitedStore === true;
-  const showBackBtn =
-  sessionStorage.getItem("fw_store_opened") === "1" && !visitedStore;
+  
+  // LIMPIEZA: Si no hay flag de "opened", limpiar "just_returned" para evitar estado inconsistente
+  if (sessionStorage.getItem("fw_store_opened") !== "1") {
+    try { sessionStorage.removeItem("fw_just_returned"); } catch (e) {}
+  }
+  
+  const justReturned = sessionStorage.getItem("fw_just_returned") === "1";
+  const showBackBtn = justReturned && !visitedStore;
+  
   // ---------- LOCKED ----------
   if (isLocked) {
     setPage(
@@ -2543,11 +2550,13 @@ ${showBackBtn ? `
 const btnGoStore = document.getElementById("btnGoStore");
 const btnImBack  = document.getElementById("btnImBack");
 
-// 1) ABRIR TIENDA: solo marcamos que abrió la tienda (sessionStorage)
-//    NO pongas visitedStore aquí.
+// 1) ABRIR TIENDA: marcamos que abrió la tienda Y que debe mostrar el botón al volver
 if (btnGoStore) {
   btnGoStore.onclick = () => {
-    try { sessionStorage.setItem("fw_store_opened", "1"); } catch (e) {}
+    try { 
+      sessionStorage.setItem("fw_store_opened", "1"); 
+      sessionStorage.setItem("fw_just_returned", "1"); // NUEVO: Mostrará el botón "I'm Back" al volver
+    } catch (e) {}
     window.location.href = fwPublic.shopUrl;
   };
 }
@@ -2559,7 +2568,10 @@ if (btnImBack) {
       await saveUserPatch({
         footwear: { ...(fw || {}), visitedStore: true, visitedAt: Date.now() }
       });
-      try { sessionStorage.removeItem("fw_store_opened"); } catch (e) {}
+      try { 
+        sessionStorage.removeItem("fw_store_opened"); 
+        sessionStorage.removeItem("fw_just_returned"); // NUEVO: Limpiar el flag
+      } catch (e) {}
     } catch (e) {}
 
     // fuerza re-render en iPhone/Safari
