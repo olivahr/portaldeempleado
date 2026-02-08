@@ -2006,29 +2006,29 @@ function getStepStatus(stepId, userData) {
 }
 
 // ===============================
-// SHIFT SELECTION - CON PENDING/APPROVED
+// SHIFT SELECTION - FLOW: Position → Shift → Pending → Approved → Footwear
 // ===============================
+
 function renderShiftSelection(userData, saveUserPatch) {
-  const status = getStepStatus("shift_selection", userData);
   const shift = userData?.shift || {};
-  const isPending = shift.status === "pending" && !shift.approved;
-  const isApproved = shift.approved === true;
+  const steps = userData?.steps || [];
   
-  // Si está aprobado, mostrar vista de completado
-  if (isApproved) {
+  // CHECK IF APPROVED
+  if (shift.approved === true) {
     setPage(
       "Shift Selection",
-      "Approved",
+      "Approved - Ready for next step",
       `
         <div class="azCard" style="text-align:center;padding:40px 24px;background:linear-gradient(135deg,rgba(22,163,74,.08),rgba(22,163,74,.02));border-color:rgba(22,163,74,.25);">
           <div style="width:80px;height:80px;border-radius:999px;background:rgba(22,163,74,.10);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;color:rgba(22,163,74,1);">
             ${azIcon("checkCircle")}
           </div>
-          <div style="font-weight:1000;font-size:20px;color:rgba(2,6,23,.85);margin-bottom:8px;">Shift Approved</div>
+          <div style="font-weight:1000;font-size:20px;color:rgba(2,6,23,.85);margin-bottom:8px;">Shift Approved!</div>
           <div style="font-size:14px;color:rgba(2,6,23,.60);line-height:1.5;margin-bottom:24px;">
-            Your shift selection has been approved by HR.<br>
-            You are confirmed for the following assignment.
+            Your shift has been approved by HR.<br>
+            You can now continue to the next step.
           </div>
+          
           <div class="azCard" style="text-align:left;margin-bottom:24px;background:#fff;">
             <div class="azCardTitle">Your Assignment</div>
             <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -2050,6 +2050,7 @@ function renderShiftSelection(userData, saveUserPatch) {
               </div>
             </div>
           </div>
+          
           <a class="btn primary" href="#footwear" style="display:block;width:100%;border-radius:16px;padding:16px;">
             Continue to Safety Footwear
           </a>
@@ -2059,23 +2060,24 @@ function renderShiftSelection(userData, saveUserPatch) {
     return;
   }
   
-  // Si está pending (enviado pero no aprobado)
-  if (isPending) {
+  // CHECK IF PENDING
+  if (shift.status === "pending" && !shift.approved) {
     setPage(
       "Shift Selection",
-      "Pending Approval",
+      "Pending HR Approval",
       `
         <div class="azCard" style="text-align:center;padding:40px 24px;background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(245,158,11,.02));border-color:rgba(245,158,11,.25);">
           <div style="width:80px;height:80px;border-radius:999px;background:rgba(245,158,11,.10);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;color:rgba(245,158,11,1);">
             ${azIcon("clock")}
           </div>
-          <div style="font-weight:1000;font-size:20px;color:rgba(2,6,23,.85);margin-bottom:8px;">Pending HR Approval</div>
+          <div style="font-weight:1000;font-size:20px;color:rgba(2,6,23,.85);margin-bottom:8px;">Pending Approval</div>
           <div style="font-size:14px;color:rgba(2,6,23,.60);line-height:1.5;margin-bottom:24px;">
-            Your shift preferences have been submitted and are awaiting approval.<br>
-            You will receive a notification once HR reviews your request.
+            Your shift selection is waiting for HR approval.<br>
+            Check back later or contact HR for updates.
           </div>
+          
           <div class="azCard" style="text-align:left;margin-bottom:24px;background:#fff;">
-            <div class="azCardTitle">Submitted Preferences</div>
+            <div class="azCardTitle">Submitted Selection</div>
             <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
               <div>
                 <div style="font-size:11px;color:rgba(2,6,23,.50);">Position</div>
@@ -2087,14 +2089,12 @@ function renderShiftSelection(userData, saveUserPatch) {
               </div>
             </div>
           </div>
+          
           <div class="azCard" style="background:rgba(29,78,216,.04);border-color:rgba(29,78,216,.15);">
             <div style="display:flex;align-items:center;gap:10px;">
               <div style="color:rgba(29,78,216,1);">${azIcon("info")}</div>
               <div style="font-size:13px;color:rgba(2,6,23,.70);line-height:1.5;">
-                <strong>What's next?</strong><br>
-                HR will review your preferences and confirm availability. 
-                This usually takes 1-2 business days. Check back here or 
-                watch for email notifications.
+                HR will review and approve your selection within 1-2 business days.
               </div>
             </div>
           </div>
@@ -2104,50 +2104,55 @@ function renderShiftSelection(userData, saveUserPatch) {
     return;
   }
 
-  // Vista de selección (no enviado aún)
-  const pos = shift.position || "";
-  const sh = shift.shift || "";
+  // SELECTION VIEW - Position first, then Shift
+  const currentPos = shift.position || "";
+  const currentShift = shift.shift || "";
 
   setPage(
     "Shift Selection",
-    "Choose your work preferences (HR will confirm)",
+    "Select your position and shift preference",
     `
       <div class="azCard">
-        ${sectionHeader("Select Your Position")}
-        <div style="display:flex;flex-direction:column;gap:12px;">
-          ${posCard("assembler","Solar Panel Assembler","Assemble and test solar panels in production line","$18–$23/hr",pos)}
-          ${posCard("material","Material Handler","Receive, store, and distribute materials throughout facility","$18–$22/hr",pos)}
-          ${posCard("qc","Quality Control Inspector","Inspect panels for defects and ensure quality standards","$19–$24/hr",pos)}
-          ${posCard("shipping","Shipping & Receiving","Prepare finished products for shipment and receive inventory","$18–$22/hr",pos)}
+        <div class="azCardTitle" style="margin-bottom:16px;">Step 1: Select Position</div>
+        <div style="display:flex;flex-direction:column;gap:12px;" id="positionList">
+          ${posCard("assembler", "Solar Panel Assembler", "Assemble and test solar panels", "$18-$23/hr", currentPos)}
+          ${posCard("material", "Material Handler", "Receive, store, distribute materials", "$18-$22/hr", currentPos)}
+          ${posCard("qc", "Quality Control Inspector", "Inspect panels for defects", "$19-$24/hr", currentPos)}
+          ${posCard("shipping", "Shipping & Receiving", "Prepare shipments, receive inventory", "$18-$22/hr", currentPos)}
         </div>
       </div>
 
-      <div class="azCard" style="margin-top:16px;">
-        ${sectionHeader("Select Your Shift")}
-        <div style="display:flex;flex-direction:column;gap:12px;">
-          ${shiftCard("early","Early Shift","6:00 AM – 2:30 PM","Morning schedule, great for early risers",sh)}
-          ${shiftCard("mid","Mid Shift","2:00 PM – 10:30 PM","Afternoon to evening, balanced schedule",sh)}
-          ${shiftCard("late","Late Shift","10:00 PM – 6:30 AM","Overnight differential pay +$1.50/hr",sh)}
-          ${shiftCard("weekend","Weekend Shift","Fri-Sun 12hr shifts","Work 36hrs, get paid for 40hrs",sh)}
+      <div class="azCard" style="margin-top:16px;${currentPos ? '' : 'opacity:.5;pointer-events:none;'}" id="shiftSection">
+        <div class="azCardTitle" style="margin-bottom:16px;">Step 2: Select Shift</div>
+        <div style="display:flex;flex-direction:column;gap:12px;" id="shiftList">
+          ${shiftCard("early", "Early Shift", "6:00 AM - 2:30 PM", "Morning schedule", currentShift)}
+          ${shiftCard("mid", "Mid Shift", "2:00 PM - 10:30 PM", "Afternoon to evening", currentShift)}
+          ${shiftCard("late", "Late Shift", "10:00 PM - 6:30 AM", "Overnight (+$1.50/hr differential)", currentShift)}
+          ${shiftCard("weekend", "Weekend Shift", "Fri-Sun 12hr shifts", "Work 36hrs, paid for 40hrs", currentShift)}
         </div>
       </div>
 
-      <button class="btn primary" id="btnShiftSave" type="button" style="margin-top:20px;width:100%;border-radius:16px;padding:16px;">
+      <button class="btn primary" id="btnSubmitShift" type="button" 
+        style="margin-top:20px;width:100%;border-radius:16px;padding:16px;${currentPos && currentShift ? '' : 'opacity:.5;'}" 
+        ${currentPos && currentShift ? '' : 'disabled'}>
         Submit for Approval
       </button>
-
+      
       <div class="small muted" style="margin-top:12px;line-height:1.4;text-align:center;">
-        Preferences are not final assignments. HR will confirm based on availability and business needs.
+        HR will review and approve your selection within 1-2 business days.
       </div>
     `
   );
 
+  // Position card HTML
   function posCard(key, title, desc, pay, selectedKey) {
-    const selected = selectedKey === key;
+    const isSelected = selectedKey === key;
     return `
-      <label class="azCard shift-card ${selected ? 'selected' : ''}" style="cursor:pointer;margin:0;${selected ? 'border-color:rgba(29,78,216,.50);background:rgba(29,78,216,.04);' : ''}">
+      <label class="azCard position-card ${isSelected ? 'selected' : ''}" 
+        style="cursor:pointer;margin:0;${isSelected ? 'border-color:rgba(29,78,216,.50);background:rgba(29,78,216,.04);' : ''}"
+        data-position="${key}">
         <div style="display:flex;gap:12px;align-items:flex-start;">
-          <input type="radio" name="pos" value="${escapeHtml(key)}" ${selected ? "checked" : ""} style="margin-top:4px;"/>
+          <input type="radio" name="position" value="${escapeHtml(key)}" ${isSelected ? "checked" : ""} style="margin-top:4px;"/>
           <div style="flex:1;">
             <div class="azCardTitle">${escapeHtml(title)}</div>
             <div class="azCardSub" style="margin-top:6px;">${escapeHtml(desc)}</div>
@@ -2158,12 +2163,15 @@ function renderShiftSelection(userData, saveUserPatch) {
     `;
   }
 
+  // Shift card HTML
   function shiftCard(key, title, hours, desc, selectedKey) {
-    const selected = selectedKey === key;
+    const isSelected = selectedKey === key;
     return `
-      <label class="azCard shift-card ${selected ? 'selected' : ''}" style="cursor:pointer;margin:0;${selected ? 'border-color:rgba(29,78,216,.50);background:rgba(29,78,216,.04);' : ''}">
+      <label class="azCard shift-card ${isSelected ? 'selected' : ''}" 
+        style="cursor:pointer;margin:0;${isSelected ? 'border-color:rgba(29,78,216,.50);background:rgba(29,78,216,.04);' : ''}"
+        data-shift="${key}">
         <div style="display:flex;gap:12px;align-items:flex-start;">
-          <input type="radio" name="shift" value="${escapeHtml(key)}" ${selected ? "checked" : ""} style="margin-top:4px;"/>
+          <input type="radio" name="shift" value="${escapeHtml(key)}" ${isSelected ? "checked" : ""} style="margin-top:4px;"/>
           <div style="flex:1;">
             <div class="azCardTitle">${escapeHtml(title)}</div>
             <div class="azCardSub" style="margin-top:6px;font-weight:1000;">${escapeHtml(hours)}</div>
@@ -2174,15 +2182,70 @@ function renderShiftSelection(userData, saveUserPatch) {
     `;
   }
 
-  document.getElementById("btnShiftSave").onclick = async () => {
-    const position = document.querySelector("input[name=pos]:checked")?.value || "";
-    const shiftKey = document.querySelector("input[name=shift]:checked")?.value || "";
-    if (!position || !shiftKey) return uiToast("Please select both a position and shift.");
+  // Handle position selection
+  document.querySelectorAll('input[name="position"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      const selectedPos = e.target.value;
+      
+      // Update visual selection
+      document.querySelectorAll('.position-card').forEach(card => {
+        if (card.dataset.position === selectedPos) {
+          card.style.borderColor = 'rgba(29,78,216,.50)';
+          card.style.background = 'rgba(29,78,216,.04)';
+        } else {
+          card.style.borderColor = '';
+          card.style.background = '';
+        }
+      });
+      
+      // Enable shift section
+      const shiftSection = document.getElementById('shiftSection');
+      shiftSection.style.opacity = '1';
+      shiftSection.style.pointerEvents = 'auto';
+      
+      // Save position temporarily
+      const newShift = { ...shift, position: selectedPos, status: "draft" };
+      saveUserPatch({ shift: newShift });
+    });
+  });
 
-    // Guardar con status pending para que el admin lo vea
+  // Handle shift selection
+  document.querySelectorAll('input[name="shift"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      const selectedShift = e.target.value;
+      
+      // Update visual selection
+      document.querySelectorAll('.shift-card').forEach(card => {
+        if (card.dataset.shift === selectedShift) {
+          card.style.borderColor = 'rgba(29,78,216,.50)';
+          card.style.background = 'rgba(29,78,216,.04)';
+        } else {
+          card.style.borderColor = '';
+          card.style.background = '';
+        }
+      });
+      
+      // Enable submit button
+      const btn = document.getElementById('btnSubmitShift');
+      btn.style.opacity = '1';
+      btn.disabled = false;
+    });
+  });
+
+  // Handle submit
+  document.getElementById("btnSubmitShift").onclick = async () => {
+    const position = document.querySelector("input[name=position]:checked")?.value;
+    const shiftKey = document.querySelector("input[name=shift]:checked")?.value;
+    
+    if (!position || !shiftKey) {
+      uiToast("Please select both position and shift.");
+      return;
+    }
+
+    // Save as PENDING
     await saveUserPatch({ 
       shift: { 
-        position, 
+        position: position, 
         shift: shiftKey, 
         approved: false,
         status: "pending",
@@ -2190,16 +2253,16 @@ function renderShiftSelection(userData, saveUserPatch) {
       }
     });
     
-    uiToast("Preferences submitted for HR approval!");
+    uiToast("Submitted for HR approval!");
     location.hash = "#shift";
   };
 }
 
-// Helper functions para formatear
+// Helper format functions
 function formatPosition(key) {
   const positions = {
     assembler: "Solar Panel Assembler",
-    material: "Material Handler",
+    material: "Material Handler", 
     qc: "Quality Control Inspector",
     shipping: "Shipping & Receiving"
   };
@@ -2208,9 +2271,9 @@ function formatPosition(key) {
 
 function formatShift(key) {
   const shifts = {
-    early: "Early Shift (6:00 AM – 2:30 PM)",
-    mid: "Mid Shift (2:00 PM – 10:30 PM)",
-    late: "Late Shift (10:00 PM – 6:30 AM)",
+    early: "Early Shift (6:00 AM - 2:30 PM)",
+    mid: "Mid Shift (2:00 PM - 10:30 PM)",
+    late: "Late Shift (10:00 PM - 6:30 AM)",
     weekend: "Weekend Shift (Fri-Sun)"
   };
   return shifts[key] || key;
