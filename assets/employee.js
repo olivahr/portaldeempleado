@@ -2424,29 +2424,6 @@ function renderFootwear(userData, saveUserPatch, publicData) {
         </div>
       `
     );
-   const btnGoStore = document.getElementById("btnGoStore");
-const btnImBack = document.getElementById("btnImBack");
-
-if (btnGoStore) {
-  btnGoStore.onclick = async () => {
-    await saveUserPatch({
-      footwear: { ...(fw || {}), visitedStore: true, visitedAt: Date.now() }
-    });
-
-    await new Promise(r => setTimeout(r, 250));
-    window.location.href = fwPublic.shopUrl;
-  };
-}
-
-if (btnImBack) {
-  btnImBack.onclick = async () => {
-    await saveUserPatch({
-      footwear: { ...(fw || {}), visitedStore: true }
-    });
-
-    location.hash = "#footwear";
-  };
-}
     return;
   }
 
@@ -2560,18 +2537,35 @@ if (btnImBack) {
     `
   );
 
-  // ---------- STORE BUTTON BEHAVIOR ----------
-  const btnGoStore = document.getElementById("btnGoStore");
-  if (btnGoStore) {
-    btnGoStore.onclick = async () => {
-      // marca visitedStore antes de salir, así cuando le den Back ya salen los acks
-      try {
-        await saveUserPatch({ footwear: { ...(fw || {}), visitedStore: true } });
-      } catch (e) {}
+// ----------- STORE BUTTON BEHAVIOR -----------
+const btnGoStore = document.getElementById("btnGoStore");
+const btnImBack  = document.getElementById("btnImBack");
 
-      window.location.href = fwPublic.shopUrl;
-    };
-  }
+if (btnGoStore) {
+  btnGoStore.onclick = async () => {
+    try {
+      await saveUserPatch({
+        footwear: { ...(fw || {}), visitedStore: true, visitedAt: Date.now() }
+      });
+      await new Promise(r => setTimeout(r, 250));
+    } catch (e) {}
+
+    window.location.href = fwPublic.shopUrl;
+  };
+}
+
+if (btnImBack) {
+  btnImBack.onclick = async () => {
+    try {
+      await saveUserPatch({
+        footwear: { ...(fw || {}), visitedStore: true, visitedAt: Date.now() }
+      });
+      await new Promise(r => setTimeout(r, 250));
+    } catch (e) {}
+
+    window.location.reload(); // mata el cache del iPhone al volver
+  };
+}
 
   // If acks not unlocked, stop here
   if (!visitedStore) return;
