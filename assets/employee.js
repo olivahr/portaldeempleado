@@ -2372,7 +2372,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
 
   const fwPublic = publicData?.footwear || defaultPublicContent().footwear;
   const fw = userData?.footwear || {};
-  const visitedStore = !!fw.visitedStore; // gate para mostrar acks
+  const visitedStore = userData?.footwear?.visitedStore === true;
 
   // ---------- LOCKED ----------
   if (isLocked) {
@@ -2424,6 +2424,29 @@ function renderFootwear(userData, saveUserPatch, publicData) {
         </div>
       `
     );
+   const btnGoStore = document.getElementById("btnGoStore");
+const btnImBack = document.getElementById("btnImBack");
+
+if (btnGoStore) {
+  btnGoStore.onclick = async () => {
+    await saveUserPatch({
+      footwear: { ...(fw || {}), visitedStore: true, visitedAt: Date.now() }
+    });
+
+    await new Promise(r => setTimeout(r, 250));
+    window.location.href = fwPublic.shopUrl;
+  };
+}
+
+if (btnImBack) {
+  btnImBack.onclick = async () => {
+    await saveUserPatch({
+      footwear: { ...(fw || {}), visitedStore: true }
+    });
+
+    location.hash = "#footwear";
+  };
+}
     return;
   }
 
@@ -2490,9 +2513,14 @@ function renderFootwear(userData, saveUserPatch, publicData) {
         </div>
 
         <button class="btn primary" id="btnGoStore"
-          style="display:block;width:100%;text-align:center;margin-top:12px;border-radius:16px;">
-          Open Safety Footwear Store
-        </button>
+  style="display:block;width:100%;text-align:center;margin-top:12px;border-radius:16px;">
+  Open Safety Footwear Store
+</button>
+
+<button class="btn ghost" id="btnImBack"
+  style="display:block;width:100%;text-align:center;margin-top:10px;border-radius:16px;">
+  I’m Back From The Store (Unlock Next Step)
+</button>
 
         <div class="small muted" style="margin-top:10px;line-height:1.4;text-align:center;">
           After you finish shopping, return to this page to complete the acknowledgements and continue to the next step.
