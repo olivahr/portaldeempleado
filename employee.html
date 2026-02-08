@@ -23,8 +23,6 @@
     </div>
 
     <div class="topbar-right">
-      <!-- Hidden unless admin (JS decides) -->
-      <button class="btn sm ghost" id="btnAdminGo" type="button" style="display:none;">Admin</button>
       <button class="btn sm ghost" id="btnLogout" type="button">Log out</button>
     </div>
   </header>
@@ -144,10 +142,6 @@
     document.getElementById("btnLogout").onclick = async () => {
       await signOutNow();
       window.location.href = "./index.html";
-    };
-
-    document.getElementById("btnAdminGo").onclick = () => {
-      window.location.href = "./admin.html";
     };
 
     await initEmployeeApp();
