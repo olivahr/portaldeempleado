@@ -2363,9 +2363,24 @@ function formatShiftDisplay(key) {
 // FOOTWEAR
 // ===============================
 function renderFootwear(userData, saveUserPatch, publicData) {
-  const status = getStepStatus("footwear", userData);
-  
-  if (status.isLocked) {
+  // --- NEW: Lock rule based on approved shift (real approval) ---
+  const shiftApproved = !!userData?.shift?.approved;
+
+  const steps = userData?.steps || [];
+  const stepFootwear = steps.find(s => s.id === "footwear");
+  const isDone = !!stepFootwear?.done;
+
+  // "locked" ONLY if shift is not approved
+  const isLocked = !shiftApproved;
+
+  // Public content
+  const fwPublic = publicData?.footwear || defaultPublicContent().footwear;
+
+  // User saved data
+  const fw = userData?.footwear || {};
+
+  // ---------- LOCKED ----------
+  if (isLocked) {
     setPage(
       "Safety Footwear",
       "Locked",
@@ -2376,7 +2391,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
           </div>
           <div style="font-weight:1000;font-size:16px;color:rgba(2,6,23,.85);margin-bottom:8px;">Step Locked</div>
           <div style="font-size:13px;color:rgba(2,6,23,.60);line-height:1.5;margin-bottom:20px;">
-            Please complete Shift Selection before accessing this step.
+            Please complete Shift Selection and wait for HR approval before accessing this step.
           </div>
           <a class="btn primary" href="#shift" style="display:block;width:100%;border-radius:16px;padding:14px;">
             Go to Shift Selection
@@ -2386,8 +2401,9 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     );
     return;
   }
-  
-  if (status.isDone) {
+
+  // ---------- COMPLETED ----------
+  if (isDone) {
     setPage(
       "Safety Footwear",
       "Completed",
@@ -2397,10 +2413,15 @@ function renderFootwear(userData, saveUserPatch, publicData) {
             ${azIcon("checkCircle")}
           </div>
           <div style="font-weight:1000;font-size:20px;color:rgba(2,6,23,.85);margin-bottom:8px;">Safety Footwear Completed</div>
-          <div style="font-size:14px;color:rgba(2,6,23,.60);line-height:1.5;margin-bottom:24px;">
-            You have acknowledged the safety footwear requirements.<br>
-            Remember to wear your safety shoes on your first day.
+          <div style="font-size:14px;color:rgba(2,6,23,.60);line-height:1.5;margin-bottom:18px;">
+            You have completed the safety footwear requirement.<br>
+            Remember: approved safety shoes are required on your first day.
           </div>
+
+          <a class="btn ghost" href="${escapeHtml(fwPublic.shopUrl)}" rel="noopener" style="display:block;width:100%;text-align:center;margin:0 auto 12px;border-radius:16px;">
+            Open Safety Footwear Store
+          </a>
+
           <a class="btn primary" href="#i9" style="display:block;width:100%;border-radius:16px;padding:16px;">
             Continue to I-9 Verification
           </a>
@@ -2410,10 +2431,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     return;
   }
 
-  const fwPublic = publicData?.footwear || defaultPublicContent().footwear;
-  const fw = userData?.footwear || {};
-  const steps = userData?.steps || [];
-
+  // Helpers
   function ackRow(id, checked, text) {
     return `
       <label class="checkrow" style="
@@ -2429,6 +2447,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     `;
   }
 
+  // ---------- REQUIRED (NOT DONE YET) ----------
   setPage(
     fwPublic.programTitle || "Safety Footwear Program",
     "Required for all warehouse and production positions",
@@ -2441,7 +2460,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
         <div class="muted" style="line-height:1.6;">
           Approved safety footwear is <strong>mandatory</strong> for all operational positions. 
           You must have proper safety shoes <strong>before your first day</strong>. 
-          Failure to comply will result in rescheduling your start date.
+          Failure to comply may result in rescheduling your start date.
         </div>
       </div>
 
@@ -2449,19 +2468,38 @@ function renderFootwear(userData, saveUserPatch, publicData) {
         ${sectionHeader("Program Overview")}
         <div class="muted" style="line-height:1.7;">
           SunPower provides a <strong>$100 reimbursement</strong> for approved safety footwear 
-          purchased through our designated vendor. This benefit is processed in your first 
-          paycheck after verification of purchase and attendance.
+          purchased through our designated vendor. This benefit is processed in your <strong>first paycheck</strong> 
+          after verification of purchase and first-week attendance.
         </div>
-        
+
         <div style="margin-top:16px;padding:16px;background:rgba(29,78,216,.04);border-radius:12px;border:1px solid rgba(29,78,216,.15);">
           <div style="font-weight:1000;font-size:13px;color:rgba(29,78,216,1);margin-bottom:8px;">Required Specifications:</div>
           <ul class="ul" style="margin:0;padding-left:18px;">
             <li style="margin:6px 0;">Steel toe or composite toe protection</li>
             <li style="margin:6px 0;">Slip-resistant outsole</li>
             <li style="margin:6px 0;">Electrical hazard protection (EH rated)</li>
-            <li style="margin:6px 0;">Ankle support (6" minimum height recommended)</li>
+            <li style="margin:6px 0;">Ankle support (6&quot; minimum height recommended)</li>
             <li style="margin:6px 0;">ASTM F2413-18 compliant</li>
           </ul>
+        </div>
+      </div>
+
+      <div class="azCard" style="margin-top:16px;background:rgba(2,6,23,.03);">
+        <div class="azCardTitle">🛒 Purchase Your Safety Shoes</div>
+        <div class="muted" style="line-height:1.6;margin-top:8px;">
+          Use the official vendor link below to browse approved styles and complete your purchase.
+          Keep your receipt for verification. Use your employee ID at checkout if prompted.
+        </div>
+
+        <a class="btn primary" id="btnOpenFootwearStore"
+           href="${escapeHtml(fwPublic.shopUrl)}"
+           rel="noopener"
+           style="display:block;width:100%;text-align:center;margin-top:12px;border-radius:16px;">
+          Open Safety Footwear Store
+        </a>
+
+        <div class="small muted" style="margin-top:10px;line-height:1.4;text-align:center;">
+          After you finish shopping, return here to complete the acknowledgements and continue to I-9.
         </div>
       </div>
 
@@ -2475,78 +2513,98 @@ function renderFootwear(userData, saveUserPatch, publicData) {
 
         <button class="btn primary" id="btnFootwearComplete" type="button"
           style="display:block;width:100%;text-align:center;border-radius:16px;padding:16px;margin-top:20px;">
-          Complete Safety Footwear Requirement
+          Confirm All Items Above
         </button>
-       
-        <div class="small muted" style="margin-top:12px;line-height:1.4;text-align:center;">
-          By clicking complete, you certify that you understand and agree to all requirements above.
-        </div>
-      </div>
 
-      <div class="azCard" style="margin-top:16px;background:rgba(2,6,23,.03);">
-        <div class="azCardTitle">🛒 Purchase Your Safety Shoes</div>
-        <div class="muted" style="line-height:1.6;margin-top:8px;">
-          Visit our designated safety footwear vendor to browse approved styles 
-          and complete your purchase. Use your employee ID at checkout.
-        </div>
-        <a class="btn ghost" href="${escapeHtml(fwPublic.shopUrl)}" target="_blank" rel="noopener" style="display:block;width:100%;text-align:center;margin-top:12px;border-radius:16px;">
-          Open Safety Footwear Store
+        <a class="btn ghost" id="btnFootwearContinueI9" href="#i9"
+          style="display:none;width:100%;text-align:center;border-radius:16px;padding:16px;margin-top:12px;">
+          Continue to I-9 Verification
         </a>
+
+        <div class="small muted" style="margin-top:12px;line-height:1.4;text-align:center;">
+          By completing this step, you certify that you understand and agree to all requirements above.
+        </div>
       </div>
     `
   );
 
-  const btn = document.getElementById("btnFootwearComplete");
-  
-  const syncBtn = () => {
-    const a1 = document.getElementById("fwAck1")?.checked;
-    const a2 = document.getElementById("fwAck2")?.checked;
-    const a3 = document.getElementById("fwAck3")?.checked;
-    const a4 = document.getElementById("fwAck4")?.checked;
-    const a5 = document.getElementById("fwAck5")?.checked;
+  const btnComplete = document.getElementById("btnFootwearComplete");
+  const btnContinueI9 = document.getElementById("btnFootwearContinueI9");
 
-    const allAcks = !!(a1 && a2 && a3 && a4 && a5);
-
-    if (btn) {
-      btn.disabled = !allAcks;
-      btn.style.opacity = allAcks ? "1" : ".6";
-      btn.textContent = allAcks ? "Complete Safety Footwear Requirement" : "Confirm All Items Above";
-    }
+  const readAcks = () => {
+    const a1 = !!document.getElementById("fwAck1")?.checked;
+    const a2 = !!document.getElementById("fwAck2")?.checked;
+    const a3 = !!document.getElementById("fwAck3")?.checked;
+    const a4 = !!document.getElementById("fwAck4")?.checked;
+    const a5 = !!document.getElementById("fwAck5")?.checked;
+    return { a1, a2, a3, a4, a5, all: !!(a1 && a2 && a3 && a4 && a5) };
   };
-  
-  ["fwAck1", "fwAck2", "fwAck3", "fwAck4", "fwAck5"].forEach(x => {
-    const el = document.getElementById(x);
-    if (el) el.addEventListener("change", syncBtn);
+
+  const syncBtn = () => {
+    const st = readAcks();
+    if (!btnComplete) return;
+
+    btnComplete.disabled = !st.all;
+    btnComplete.style.opacity = st.all ? "1" : ".6";
+    btnComplete.textContent = st.all
+      ? "Complete Safety Footwear Requirement"
+      : "Confirm All Items Above";
+  };
+
+  // Optional: autosave acks so when they come back from store, checks remain saved
+  let ackSaveTimer = null;
+  const autosaveAcks = () => {
+    const st = readAcks();
+    clearTimeout(ackSaveTimer);
+    ackSaveTimer = setTimeout(() => {
+      saveUserPatch({
+        footwear: { ack1: st.a1, ack2: st.a2, ack3: st.a3, ack4: st.a4, ack5: st.a5 }
+      }).catch(() => {});
+    }, 250);
+  };
+
+  ["fwAck1", "fwAck2", "fwAck3", "fwAck4", "fwAck5"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("change", () => {
+      syncBtn();
+      autosaveAcks();
+    });
   });
 
   syncBtn();
 
-  if (btn) {
-    btn.onclick = async () => {
-      const a1 = document.getElementById("fwAck1").checked;
-      const a2 = document.getElementById("fwAck2").checked;
-      const a3 = document.getElementById("fwAck3").checked;
-      const a4 = document.getElementById("fwAck4").checked;
-      const a5 = document.getElementById("fwAck5").checked;
-
-      if (!a1 || !a2 || !a3 || !a4 || !a5) {
+  if (btnComplete) {
+    btnComplete.onclick = async () => {
+      const st = readAcks();
+      if (!st.all) {
         uiToast("Please confirm all requirements.");
         return;
       }
 
       const newSteps = (steps || []).map(s =>
-        s.id === "footwear" ? ({ ...s, done: true }) : s
+        s.id === "footwear" ? ({ ...s, done: true, doneAt: Date.now() }) : s
       );
 
+      // if footwear step doesn't exist yet, add it
+      if (!newSteps.find(s => s.id === "footwear")) {
+        newSteps.push({ id: "footwear", done: true, doneAt: Date.now() });
+      }
+
       await saveUserPatch({
-        footwear: { ack1:a1, ack2:a2, ack3:a3, ack4:a4, ack5:a5 },
+        footwear: { ack1: st.a1, ack2: st.a2, ack3: st.a3, ack4: st.a4, ack5: st.a5 },
         steps: newSteps,
         stage: "i9"
       });
 
       triggerConfetti();
       uiToast("Safety footwear requirement completed!");
-      location.hash = "#footwear";
+
+      // Show continue button immediately
+      if (btnContinueI9) {
+        btnContinueI9.style.display = "block";
+      }
+      // Optionally jump them right away
+      location.hash = "#i9";
     };
   }
 }
@@ -3743,8 +3801,8 @@ export async function initEmployeeApp() {
       const publicRef = PUBLIC_DOC();
 
       const saveUserPatch = async (patch) => {
-        await updateDoc(userRef, { ...patch, updatedAt: serverTimestamp() });
-      };
+  await updateDoc(recordRef, { ...patch, updatedAt: serverTimestamp() });
+};
 
       let currentUserData = null;
       let currentPublicData = defaultPublicContent();
