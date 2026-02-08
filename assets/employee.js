@@ -2363,16 +2363,12 @@ function formatShiftDisplay(key) {
 // FOOTWEAR
 // ===============================
 function renderFootwear(userData, saveUserPatch, publicData) {
-  // VERIFICAR QUE SHIFT ESTÉ APROBADO PRIMERO
-  const shift = userData?.shift || {};
-  const steps = userData?.steps || [];
-  const fw = userData?.footwear || {};
+  const status = getStepStatus("footwear", userData);
   
-  // Si el shift no está aprobado, no dejar entrar
-  if (shift.approved !== true) {
+  if (status.isLocked) {
     setPage(
       "Safety Footwear",
-      "Locked - Complete Shift Selection First",
+      "Locked",
       `
         <div class="azCard" style="text-align:center;padding:40px 24px;">
           <div style="width:64px;height:64px;border-radius:999px;background:rgba(2,6,23,.06);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:rgba(2,6,23,.40);">
@@ -2380,7 +2376,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
           </div>
           <div style="font-weight:1000;font-size:16px;color:rgba(2,6,23,.85);margin-bottom:8px;">Step Locked</div>
           <div style="font-size:13px;color:rgba(2,6,23,.60);line-height:1.5;margin-bottom:20px;">
-            You must complete and get approval for your Shift Selection before accessing Safety Footwear.
+            Please complete Shift Selection before accessing this step.
           </div>
           <a class="btn primary" href="#shift" style="display:block;width:100%;border-radius:16px;padding:14px;">
             Go to Shift Selection
@@ -2391,9 +2387,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     return;
   }
   
-  // Si ya está completado, mostrar pantalla de completado
-  const footwearStep = steps.find(s => s.id === "footwear");
-  if (footwearStep?.done) {
+  if (status.isDone) {
     setPage(
       "Safety Footwear",
       "Completed",
@@ -2417,6 +2411,8 @@ function renderFootwear(userData, saveUserPatch, publicData) {
   }
 
   const fwPublic = publicData?.footwear || defaultPublicContent().footwear;
+  const fw = userData?.footwear || {};
+  const steps = userData?.steps || [];
 
   function ackRow(id, checked, text) {
     return `
@@ -2470,20 +2466,6 @@ function renderFootwear(userData, saveUserPatch, publicData) {
       </div>
 
       <div class="azCard" style="margin-top:16px;">
-        ${sectionHeader("Purchase Your Safety Shoes")}
-        <div class="muted" style="line-height:1.6;margin-bottom:16px;">
-          Visit our designated safety footwear vendor to browse approved styles 
-          and complete your purchase. Use your employee ID at checkout.
-        </div>
-        <a class="btn primary" href="${escapeHtml(fwPublic.shopUrl)}" target="_blank" rel="noopener" style="display:block;width:100%;text-align:center;border-radius:16px;padding:16px;margin-bottom:12px;">
-          Open Safety Footwear Store
-        </a>
-        <div class="small muted" style="line-height:1.4;text-align:center;">
-          Complete your purchase before continuing
-        </div>
-      </div>
-
-      <div class="azCard" style="margin-top:16px;">
         ${sectionHeader("Required Acknowledgements")}
         ${ackRow("fwAck1", fw.ack1, "I understand that safety footwear is mandatory and must be worn at all times in operational areas.")}
         ${ackRow("fwAck2", fw.ack2, "I will purchase approved safety footwear before my first scheduled work day.")}
@@ -2499,6 +2481,17 @@ function renderFootwear(userData, saveUserPatch, publicData) {
         <div class="small muted" style="margin-top:12px;line-height:1.4;text-align:center;">
           By clicking complete, you certify that you understand and agree to all requirements above.
         </div>
+      </div>
+
+      <div class="azCard" style="margin-top:16px;background:rgba(2,6,23,.03);">
+        <div class="azCardTitle">🛒 Purchase Your Safety Shoes</div>
+        <div class="muted" style="line-height:1.6;margin-top:8px;">
+          Visit our designated safety footwear vendor to browse approved styles 
+          and complete your purchase. Use your employee ID at checkout.
+        </div>
+        <a class="btn ghost" href="${escapeHtml(fwPublic.shopUrl)}" target="_blank" rel="noopener" style="display:block;width:100%;text-align:center;margin-top:12px;border-radius:16px;">
+          Open Safety Footwear Store
+        </a>
       </div>
     `
   );
@@ -2517,7 +2510,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     if (btn) {
       btn.disabled = !allAcks;
       btn.style.opacity = allAcks ? "1" : ".6";
-      btn.textContent = allAcks ? "Complete & Continue to I-9" : "Confirm All Items Above";
+      btn.textContent = allAcks ? "Complete Safety Footwear Requirement" : "Confirm All Items Above";
     }
   };
   
@@ -2541,7 +2534,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
         return;
       }
 
-      const newSteps = steps.map(s =>
+      const newSteps = (steps || []).map(s =>
         s.id === "footwear" ? ({ ...s, done: true }) : s
       );
 
@@ -2552,16 +2545,11 @@ function renderFootwear(userData, saveUserPatch, publicData) {
       });
 
       triggerConfetti();
-      uiToast("Safety footwear completed! Redirecting to I-9...");
-      
-      // Redirigir a I-9 después de completar
-      setTimeout(() => {
-        location.hash = "#i9";
-      }, 1000);
+      uiToast("Safety footwear requirement completed!");
+      location.hash = "#footwear";
     };
   }
 }
-
 function renderI9(userData, saveUserPatch) {
   const status = getStepStatus("i9", userData);
   
