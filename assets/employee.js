@@ -221,8 +221,8 @@ async function ensureUserDocExists(user) {
   }
 }
 
-// ---------- VERIFICACIÓN DE ADMIN POR EMAIL ----------
-
+// ---------- VERIFICACIÓN DE EMPLEADO (SIN ADMIN_EMAILS) ----------
+async function ensureEmployeeId(user) {
   const userRef = doc(db, "users", user.uid);
   const snap = await getDoc(userRef);
   const data = snap.exists() ? snap.data() : {};
