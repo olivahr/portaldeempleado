@@ -628,10 +628,20 @@ async function initChat() {
         }
         if (btnSendChat) btnSendChat.disabled = false;
         
-        chatUnsubscribe = onSnapshot(doc(db, "chats", currentEmpId), (snap) => {
-            const messages = snap.exists() ? (snap.data().messages || []) : [];
-            renderMessages(messages);
-        });
+        // ========== CAMBIA ESTA LÍNEA ==========
+        // En lugar de leer de "chats/{empId}", lee de "employeeRecords/{empId}/chatMessages"
+        const chatCollectionRef = collection(db, "employeeRecords", currentEmpId, "chatMessages");
+        
+        chatUnsubscribe = onSnapshot(
+            query(chatCollectionRef, orderBy("timestamp", "asc")), 
+            (snapshot) => {
+                const messages = [];
+                snapshot.forEach((doc) => {
+                    messages.push({ id: doc.id, ...doc.data() });
+                });
+                renderMessages(messages);
+            }
+        );
         
     } catch (error) {
         console.error("Chat init error:", error);
@@ -651,7 +661,7 @@ function renderMessages(messages) {
         <div class="message ${msg.sender === 'admin' ? 'admin' : 'employee'}">
             <div class="message-text">${msg.text}</div>
             <div class="message-time">
-                ${msg.timestamp?.toDate?.().toLocaleTimeString() || ''}
+                ${msg.timestamp?.toDate?.().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || ''}
             </div>
         </div>
     `).join('');
@@ -665,37 +675,27 @@ async function sendChatMessage() {
     
     if (!text || !currentEmpId) return;
     
-    const message = {
-        sender: 'admin',
-        text,
-        timestamp: serverTimestamp()
-    };
-    
     try {
-        const chatRef = doc(db, "chats", currentEmpId);
-        const snap = await getDoc(chatRef);
+        // ========== CAMBIA ESTO ==========
+        // En lugar de guardar en "chats/{empId}", guarda en "employeeRecords/{empId}/chatMessages"
+        const chatCollectionRef = collection(db, "employeeRecords", currentEmpId, "chatMessages");
         
-        if (snap.exists()) {
-            await updateDoc(chatRef, {
-                messages: arrayUnion(message),
-                updatedAt: serverTimestamp()
-            });
-        } else {
-            await setDoc(chatRef, {
-                messages: [message],
-                employeeId: currentEmpId,
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
-            });
-        }
+        await addDoc(chatCollectionRef, {
+            sender: 'admin',
+            text: text,
+            timestamp: serverTimestamp(),
+            read: false,
+            employeeId: currentEmpId
+        });
         
         input.value = '';
+        showToast('Message sent!', 'success');
         
     } catch (error) {
+        console.error("Send message error:", error);
         showToast('Error sending message', 'error');
     }
 }
-
 // ==================== GESTIÓN DE IDs ====================
 async function loadAllEmployees() {
     const container = $('allEmployeesList');
