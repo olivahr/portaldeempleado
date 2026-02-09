@@ -92,6 +92,14 @@ async function loadProfileData() {
         const data = snap.exists() ? snap.data() : {};
         const profile = data.profile || {};
         
+        // ========== DEBUG ADMIN LOAD ==========
+        console.log("📥 ADMIN: Cargando profile...");
+        console.log("📥 Employee ID:", currentEmpId);
+        console.log("📥 ¿Documento existe?:", snap.exists());
+        console.log("📥 Datos completos:", data);
+        console.log("📥 Profile object:", profile);
+        // ======================================
+        
         const fields = {
             'profFirstName': profile.firstName || '',
             'profLastName': profile.lastName || '',
@@ -133,8 +141,19 @@ async function saveProfile() {
         updatedAt: serverTimestamp()
     };
     
+    // ========== DEBUG ADMIN SAVE ==========
+    console.log("💾 ADMIN: Guardando profile...");
+    console.log("💾 Employee ID:", currentEmpId);
+    console.log("💾 Profile data a guardar:", profile);
+    console.log("💾 Ruta Firebase: employeeRecords/" + currentEmpId);
+    // ======================================
+    
     try {
         await updateDoc(doc(db, "employeeRecords", currentEmpId), { profile });
+        
+        // ========== CONFIRMACIÓN ==========
+        console.log("✅ ADMIN: Profile guardado exitosamente en employeeRecords/" + currentEmpId);
+        // ==================================
         
         await updateDoc(doc(db, "allowedEmployees", currentEmpId), {
             name: `${profile.firstName} ${profile.lastName}`.trim(),
@@ -156,6 +175,7 @@ async function saveProfile() {
         loadAllEmployees();
         
     } catch (error) {
+        console.error("❌ ADMIN Error:", error);
         showToast(`Error: ${error.message}`, 'error');
     }
 }
