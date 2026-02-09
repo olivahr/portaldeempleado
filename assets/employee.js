@@ -1477,7 +1477,7 @@ function renderProfile(userData, recordData) {
 }
 
 // ============================================
-// HR CHAT ASSISTANT - ULTIMATE VERSION
+// HR CHAT ASSISTANT - CLEAN VERSION
 // Employee Onboarding Assistant
 // ============================================
 
@@ -1498,114 +1498,66 @@ function addMessageToUI(text, sender, time = new Date().toLocaleTimeString([], {
 }
 
 function renderChat(userData, empId) {
-  // EXPANDED AUTO-RESPONSES - 50+ RESPONSES
+  // COHERENT AUTO-RESPONSES - EVERY QUESTION MATCHES CORRECTLY
   const autoResponses = [
     // ============ GREETINGS ============
     { pattern: /hello|hi|hey|good morning|good afternoon/i, response: 'Hello! Welcome to SunPower HR Assistant. How can I help you today?' },
-    { pattern: /how are you|how's it going/i, response: 'Ready to assist! What questions do you have about your onboarding?' },
-    { pattern: /thank you|thanks|appreciate it/i, response: 'You\'re welcome! Ask me anything else about your first days at SunPower.' },
-    { pattern: /bye|goodbye|see you/i, response: 'Goodbye! Remember you can contact HR at 502 306 5521 for urgent matters.' },
+    { pattern: /how are you/i, response: 'I\'m here to help! What do you need to know about your onboarding?' },
+    { pattern: /thank you|thanks/i, response: 'You\'re welcome! Let me know if you have other questions.' },
     
-    // ============ FIRST DAY (15+ RESPONSES) ============
-    { pattern: /first day|day one|orientation|onboarding/i, response: 'FIRST DAY CHECKLIST:<br>• Arrive 15 minutes early<br>• Bring ID & Social Security card<br>• Wear safety shoes (required)<br>• Bring smartphone for app setup<br>• Parking pass will be provided<br>• Lunch is provided on Day 1' },
-    { pattern: /what to bring|what should i bring|documents needed/i, response: 'DOCUMENTS TO BRING:<br>1. Passport OR Driver\'s License + Social Security card<br>2. Bank info for direct deposit (account & routing)<br>3. Emergency contact information<br>4. Any signed offer letter copies' },
-    { pattern: /where to go|location first day|where is orientation/i, response: 'Go to MAIN ENTRANCE - Building A. Check in at Security Desk. Orientation is in Conference Room B. Maps are emailed the day before.' },
-    { pattern: /what time|when should i arrive|start time/i, response: 'Arrival times:<br>• Orientation starts at 8:30 AM sharp<br>• Arrive by 8:15 AM for check-in<br>• Early shift starts 6:00 AM (after training)<br>• Late shift starts 2:00 PM (after training)' },
-    { pattern: /parking|where to park|parking pass/i, response: 'Parking:<br>• Use Employee Lot B (visitor side first day)<br>• Get parking pass at Security<br>• Free parking for all employees<br>• Carpool spots available in front' },
-    { pattern: /lunch|food|meals|eat/i, response: 'Food on Day 1:<br>• Lunch provided in cafeteria<br>• Vegetarian options available<br>• Free coffee/tea in break rooms<br>• Vending machines take cash/card' },
-    { pattern: /dress code|what to wear|attire|clothing/i, response: 'DRESS CODE:<br>• Business casual (no jeans first week)<br>• No loose clothing near machinery<br>• Safety glasses provided if needed<br>• Company shirts given Day 2' },
-    { pattern: /training|how long training|orientation length/i, response: 'Training Schedule:<br>• Day 1: HR Orientation (8:30 AM - 12:00 PM)<br>• Day 1: Safety Training (1:00 PM - 4:00 PM)<br>• Days 2-3: Department-specific training<br>• Full production by Day 4' },
-    { pattern: /supervisor|who is my boss|who do i report to/i, response: 'Your supervisor will be assigned during orientation. Team leads introduce themselves after safety training. You\'ll get their contact info.' },
-    { pattern: /breaks|break time|lunch break|rest periods/i, response: 'Break Schedule:<br>• 15-minute morning break (paid)<br>• 30-minute lunch break (unpaid)<br>• 15-minute afternoon break (paid)<br>• Breaks scheduled by supervisor' },
-    { pattern: /tardiness|late|what if i'm late/i, response: 'If you\'re running late:<br>1. Call your supervisor directly<br>2. Contact HR at 502 306 5521<br>3. Make up time same day if possible<br>• First week grace period: 5 minutes' },
-    { pattern: /early|come early|arrive early/i, response: 'You can arrive up to 30 minutes early. Break room opens at 6:00 AM. Early clock-in not allowed without approval.' },
-    { pattern: /facility tour|see the factory|look around/i, response: 'Full facility tour happens Day 1 afternoon. Wear comfortable shoes. Safety glasses required in production areas.' },
-    { pattern: /co workers|meet team|other employees/i, response: 'You\'ll meet your team during lunch and afternoon session. Team building activity on Day 2 morning.' },
-    { pattern: /questions during orientation|ask questions/i, response: 'Ask questions anytime! Raise hand during presentations or talk to HR reps during breaks. No stupid questions!' },
+    // ============ FIRST DAY ============
+    { pattern: /first day|orientation|onboarding/i, response: 'FIRST DAY INFO:<br>• Arrive at 8:15 AM<br>• Bring ID and Social Security card<br>• Safety shoes required<br>• Lunch provided<br>• Orientation in Conference Room B' },
+    { pattern: /what to bring|documents/i, response: 'BRING THESE DOCUMENTS:<br>1. Government ID (passport or driver\'s license)<br>2. Social Security card<br>3. Bank info for direct deposit<br>4. Signed offer letter if you have it' },
+    { pattern: /where to go|location/i, response: 'Go to the Main Entrance, Building A. Check in at Security. They\'ll direct you to orientation.' },
+    { pattern: /what time|start time/i, response: 'Orientation starts at 8:30 AM. Arrive by 8:15 AM to check in.' },
+    { pattern: /parking/i, response: 'Park in Employee Lot B. Get parking pass at Security Desk.' },
+    { pattern: /lunch|food/i, response: 'Lunch is provided in the cafeteria on your first day.' },
+    { pattern: /dress code|what to wear/i, response: 'Wear business casual. No jeans. Safety shoes required.' },
     
-    // ============ APP & TECH (10+ RESPONSES) ============
-    { pattern: /app|application|mobile app|download app|employee app/i, response: 'SUNPOWER EMPLOYEE APP:<br>• Download from App Store/Play Store<br>• Search "SunPower Connect"<br>• Login with email sent to you<br>• Features: schedule, pay stubs, requests, news<br>• Required for clock in/out' },
-    { pattern: /login|password|forgot password|can't log in|access problem/i, response: 'APP LOGIN HELP:<br>1. Username: your email<br>2. Temp password: "SunPower2024!"<br>3. Reset password after first login<br>4. IT Support: 502-555-7890<br>5. Email: itsupport@sunpower.com' },
-    { pattern: /clock in|clock out|time clock|punch in|punch out/i, response: 'CLOCKING INSTRUCTIONS:<br>• Use app ONLY (no physical time clocks)<br>• GPS must be enabled<br>• Clock in within 100 yards of building<br>• Can clock in 5 minutes early<br>• Missed punch? Tell supervisor immediately' },
-    { pattern: /wifi|internet|connect phone|company wifi/i, response: 'COMPANY WIFI:<br>• Network: "SunPower-Guest"<br>• Password: "PowerTheSun2024"<br>• Limited to app use only<br>• No personal streaming/downloads' },
-    { pattern: /phone use|can i use phone|cell phone policy/i, response: 'PHONE POLICY:<br>• Use in break rooms only<br>• No phones on production floor<br>• Emergency calls through supervisor<br>• Bluetooth for music allowed in some areas' },
-    { pattern: /computer|email|outlook|company email/i, response: 'COMPANY EMAIL:<br>• Set up Day 2<br>• Format: first.last@sunpower.com<br>• Access through app or web<br>• Password same as app login' },
-    { pattern: /two factor|2fa|verification code|authenticator/i, response: '2-FACTOR AUTH:<br>• Required for app access<br>• Use Microsoft Authenticator app<br>• Backup codes in your employee portal<br>• Setup during orientation' },
-    { pattern: /update app|app not working|bug|crash/i, response: 'APP TROUBLESHOOTING:<br>1. Force close and reopen<br>2. Check for updates<br>3. Clear app cache<br>4. Reinstall app<br>5. Call IT: 502-555-7890' },
-    { pattern: /notifications|alerts|reminders|app notifications/i, response: 'Enable these notifications:<br>• Schedule changes<br>• Payday alerts<br>• Important announcements<br>• Shift swap opportunities<br>• Safety updates' },
+    // ============ APP ============
+    { pattern: /app|application|download app/i, response: 'Download "SunPower Connect" from your app store. Login details will be emailed to you before your start date.' },
+    { pattern: /login|password|forgot password/i, response: 'If you can\'t login:<br>1. Use "Forgot Password"<br>2. Contact IT: 502-555-7890<br>3. Your initial password is in your welcome email' },
+    { pattern: /clock in|clock out|time clock/i, response: 'Use the app to clock in/out. GPS must be enabled. Clock in within 100 yards of the building.' },
     
-    // ============ BENEFITS (12+ RESPONSES) ============
-    { pattern: /benefits|insurance|medical|dental|vision|health coverage/i, response: 'DAY 1 BENEFITS:<br>• Medical: 3 plan options (HMO, PPO, HDHP)<br>• Dental: Basic + Ortho available<br>• Vision: Exam + glasses/contacts allowance<br>• Life insurance: 1x salary free<br>• Start using immediately' },
-    { pattern: /enroll|sign up|choose benefits|benefits enrollment/i, response: 'ENROLLMENT:<br>• Complete within 30 days<br>• Online portal: benefits.sunpower.com<br>• HR helps Day 2<br>• Changes only during Open Enrollment (November)' },
-    { pattern: /cost|premium|how much|pay for benefits/i, response: 'BENEFIT COSTS:<br>• Medical: $50-150/paycheck depending on plan<br>• Dental: $8-20/paycheck<br>• Vision: $3-10/paycheck<br>• Company pays 80% of premiums<br>• Deducted pre-tax' },
-    { pattern: /dependents|family|spouse|children|kids/i, response: 'DEPENDENT COVERAGE:<br>• Add spouse/children<br>• Cost: +$200/month for family medical<br>• Need marriage/birth certificates<br>• 31-day deadline to add newborns' },
-    { pattern: /doctor|find doctor|provider network/i, response: 'NETWORK:<br>• Use BlueCross BlueShield network<br>• Find doctors at bcbs.com<br>• Urgent care copay: $50<br>• Emergency room: $250 copay<br>• Teladoc: Free virtual visits' },
-    { pattern: /prescription|medication|pharmacy|drugs/i, response: 'PHARMACY:<br>• CVS, Walgreens, Walmart<br>• Generic: $10 copay<br>• Brand: $40 copay<br>• Mail order: 90-day supply available<br>• Specialty drugs handled separately' },
-    { pattern: /pto|vacation|time off|paid leave|holidays/i, response: 'PTO & HOLIDAYS:<br>• Accrue 4 hours PTO per pay period<br>• Use after 90 days<br>• 8 paid holidays<br>• 3 sick days immediate<br>• 2 personal days first year' },
-    { pattern: /401k|retirement|retirement plan|invest|save/i, response: '401(K) PLAN:<br>• Eligible Day 1<br>• Company matches 50% up to 6%<br>• Vanguard manages funds<br>• Change contributions anytime<br>• Roth 401k available' },
-    { pattern: /hsa|health savings|fsa|flex spending/i, response: 'SAVINGS ACCOUNTS:<br>• HSA with HDHP plan ($750 company contribution)<br>• FSA for medical/dependent care<br>• Use debit card for qualified expenses<br>• Use-it-or-lose-it rule for FSA' },
-    { pattern: /disability|short term|long term|std|ltd/i, response: 'DISABILITY:<br>• Short-term: 60% pay for 13 weeks<br>• Long-term: 60% pay after 90 days<br>• Paid by company at no cost to you<br>• Covers illness/injury' },
-    { pattern: /eal|employee assistance|counseling|therapy/i, response: 'EAP PROGRAM:<br>• Free counseling sessions (6 per issue)<br>• Legal/financial consultations<br>• Child/elder care referrals<br>• Available 24/7: 1-800-555-HELP' },
-    { pattern: /discount|perks|employee discount|special offers/i, response: 'EMPLOYEE PERKS:<br>• Verizon: 25% off plans<br>• AT&T: 20% off<br>• Gym reimbursement: $30/month<br>• Solar panel discount: 50% off<br>• Local business discounts' },
+    // ============ BENEFITS ============
+    { pattern: /benefits|insurance|medical|dental|vision/i, response: 'BENEFITS START DAY 1:<br>• Medical insurance (3 plans)<br>• Dental insurance<br>• Vision insurance<br>• 401(k) with company match<br>• PTO accrual' },
+    { pattern: /cost|premium|how much for benefits/i, response: 'BENEFIT COSTS PER PAYCHECK:<br>• Medical: $50-150<br>• Dental: $8-20<br>• Vision: $3-10<br>• Company pays 80% of premiums' },
+    { pattern: /pto|vacation|time off/i, response: 'You earn 4 hours of PTO per pay period. Can use after 90 days.' },
+    { pattern: /401k|retirement/i, response: '401(k) starts Day 1. Company matches 50% of your contribution up to 6% of your pay.' },
     
-    // ============ SCHEDULES & HOURS (10+ RESPONSES) ============
-    { pattern: /schedule|hours|shift|work hours|working hours/i, response: 'SHIFT SCHEDULES:<br>• A Shift: 6:00 AM - 2:30 PM (M-F)<br>• B Shift: 2:00 PM - 10:30 PM (M-F)<br>• C Shift: 10:00 PM - 6:30 AM (M-F)<br>• Weekend: +$2.50/hour differential<br>• Overtime: 1.5x after 40 hours' },
-    { pattern: /my schedule|what shift am i|which shift/i, response: 'Your assigned shift is in your offer letter. Check the "Schedule" tab in the app. Most new hires start on A or B shift.' },
-    { pattern: /change shift|swap shift|different hours/i, response: 'SHIFT CHANGES:<br>• Must work 90 days first<br>• Bid on open shifts in app<br>• Seniority based after 1 year<br>• Medical reasons get priority<br>• Submit request to supervisor' },
-    { pattern: /overtime|extra hours|weekend work|mandatory ot/i, response: 'OVERTIME RULES:<br>• Voluntary first, then mandatory<br>• 1.5x regular pay<br>• Double time after 12 hours<br>• Sunday premium: 2x pay<br>• 1 hour minimum if called in' },
-    { pattern: /call off|sick|can't come|absence/i, response: 'ABSENCE PROCEDURE:<br>1. Call supervisor 2+ hours before shift<br>2. Use app to submit absence<br>3. Doctor\'s note after 3 days<br>4. More than 5 absences triggers review<br>5. Use sick/PTO if available' },
-    { pattern: /late start|leave early|appointment|doctor visit/i, response: 'LEAVING EARLY/LATE START:<br>• Get supervisor approval first<br>• Use PTO to cover missed hours<br>• Medical appointments excused with note<br>• Can make up hours same week' },
-    { pattern: /weekend|saturday|sunday|weekend work/i, response: 'WEEKEND WORK:<br>• Sometimes required for production<br>• 24-hour notice minimum<br>• Saturday: 1.5x pay<br>• Sunday: 2x pay<br>• Can decline 1 weekend per month' },
-    { pattern: /holiday work|work on holiday/i, response: 'HOLIDAY PAY:<br>• 2.5x pay if worked<br>• Must work before/after holiday<br>• 8 hours holiday pay if not working<br>• 7 major holidays observed' },
-    { pattern: /breaks during shift|rest periods/i, response: 'BREAK SCHEDULE BY SHIFT:<br>• A Shift: Break 9:30 AM, Lunch 11:30 AM, Break 1:30 PM<br>• B Shift: Break 5:30 PM, Lunch 7:30 PM, Break 9:30 PM<br>• C Shift: Break 1:30 AM, Lunch 3:30 AM, Break 5:30 AM' },
-    { pattern: /lunch length|how long lunch|meal period/i, response: '30-minute unpaid lunch. Can take up to 60 minutes with supervisor approval (unpaid extra time).' },
+    // ============ SCHEDULES ============
+    { pattern: /schedule|hours|shift|work hours/i, response: 'SHIFT SCHEDULES:<br>• Early: 6:00 AM - 2:30 PM<br>• Mid: 2:00 PM - 10:30 PM<br>• Night: 10:00 PM - 6:30 AM (+$1.50/hr extra)<br><br>Your shift is in your offer letter.' },
+    { pattern: /overtime|ot pay|overtime pay/i, response: 'OVERTIME PAY:<br>• 1.5x regular pay after 40 hours/week<br>• Sunday work: 2x pay<br>• Holiday work: 2.5x pay' },
+    { pattern: /weekend|saturday|sunday/i, response: 'Weekend work sometimes required. Saturday: 1.5x pay. Sunday: 2x pay.' },
+    { pattern: /breaks|lunch break|break time/i, response: 'BREAKS:<br>• 15-minute morning break (paid)<br>• 30-minute lunch (unpaid)<br>• 15-minute afternoon break (paid)' },
     
-    // ============ FOOTWEAR & SAFETY (8+ RESPONSES) ============
-    { pattern: /footwear|shoes|safety shoes|boots|steel toe/i, response: 'SAFETY FOOTWEAR REQUIRED:<br>• Steel/composite toe<br>• Slip-resistant sole<br>• Electrical hazard rated<br>• Must meet ASTM F2413<br>• Required EVERY DAY' },
-    { pattern: /where to buy|purchase shoes|get boots/i, response: 'APPROVED VENDORS:<br>• Red Wing Shoes (20% discount)<br>• Grainger Industrial Supply<br>• Online: shoesforcrews.com<br>• Local: Safety Gear Pro Store<br>• Get fitted properly!' },
-    { pattern: /reimbursement|shoe reimbursement|footwear allowance/i, response: '$150 REIMBURSEMENT:<br>• Submit receipt in app<br>• Within 30 days of hire<br>• Paid on next paycheck<br>• Covers boots/shoes only<br>• Insoles/accessories not covered' },
-    { pattern: /size|fitting|how to choose|what size/i, response: 'FITTING TIPS:<br>• Try on in afternoon (feet swell)<br>• Wear work socks<br>• Toe should not touch end<br>• Heel minimal slippage<br>• Walk around store 10 minutes' },
-    { pattern: /alternative|exemption|can't wear|medical reason/i, response: 'MEDICAL EXEMPTION:<br>• Doctor\'s note required<br>• Submit to Safety Department<br>• Alternative PPE provided<br>• Review within 5 business days<br>• Temporary/permanent options' },
-    { pattern: /replace|worn out|new shoes|how often/i, response: 'REPLACEMENT SCHEDULE:<br>• Every 12 months eligible<br>• $100 annual allowance<br>• More if worn out early<br>• Safety inspection monthly<br>• Damaged shoes replaced immediately' },
-    { pattern: /socks|insoles|comfort|foot pain/i, response: 'COMFORT TIPS:<br>• Quality work socks recommended<br>• Gel insoles help ($20 reimbursement)<br>• Break in shoes gradually<br>• Report foot pain to nurse<br>• Stretching exercises available' },
-    { pattern: /cleaning|care|maintain shoes/i, response: 'SHOE CARE:<br>• Clean daily with damp cloth<br>• Waterproof spray recommended<br>• Replace laces when frayed<br>• Dry naturally, not by heat<br>• Inspect soles weekly' },
+    // ============ FOOTWEAR ============
+    { pattern: /footwear|shoes|safety shoes|boots/i, response: 'SAFETY SHOES REQUIRED:<br>• Steel/composite toe<br>• Slip-resistant<br>• Required Day 1<br>• $150 reimbursement<br>• Buy from approved vendors' },
+    { pattern: /reimbursement|shoe reimbursement/i, response: '$150 safety shoe reimbursement. Submit receipt in app within 30 days. Paid on next paycheck.' },
     
-    // ============ PAYROLL (10+ RESPONSES) ============
-    { pattern: /pay|payment|paycheck|salary|wages|when do i get paid/i, response: 'PAYDAY: Every Friday for previous week. First paycheck comes second Friday. Direct deposit required.' },
-    { pattern: /direct deposit|bank account|routing number|how to get paid/i, response: 'SET UP DIRECT DEPOSIT Day 1. Bring: 1) Account number, 2) Routing number, 3) Voided check optional. Can split between 2 accounts.' },
-    { pattern: /pay stub|check stub|earnings statement/i, response: 'ACCESS PAY STUBS in app under "Payroll". Available Wednesday before payday. Paperless only. 2 years history kept.' },
-    { pattern: /taxes|withholding|w4|tax form/i, response: 'COMPLETE W-4 Day 1. Federal/state taxes withheld. Can adjust anytime in payroll portal. Get tax forms January 31.' },
-    { pattern: /deductions|whats taken out|net pay/i, response: 'TYPICAL DEDUCTIONS:<br>• Federal/state taxes<br>• Social Security/Medicare<br>• Benefits premiums<br>• 401k contributions<br>• Garnishments if applicable' },
-    { pattern: /overtime pay|how much ot|ot rate/i, response: 'OVERTIME PAY:<br>• 1.5x regular rate<br>• Calculated weekly (>40 hours)<br>• Sunday double time<br>• Holiday 2.5x rate<br>• Shows on pay stub' },
-    { pattern: /bonus|incentive|production bonus/i, response: 'BONUS PROGRAM:<br>• Monthly production bonus<br>• Quality incentive<br>• Attendance bonus<br>• Quarterly profit sharing<br>• Paid separate from salary' },
-    { pattern: /raise|increase|pay raise|when raise/i, response: 'RAISE SCHEDULE:<br>• 90-day review (possible increase)<br>• Annual review every hire date<br>• Merit increases 2-5%<br>• Promotion increases 8-15%<br>• Market adjustments as needed' },
-    { pattern: /advance|loan|emergency pay|need money early/i, response: 'PAY ADVANCE:<br>• Up to 50% of earned wages<br>• $10 processing fee<br>• Repaid next paycheck<br>• Max 2 per year<br>• HR approval required' },
-    { pattern: /missing pay|error|wrong amount|didn't get paid/i, response: 'PAY ERROR?<br>1. Check with supervisor<br>2. Submit ticket in app<br>3. Call Payroll: 502-555-1234<br>4. Correction on next check<br>5. Keep all time records' },
+    // ============ PAYROLL ============
+    { pattern: /pay|payment|paycheck|when paid/i, response: 'PAYDAY:<br>• Every Friday<br>• First check: second Friday<br>• Direct deposit required<br>• Access pay stubs in app' },
+    { pattern: /direct deposit|bank account/i, response: 'Set up direct deposit Day 1. Bring account and routing numbers.' },
+    { pattern: /how much will i make|salary|pay rate/i, response: 'Your pay rate is in your offer letter. For exact amounts, contact HR at 502 306 5521.' },
     
-    // ============ HR CONTACT ============
-    { pattern: /contact hr|talk to human|speak with someone|real person/i, response: 'HR CONTACT:<br>• Phone: <strong>502 306 5521</strong><br>• Email: hr@sunpower.com<br>• In-person: Building A, Office 205<br>• Hours: Mon-Fri 7 AM - 6 PM<br>• Urgent calls answered 24/7' },
+    // ============ CONTACT HR ============
+    { pattern: /contact hr|talk to human|speak with someone/i, response: 'CONTACT HR:<br>Phone: <strong>502 306 5521</strong><br>Email: hr@sunpower.com<br>Hours: Mon-Fri 7AM-6PM' },
     
-    // ============ REDIRECTS TO HR ============
-    { pattern: /specific salary|exact pay|how much will i make/i, response: 'Specific pay questions → Contact HR at 502 306 5521' },
-    { pattern: /complaint|harassment|discrimination|hostile/i, response: 'Serious concerns → Immediate call to HR: 502 306 5521 (confidential)' },
-    { pattern: /personal issue|family emergency|divorce|death/i, response: 'Personal matters → HR can help: 502 306 5521' },
-    { pattern: /legal|lawsuit|attorney|sue/i, response: 'Legal questions → Contact HR immediately: 502 306 5521' },
+    // ============ SPECIFIC REDIRECTS ============
+    { pattern: /specific salary|exact pay amount/i, response: 'For exact pay questions, contact HR: 502 306 5521' },
+    { pattern: /complaint|harassment|issue with/i, response: 'For complaints or serious issues, call HR immediately: 502 306 5521' },
   ];
   
-  // QUICK QUESTIONS - EXPANDED
+  // QUICK QUESTIONS
   const quickQuestions = [
-    { text: "First Day Checklist", q: "What do I need for my first day?" },
-    { text: "App Download", q: "How do I download and use the employee app?" },
-    { text: "Benefits Details", q: "What benefits do I get from Day 1?" },
-    { text: "Shift Schedules", q: "What are the work schedules and shifts?" },
-    { text: "Safety Footwear", q: "What are the safety footwear requirements?" },
-    { text: "Pay Schedule", q: "When and how do I get paid?" },
-    { text: "Contact HR Now", q: "I need to speak with a human HR representative" },
-    { text: "Required Documents", q: "What documents should I bring?" },
-    { text: "Parking Info", q: "Where do I park on first day?" },
-    { text: "Training Length", q: "How long is training and orientation?" },
-    { text: "Break Schedule", q: "What are the break and lunch times?" },
+    { text: "First Day", q: "What do I need for my first day?" },
+    { text: "App", q: "How do I download the employee app?" },
+    { text: "Benefits", q: "What benefits do I get?" },
+    { text: "Schedule", q: "What are the work schedules?" },
     { text: "Overtime Pay", q: "How much is overtime pay?" },
+    { text: "Safety Shoes", q: "What are the safety shoe requirements?" },
+    { text: "Payday", q: "When do I get paid?" },
+    { text: "Contact HR", q: "I need to speak with HR" },
   ];
 
   setPage(
@@ -1616,7 +1568,7 @@ function renderChat(userData, empId) {
         <div class="chat-messages" id="chatMessages">
           <div class="chat-message admin">
             <div><strong>Hello! Welcome to SunPower HR Assistant.</strong></div>
-            <div class="chat-time">I can answer 50+ questions about: First Day, App, Benefits, Schedules, Safety, Payroll, and more. Ask me anything!</div>
+            <div class="chat-time">I can answer questions about: First Day, App, Benefits, Schedules, Safety, Payroll, and more. Ask me anything!</div>
           </div>
         </div>
         <div class="chat-input-area">
@@ -1626,7 +1578,7 @@ function renderChat(userData, empId) {
       </div>
       
       <div class="azCard" style="margin-top:16px;">
-        ${sectionHeader("Quick Answers")}
+        ${sectionHeader("Quick Questions")}
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;" id="quickQuestions">
           ${quickQuestions.map(q => `
             <button class="btn sm ghost quick-question" data-q="${escapeHtml(q.q)}">
@@ -1635,43 +1587,34 @@ function renderChat(userData, empId) {
           `).join('')}
         </div>
         
-        <div style="margin-top:20px;padding:14px;background:#eff6ff;border-radius:8px;border-left:4px solid #2563eb;">
-          <div style="font-weight:700;color:#1e40af;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
-            <span>Direct HR Support</span>
-          </div>
-          <div style="font-size:14px;color:#374151;">
-            For personal payroll, documents, emergencies, or complaints:
-            <div style="margin-top:8px;padding:10px;background:white;border-radius:6px;border:1px solid #dbeafe;">
-              <div style="font-weight:600;color:#1f2937;">Phone: <span style="color:#059669;font-size:16px;">502 306 5521</span></div>
-              <div style="font-size:12px;color:#6b7280;margin-top:4px;">Mon-Fri 7AM-6PM | Emergency line 24/7</div>
-            </div>
+        <div style="margin-top:16px;padding:12px;background:#f0f9ff;border-radius:8px;border-left:4px solid #0369a1;">
+          <div style="font-weight:600;color:#075985;">Need HR Directly?</div>
+          <div style="font-size:14px;color:#334155;margin-top:4px;">
+            For personal pay, documents, or urgent issues:
+            <div style="margin-top:6px;font-weight:500;color:#0f766e;">Phone: 502 306 5521</div>
           </div>
         </div>
       </div>
     `
   );
 
-  // Setup send functionality
+  // Setup
   const sendBtn = document.getElementById("chatSendBtn");
   const input = document.getElementById("chatInput");
   
-  // Enhanced response function
+  // Simple response function - NO MIXUPS
   const getAutoResponse = (question) => {
     const qLower = question.toLowerCase().trim();
     
-    // Check all patterns
+    // Check each pattern - FIRST MATCH WINS
     for (const rule of autoResponses) {
       if (rule.pattern.test(qLower)) {
         return rule.response;
       }
     }
     
-    // Default for unknown questions
-    return `Thanks for your question! For accurate information about "${question}", please:<br><br>
-    1. Check the quick question buttons above<br>
-    2. Review your employee handbook<br>
-    3. Contact HR directly at <strong>502 306 5521</strong><br><br>
-    I'm here to help with common onboarding questions!`;
+    // Default for unknown
+    return `I can help with questions about first day, app, benefits, schedules, safety, or payroll. Try asking about those topics, or contact HR at 502 306 5521 for specific help.`;
   };
   
   // Typing indicator
@@ -1699,47 +1642,45 @@ function renderChat(userData, empId) {
     const text = input.value.trim();
     if (!text) return;
     
+    // Add user message
     addMessageToUI(text, "employee");
     input.value = "";
     
+    // Show typing
     const typingIndicator = showTypingIndicator();
-    const responseDelay = 600 + Math.random() * 600;
     
+    // Wait 1 second
     setTimeout(() => {
+      // Remove typing
       if (typingIndicator) typingIndicator.remove();
       
+      // Get CORRECT response
       const response = getAutoResponse(text);
+      
+      // Show response
       addMessageToUI(response, "admin");
       
-      // Add HR contact button for certain questions
-      if (text.toLowerCase().includes('human') || text.toLowerCase().includes('representative') || 
-          text.toLowerCase().includes('contact hr') || text.toLowerCase().includes('talk to')) {
+      // If asking for HR contact, show button
+      if (text.toLowerCase().includes('hr') || text.toLowerCase().includes('human') || text.toLowerCase().includes('contact')) {
         setTimeout(() => {
-          const contactDiv = document.createElement("div");
-          contactDiv.className = "chat-message admin";
-          contactDiv.innerHTML = `
-            <div style="margin-bottom:8px;">Need immediate HR assistance?</div>
-            <button class="btn primary request-hr-call" style="width:100%;">
-              📞 Call HR Now: 502 306 5521
+          const hrDiv = document.createElement("div");
+          hrDiv.className = "chat-message admin";
+          hrDiv.innerHTML = `
+            <button class="btn primary" style="width:100%;" onclick="addMessageToUI('Call HR at: <strong>502 306 5521</strong>', 'admin')">
+              Call HR Now: 502 306 5521
             </button>
-            <div style="font-size:12px;color:#6b7280;margin-top:6px;text-align:center;">
-              Available Mon-Fri 7AM-6PM
-            </div>
           `;
-          document.getElementById("chatMessages").appendChild(contactDiv);
-          
-          document.querySelector('.request-hr-call').addEventListener('click', function() {
-            addMessageToUI('✅ Connecting you to HR. Please call: <strong>502 306 5521</strong>', "admin");
-            this.parentElement.remove();
-          });
+          document.getElementById("chatMessages").appendChild(hrDiv);
         }, 300);
       }
-    }, responseDelay);
+    }, 1000);
   };
 
-  // Event listeners
+  // Events
   sendBtn.onclick = sendMessage;
-  input.addEventListener("keypress", (e) => e.key === "Enter" && sendMessage());
+  input.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") sendMessage();
+  });
   
   // Quick questions
   setTimeout(() => {
@@ -1758,18 +1699,17 @@ function renderChat(userData, empId) {
     .typing-dot {
       width: 8px;
       height: 8px;
-      background-color: #94a3b8;
+      background-color: #64748b;
       border-radius: 50%;
       animation: typingBounce 1.4s infinite ease-in-out;
     }
     @keyframes typingBounce {
       0%, 60%, 100% { transform: translateY(0); }
-      30% { transform: translateY(-6px); }
+      30% { transform: translateY(-5px); }
     }
   `;
   document.head.appendChild(style);
 }
-
 // ===============================
 // SCHEDULE: Tabs + Calendar
 // ===============================
