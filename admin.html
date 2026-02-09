@@ -5,6 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SunPower Admin Portal</title>
     <link rel="stylesheet" href="assets/app.css">
+<style>
+    /* Fix para que el admin no se rompa con app.css */
+    .form-input, .form-select, .form-textarea {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    .form-label {
+        text-transform: none !important;
+        font-size: 12px !important;
+    }
+    
+    .form-grid {
+        width: 100% !important;
+    }
+    
+    .card {
+        overflow: hidden !important;
+    }
+</style>
 </head>
 <body>
     <!-- Header with Employee Selector -->
