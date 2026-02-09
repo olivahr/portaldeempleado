@@ -1,0 +1,951 @@
+/* ========================================
+   SUNPOWER EMPLOYEE PORTAL - CORPORATE EDITION
+   Clean, Professional, Energized Design
+   ======================================== */
+
+:root {
+    /* SunPower Corporate Colors - Energía Solar */
+    --sunpower-blue: #0066A4;      /* Azul corporativo principal */
+    --sunpower-yellow: #FFD600;    /* Amarillo solar */
+    --sunpower-teal: #00A9B7;      /* Verde azulado renovable */
+    --sunpower-orange: #FF6B35;    /* Naranja energía */
+    --sunpower-green: #4CAF50;     /* Verde sostenibilidad */
+    
+    /* Gradientes corporativos */
+    --gradient-sunrise: linear-gradient(135deg, #FFD600 0%, #FF6B35 100%);
+    --gradient-ocean: linear-gradient(135deg, #0066A4 0%, #00A9B7 100%);
+    --gradient-energy: linear-gradient(135deg, #FFD600 0%, #4CAF50 100%);
+    
+    /* Neutros corporativos */
+    --corporate-bg: #F8FAFC;       /* Fondo corporativo claro */
+    --corporate-card: #FFFFFF;     /* Tarjetas blancas puras */
+    --corporate-text: #1E293B;     /* Texto oscuro profesional */
+    --corporate-muted: #64748B;    /* Texto secundario */
+    --corporate-line: #E2E8F0;     /* Líneas sutiles */
+    --corporate-hover: #F1F5F9;    /* Estados hover */
+    
+    /* Énfasis corporativos */
+    --primary: var(--sunpower-blue);
+    --primary-hover: #005086;
+    --secondary: var(--sunpower-teal);
+    --accent: var(--sunpower-yellow);
+    
+    /* Estado corporativo */
+    --success: #10B981;            /* Verde éxito */
+    --warning: #F59E0B;           /* Amarillo atención */
+    --danger: #EF4444;            /* Rojo alerta */
+    --info: #3B82F6;              /* Azul información */
+    
+    /* Sombras corporativas (más sutiles) */
+    --shadow-sm: 0 1px 2px rgba(0, 102, 164, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 102, 164, 0.08);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 102, 164, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 102, 164, 0.15);
+    
+    /* Border radius corporativo */
+    --radius-sm: 4px;
+    --radius: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    
+    /* Tipografía corporativa */
+    --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ========================================
+   RESET CORPORATIVO
+   ======================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: var(--font-body);
+    color: var(--corporate-text);
+    background: var(--corporate-bg);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+/* ========================================
+   TOP BAR - CORPORATE BRANDING
+   ======================================== */
+.topbar {
+    height: 70px;
+    background: linear-gradient(90deg, var(--sunpower-blue), var(--sunpower-teal));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: var(--shadow-lg);
+    border-bottom: 3px solid var(--sunpower-yellow);
+}
+
+.brand-mini {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.brand-dot {
+    width: 12px;
+    height: 12px;
+    background: var(--sunpower-yellow);
+    border-radius: 50%;
+    animation: pulse-solar 2s ease-in-out infinite;
+    box-shadow: 0 0 0 4px rgba(255, 214, 0, 0.3);
+}
+
+@keyframes pulse-solar {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.brand-title {
+    font-weight: 700;
+    font-size: 1.25rem;
+    letter-spacing: -0.5px;
+    background: linear-gradient(to right, #FFFFFF, #FFD600);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.topbar-pill {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* ========================================
+   BOTONES CORPORATIVOS
+   ======================================== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--sunpower-blue), var(--sunpower-teal));
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 102, 164, 0.25);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 102, 164, 0.35);
+    border-color: var(--sunpower-yellow);
+}
+
+.btn-secondary {
+    background: var(--corporate-card);
+    color: var(--sunpower-blue);
+    border-color: var(--corporate-line);
+}
+
+.btn-secondary:hover {
+    background: var(--corporate-hover);
+    border-color: var(--sunpower-teal);
+    transform: translateY(-2px);
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--corporate-muted);
+    border-color: var(--corporate-line);
+}
+
+.btn-ghost:hover {
+    background: var(--corporate-hover);
+    color: var(--sunpower-blue);
+    border-color: var(--sunpower-blue);
+}
+
+/* ========================================
+   TARJETAS CORPORATIVAS
+   ======================================== */
+.azCard {
+    background: var(--corporate-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--corporate-line);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.azCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--sunpower-yellow), var(--sunpower-teal));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.azCard:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--sunpower-blue);
+}
+
+.azCard:hover::before {
+    opacity: 1;
+}
+
+.azCardTitle {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--corporate-text);
+    margin-bottom: 0.5rem;
+    font-family: var(--font-heading);
+}
+
+.azCardSub {
+    font-size: 0.875rem;
+    color: var(--corporate-muted);
+    line-height: 1.5;
+}
+
+/* ========================================
+   HERO CORPORATIVO
+   ======================================== */
+.azHero {
+    background: linear-gradient(135deg, 
+        rgba(0, 102, 164, 0.05) 0%, 
+        rgba(0, 169, 183, 0.05) 50%, 
+        rgba(255, 214, 0, 0.05) 100%);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(0, 102, 164, 0.1);
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.azHero::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 214, 0, 0.1) 0%, transparent 70%);
+    animation: rotate-sun 20s linear infinite;
+}
+
+@keyframes rotate-sun {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.azHeroTitle {
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: var(--sunpower-blue);
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.azHeroSub {
+    font-size: 0.9375rem;
+    color: var(--corporate-muted);
+    position: relative;
+    z-index: 1;
+}
+
+/* ========================================
+   PÍLDORAS CORPORATIVAS
+   ======================================== */
+.azPill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--corporate-card);
+    border: 1px solid var(--corporate-line);
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--sunpower-blue);
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.azPill:hover {
+    background: var(--sunpower-blue);
+    color: white;
+    border-color: var(--sunpower-blue);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 102, 164, 0.2);
+}
+
+/* ========================================
+   BARRA DE PROGRESO CORPORATIVA
+   ======================================== */
+.azBar {
+    height: 8px;
+    border-radius: 9999px;
+    background: var(--corporate-line);
+    overflow: hidden;
+    margin-top: 1rem;
+    position: relative;
+}
+
+.azBar > div {
+    height: 100%;
+    background: linear-gradient(90deg, var(--sunpower-yellow), var(--sunpower-teal));
+    border-radius: 9999px;
+    position: relative;
+    overflow: hidden;
+    transition: width 0.6s ease;
+}
+
+.azBar > div::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.3) 50%, 
+        transparent 100%);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(200%); }
+}
+
+/* ========================================
+   CALENDARIO CORPORATIVO
+   ======================================== */
+.azCalWrap {
+    background: var(--corporate-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--corporate-line);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.azCalHead {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(0, 102, 164, 0.05), rgba(0, 102, 164, 0.02));
+    border-bottom: 1px solid var(--corporate-line);
+}
+
+.azCalMonth {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--sunpower-blue);
+}
+
+.azCalBtn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--corporate-line);
+    background: var(--corporate-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--corporate-muted);
+    transition: all 0.2s ease;
+}
+
+.azCalBtn:hover {
+    background: var(--sunpower-blue);
+    color: white;
+    border-color: var(--sunpower-blue);
+    transform: scale(1.1);
+}
+
+/* ========================================
+   CHAT CORPORATIVO
+   ======================================== */
+.chat-container {
+    background: var(--corporate-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--corporate-line);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 500px;
+    box-shadow: var(--shadow-md);
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    background: linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%);
+}
+
+.chat-message {
+    max-width: 80%;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-lg);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+    position: relative;
+    animation: messageIn 0.3s ease-out;
+}
+
+@keyframes messageIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.chat-message.employee {
+    align-self: flex-end;
+    background: linear-gradient(135deg, var(--sunpower-blue), var(--sunpower-teal));
+    color: white;
+    border-bottom-right-radius: var(--radius-sm);
+}
+
+.chat-message.admin {
+    align-self: flex-start;
+    background: var(--corporate-card);
+    border: 1px solid var(--corporate-line);
+    color: var(--corporate-text);
+    border-bottom-left-radius: var(--radius-sm);
+}
+
+.chat-input-area {
+    padding: 1rem;
+    background: var(--corporate-card);
+    border-top: 1px solid var(--corporate-line);
+    display: flex;
+    gap: 0.75rem;
+}
+
+.chat-input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--corporate-line);
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    background: var(--corporate-bg);
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: var(--sunpower-blue);
+    box-shadow: 0 0 0 3px rgba(0, 102, 164, 0.1);
+}
+
+.chat-send {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius);
+    background: linear-gradient(135deg, var(--sunpower-blue), var(--sunpower-teal));
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.chat-send:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 102, 164, 0.25);
+}
+
+/* ========================================
+   PERFIL CORPORATIVO
+   ======================================== */
+.profile-card {
+    background: linear-gradient(135deg, 
+        rgba(0, 102, 164, 0.05) 0%, 
+        rgba(0, 169, 183, 0.05) 50%, 
+        rgba(255, 214, 0, 0.05) 100%);
+    border-radius: var(--radius-xl);
+    border: 1px solid rgba(0, 102, 164, 0.1);
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--sunpower-blue), var(--sunpower-teal));
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2rem;
+    border: 3px solid white;
+    box-shadow: var(--shadow-md);
+}
+
+.profile-name {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--corporate-text);
+    margin-bottom: 0.25rem;
+}
+
+.profile-id {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--sunpower-blue);
+    margin-bottom: 1rem;
+    padding: 0.25rem 0.75rem;
+    background: rgba(0, 102, 164, 0.1);
+    border-radius: var(--radius);
+    display: inline-block;
+}
+
+/* ========================================
+   BENEFICIOS CORPORATIVOS
+   ======================================== */
+.benefit-card {
+    background: var(--corporate-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--corporate-line);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.benefit-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--sunpower-teal);
+}
+
+.benefit-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.benefit-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background: linear-gradient(135deg, var(--sunpower-blue), var(--sunpower-teal));
+    color: white;
+}
+
+/* ========================================
+   FORMULARIO I-9 (CORPORATIVO)
+   ======================================== */
+.w4-info {
+    background: linear-gradient(135deg, 
+        rgba(255, 107, 53, 0.08) 0%, 
+        rgba(255, 214, 0, 0.08) 100%);
+    border: 2px solid rgba(255, 107, 53, 0.2);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.w4-info::before {
+    content: '⚠️';
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.5rem;
+    opacity: 0.2;
+}
+
+.w4-title {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #C2410C;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* ========================================
+   TIMELINE CORPORATIVO
+   ======================================== */
+.progress-timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.progress-timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: linear-gradient(to bottom, 
+        var(--sunpower-yellow), 
+        var(--sunpower-teal), 
+        var(--sunpower-blue));
+}
+
+.progress-item-icon {
+    position: absolute;
+    left: -2rem;
+    top: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    border: 2px solid white;
+    box-shadow: var(--shadow-sm);
+}
+
+.progress-item.completed .progress-item-icon {
+    background: linear-gradient(135deg, var(--success), #059669);
+    color: white;
+}
+
+.progress-item.current .progress-item-icon {
+    background: linear-gradient(135deg, var(--sunpower-blue), var(--sunpower-teal));
+    color: white;
+    animation: pulse-ring 2s infinite;
+}
+
+@keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(0, 102, 164, 0.4); }
+    70% { box-shadow: 0 0 0 8px rgba(0, 102, 164, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 102, 164, 0); }
+}
+
+/* ========================================
+   NAVEGACIÓN INFERIOR (MÓVIL)
+   ======================================== */
+#azTabs {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 80px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(226, 232, 240, 0.8);
+    display: none;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.az-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    border-radius: var(--radius);
+    padding: 0.5rem;
+    transition: all 0.2s ease;
+    color: var(--corporate-muted);
+    font-weight: 600;
+    font-size: 0.6875rem;
+}
+
+.az-tab.active {
+    color: var(--sunpower-blue);
+}
+
+.az-tab.active .az-ico {
+    background: linear-gradient(135deg, var(--sunpower-blue), var(--sunpower-teal));
+    color: white;
+    transform: translateY(-2px);
+}
+
+.az-ico {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--corporate-hover);
+    color: var(--corporate-muted);
+    transition: all 0.3s ease;
+}
+
+.az-ico svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2.5;
+}
+
+/* ========================================
+   ESTADOS ESPECIALES
+   ======================================== */
+.status-online {
+    color: var(--success);
+}
+
+.status-offline {
+    color: var(--corporate-muted);
+}
+
+.status-busy {
+    color: var(--warning);
+}
+
+/* ========================================
+   ANIMACIONES CORPORATIVAS
+   ======================================== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fadeInUp {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.animate-slideInRight {
+    animation: slideInRight 0.4s ease-out;
+}
+
+/* ========================================
+   RESPONSIVE CORPORATIVO
+   ======================================== */
+@media (max-width: 920px) {
+    .azRow2 {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .azQuickGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    #azTabs {
+        display: block;
+    }
+    
+    .content {
+        padding-bottom: 100px;
+    }
+}
+
+@media (max-width: 640px) {
+    .topbar {
+        padding: 0 1rem;
+        height: 60px;
+    }
+    
+    .brand-title {
+        font-size: 1rem;
+    }
+    
+    .azCard {
+        padding: 1.25rem;
+    }
+    
+    .chat-container {
+        height: 400px;
+    }
+}
+
+@media (max-width: 480px) {
+    .azQuickGrid {
+        grid-template-columns: 1fr;
+    }
+    
+    .profile-card {
+        padding: 1.5rem;
+    }
+    
+    .azHero {
+        padding: 1.5rem;
+    }
+}
+
+/* ========================================
+   UTILIDADES CORPORATIVAS
+   ======================================== */
+.text-energy {
+    background: linear-gradient(135deg, var(--sunpower-yellow), var(--sunpower-orange));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.bg-energy {
+    background: linear-gradient(135deg, var(--sunpower-yellow), var(--sunpower-orange));
+}
+
+.border-energy {
+    border-color: var(--sunpower-yellow);
+}
+
+/* ========================================
+   TOAST NOTIFICATIONS (CORPORATIVAS)
+   ======================================== */
+.toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: linear-gradient(135deg, var(--sunpower-blue), var(--sunpower-teal));
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius-lg);
+    font-size: 0.875rem;
+    font-weight: 600;
+    box-shadow: var(--shadow-xl);
+    z-index: 9999;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    max-width: 90vw;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+/* ========================================
+   LOADER CORPORATIVO
+   ======================================== */
+.loader-energy {
+    width: 48px;
+    height: 48px;
+    border: 3px solid var(--corporate-line);
+    border-top-color: var(--sunpower-blue);
+    border-right-color: var(--sunpower-teal);
+    border-bottom-color: var(--sunpower-yellow);
+    border-radius: 50%;
+    animation: spin-energy 1s linear infinite;
+}
+
+@keyframes spin-energy {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ========================================
+   SCROLLBAR CORPORATIVO
+   ======================================== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--corporate-bg);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, var(--sunpower-blue), var(--sunpower-teal));
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, var(--sunpower-teal), var(--sunpower-yellow));
+}
