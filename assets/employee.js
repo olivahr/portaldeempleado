@@ -2652,22 +2652,6 @@ function renderFootwear(userData, saveUserPatch, publicData) {
       }
     };
   }
-        
-        uiToast("Purchase confirmed! Loading compliance acknowledgements...");
-        
-        // Esperar un poco y recargar
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-        
-      } catch (e) {
-        console.error("Error saving store visit:", e);
-        uiToast("Error: " + (e.message || "Could not save progress. Please try again."));
-        btnImBack.disabled = false;
-        btnImBack.textContent = "✓ I've Completed My Purchase - Continue to Acknowledgements";
-      }
-    };
-  }
 
   // Si no ha visitado la tienda, no configurar los handlers de acknowledgements todavía
   if (!visitedStore) return;
@@ -2753,6 +2737,9 @@ function renderFootwear(userData, saveUserPatch, publicData) {
   }
 }
 
+// ===============================
+// I-9 VERIFICATION
+// ===============================
 function renderI9(userData, saveUserPatch) {
   const status = getStepStatus("i9", userData);
   
