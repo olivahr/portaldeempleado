@@ -1197,16 +1197,41 @@ function setActiveTabsAndSidebar() {
     (r === "timeoff" || r === "benefits") ? "timeoff" :
     "more";
 
-  document.querySelectorAll("#azTabs .az-tab").forEach(el => {
-    const key = el.getAttribute("data-route");
-    if (key) el.classList.toggle("active", key === tabKey);
+  // Wire up shift selection
+document.querySelectorAll('.shift-option').forEach(card => {
+  card.addEventListener('click', async function() {
+    const shiftValue = this.dataset.value;
+    
+    // Visual selection
+    document.querySelectorAll('.shift-option').forEach(c => {
+      c.style.borderColor = 'rgba(229,234,242,.95)';
+      c.style.background = '#fff';
+      c.querySelector('input').checked = false;
+    });
+    this.style.borderColor = 'rgba(29,78,216,.50)';
+    this.style.background = 'rgba(29,78,216,.04)';
+    this.querySelector('input').checked = true;
+    
+    // Show submit button
+    const submitArea = document.getElementById('submitArea');
+    submitArea.style.display = 'block';
+    
+    // CORRECCIÓN: Obtener la posición del DOM (lo que está seleccionado visualmente)
+    const selectedPos = document.querySelector('input[name="position"]:checked')?.value || "";
+    
+    // Guardar shift inmediatamente - usando la posición del DOM
+    const newShiftData = {
+      position: selectedPos,  // <-- DEL DOM, NO DE userData
+      shift: shiftValue,
+      status: "draft",
+      approved: false,
+      updatedAt: new Date().toISOString()
+    };
+    
+    console.log("Saving shift:", newShiftData);
+    await saveUserPatch({ shift: newShiftData });
   });
-
-  document.querySelectorAll(".nav-item").forEach(a => {
-    const rr = (a.getAttribute("data-route") || "").toLowerCase();
-    a.classList.toggle("active", rr === r);
-  });
-}
+});
 
 // ===============================
 // UI blocks
