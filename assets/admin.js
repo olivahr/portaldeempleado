@@ -659,7 +659,7 @@ async function loadAllEmployees() {
     }
 }
 
-async function addNewEmployee() {
+window.addNewEmployee = async function() {
     const idInput = $('newEmpId');
     const nameInput = $('newEmpName');
     const emailInput = $('newEmpEmail');
