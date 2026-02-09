@@ -1598,7 +1598,7 @@ function renderChat(userData, empId) {
 
   setPage(
     "HR Chat",
-    "Asistente virtual 24/7 - Respuestas automáticas",
+    "Asistente virtual 24/7",
     `
       <div class="chat-container">
         <div class="chat-messages" id="chatMessages">
