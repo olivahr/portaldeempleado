@@ -3146,20 +3146,6 @@ function renderI9(userData, saveUserPatch) {
           Confirm I-9 Understanding
         </button>
       </div>
-
-      <div class="azCard" style="margin-top:16px;background:rgba(220,38,38,.04);border-color:rgba(220,38,38,.15);">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-          <div style="color:rgba(220,38,38,1);">${azIcon("alert")}</div>
-          <div class="azCardTitle" style="color:rgba(220,38,38,1);">Important Notice</div>
-        </div>
-        <div class="muted" style="line-height:1.6;margin-bottom:16px;">
-          Payroll activation is contingent upon successful I-9 completion. 
-          No exceptions can be made per federal regulations 8 U.S.C. § 1324a.
-        </div>
-        <a class="btn primary" href="tel:911" style="display:block;width:100%;text-align:center;border-radius:16px;background:rgba(220,38,38,1);">
-          Call 911 Emergency
-        </a>
-      </div>
     `
   );
 
