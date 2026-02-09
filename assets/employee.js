@@ -1446,16 +1446,6 @@ function renderProfile(userData, recordData) {
             <span class="profile-value">${escapeHtml(dob)}</span>
           </div>
           
-          <!-- Información de emergencia -->
-          <div class="profile-row">
-            <span class="profile-label">Emergency Contact</span>
-            <span class="profile-value">${escapeHtml(emergencyName)}</span>
-          </div>
-          <div class="profile-row">
-            <span class="profile-label">Emergency Phone</span>
-            <span class="profile-value">${escapeHtml(emergencyPhone)}</span>
-          </div>
-          
           <!-- Información laboral -->
           <div class="profile-row">
             <span class="profile-label">Position</span>
