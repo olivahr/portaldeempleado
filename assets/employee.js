@@ -4452,4 +4452,45 @@ const shiftMerged = {
       uiToast(e?.message || String(e));
     }
   });
+// ===========================================
+// 🔒 BLOQUEADOR DE ZOOM Y SCROLL HORIZONTAL
+// ===========================================
+(function() {
+    console.log('🔧 Activando bloqueador de zoom...');
+    
+    // 1. Viewport meta
+    let meta = document.querySelector('meta[name="viewport"]');
+    if (meta) {
+        meta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
+    }
+    
+    // 2. Solo el CSS necesario
+    const css = `
+    html, body { 
+        overflow-x: hidden !important; 
+        width: 100% !important; 
+        max-width: 100% !important; 
+    }
+    body.portal { 
+        position: relative !important; 
+        overflow: hidden !important; 
+    }
+    #pageBody, .content { 
+        max-width: 100% !important; 
+        overflow-x: hidden !important; 
+    }
+    `;
+    
+    const style = document.createElement('style');
+    style.textContent = css;
+    document.head.appendChild(style);
+    
+    // 3. Solo eventos clave
+    document.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 1) e.preventDefault();
+    }, { passive: false });
+    
+    console.log('✅ Bloqueador activado');
+})();
+
 }
