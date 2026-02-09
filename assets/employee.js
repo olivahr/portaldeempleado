@@ -2253,7 +2253,7 @@ const completedSteps = displaySteps.filter(s => s.done);
       ` : ''}
 
       <div class="azCard" style="margin-top:16px;background:rgba(2,6,23,.03);">
-        <div class="azCardTitle">Facility Information</div>
+        <div class="azCardTitle">Day Appointment</div>
         <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div>
             <div style="font-size:11px;color:rgba(2,6,23,.50);text-transform:uppercase;letter-spacing:0.5px;">Location</div>
@@ -2268,7 +2268,7 @@ const completedSteps = displaySteps.filter(s => s.done);
             <div style="font-weight:1000;font-size:13px;color:rgba(2,6,23,.85);margin-top:4px;">${safe(appt.date, "TBD")}</div>
           </div>
           <div>
-            <div style="font-size:11px;color:rgba(2,6,23,.50);text-transform:uppercase;letter-spacing:0.5px;">Contact</div>
+            <div style="font-size:11px;color:rgba(2,6,23,.50);text-transform:uppercase;letter-spacing:0.5px;">Info</div>
             <div style="font-weight:1000;font-size:13px;color:rgba(2,6,23,.85);margin-top:4px;">HR Onboarding</div>
           </div>
         </div>
