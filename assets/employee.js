@@ -2608,7 +2608,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     };
   }
 
-  // 2) BOTÓN "I'M BACK FROM THE STORE"
+   // 2) BOTÓN "I'M BACK FROM THE STORE"
   const btnImBack = document.getElementById("btnImBack");
   if (btnImBack) {
     btnImBack.onclick = async () => {
@@ -2634,6 +2634,11 @@ function renderFootwear(userData, saveUserPatch, publicData) {
         } catch (e) {}
         
         uiToast("Confirmed! Loading next step...");
+        
+        // FORZAR RE-RENDER DESPUÉS DE UN MOMENTO
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
         
       } catch (e) {
         console.error("Error:", e);
