@@ -2371,10 +2371,12 @@ function renderFootwear(userData, saveUserPatch, publicData) {
   const isLocked = !shiftApproved;
 
   const fwPublic = publicData?.footwear || defaultPublicContent().footwear;
+  
+  // IMPORTANTE: Tomar los valores más recientes de userData.footwear
   const fw = userData?.footwear || {};
   
-  // Verificar si ya completó la tienda (visitedStore guardado en Firebase)
-  const visitedStore = userData?.footwear?.visitedStore === true;
+  // Verificar si ya completó la tienda
+  const visitedStore = fw.visitedStore === true;
   
   // Verificar si acaba de volver de la tienda (sessionStorage temporal)
   const justReturnedFromStore = sessionStorage.getItem("fw_just_returned") === "1";
@@ -2437,13 +2439,14 @@ function renderFootwear(userData, saveUserPatch, publicData) {
 
   // ---------- HELPERS ----------
   function ackRow(id, checked, text) {
+    const isChecked = checked ? "checked" : "";
     return `
       <label class="checkrow" for="${escapeHtml(id)}" style="
         display:flex;gap:12px;align-items:flex-start;
         padding:14px;border:1px solid rgba(229,234,242,.95);
         border-radius:16px;margin-top:10px;cursor:pointer;background:#fff;
       ">
-        <input type="checkbox" id="${escapeHtml(id)}" ${checked ? "checked" : ""}
+        <input type="checkbox" id="${escapeHtml(id)}" ${isChecked}
           style="width:20px;height:20px;margin-top:2px;accent-color:#2563eb;"/>
         <span style="font-size:13px;line-height:1.5;color:rgba(2,6,23,.80);">${escapeHtml(text)}</span>
       </label>
@@ -2615,7 +2618,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
       try {
         const currentFw = userData?.footwear || {};
         
-        // Guardar en Firebase - USAR EL MISMO saveUserPatch que ya funciona
+        // Guardar en Firebase
         await saveUserPatch({
           footwear: { 
             ...currentFw, 
@@ -2631,9 +2634,6 @@ function renderFootwear(userData, saveUserPatch, publicData) {
         } catch (e) {}
         
         uiToast("Confirmed! Loading next step...");
-        
-        // NO recargar - el onSnapshot se encargará de actualizar
-        // El re-render se hace automáticamente por el onSnapshot
         
       } catch (e) {
         console.error("Error:", e);
@@ -2666,34 +2666,37 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     btnNext.style.opacity = st.all ? "1" : ".6";
   };
 
-  // Autosave acks - AHORA SÍ FUNCIONA PORQUE saveUserPatch guarda en el lugar correcto
+  // Autosave acks
   let t = null;
   const autosave = () => {
     const st = readAcks();
     clearTimeout(t);
     t = setTimeout(() => {
+      // Guardar SOLO los acks, mantener visitedStore y visitedAt
       saveUserPatch({
         footwear: {
-          ...(fw || {}),
-          visitedStore: true,
+          ...fw,
           ack1: st.a1,
           ack2: st.a2,
           ack3: st.a3,
           ack4: st.a4,
           ack5: st.a5
         }
-      }).catch(() => {});
-    }, 250);
+      }).catch((e) => console.error("Autosave error:", e));
+    }, 300);
   };
 
   ["fwAck1","fwAck2","fwAck3","fwAck4","fwAck5"].forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.addEventListener("change", () => {
-      syncNext();
-      autosave();
-    });
+    if (el) {
+      el.addEventListener("change", () => {
+        syncNext();
+        autosave();
+      });
+    }
   });
 
+  // Inicializar estado del botón
   syncNext();
 
   if (btnNext) {
@@ -2714,8 +2717,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
 
       await saveUserPatch({
         footwear: {
-          ...(fw || {}),
-          visitedStore: true,
+          ...fw,
           ack1: st.a1, ack2: st.a2, ack3: st.a3, ack4: st.a4, ack5: st.a5
         },
         steps: newSteps,
@@ -2727,6 +2729,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     };
   }
 }
+
 
 // ===============================
 // I-9 VERIFICATION
@@ -3924,9 +3927,23 @@ export async function initEmployeeApp() {
       const publicRef = PUBLIC_DOC();
 
       const saveUserPatch = async (patch) => {
-  await updateDoc(recordRef, { ...patch, updatedAt: serverTimestamp() });
+  const promises = [];
+  
+  // Guardar en employeeRecords (recordRef)
+  promises.push(updateDoc(recordRef, { ...patch, updatedAt: serverTimestamp() }));
+  
+  // SI el patch tiene footwear o steps, también guardar en users (userRef)
+  // para mantener sincronización
+  if (patch.footwear || patch.steps) {
+    const userPatch = {};
+    if (patch.footwear) userPatch.footwear = patch.footwear;
+    if (patch.steps) userPatch.steps = patch.steps;
+    userPatch.updatedAt = serverTimestamp();
+    promises.push(updateDoc(userRef, userPatch));
+  }
+  
+  await Promise.all(promises);
 };
-
       let currentUserData = null;
       let currentPublicData = defaultPublicContent();
       let currentRecordData = {};
