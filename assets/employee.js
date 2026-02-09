@@ -2781,7 +2781,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
       </div>
 
       <div class="azCard" style="margin-top:16px;background:rgba(2,6,23,.03);">
-        <div class="azCardTitle">🛒 Authorized Vendor Portal</div>
+        <div class="azCardTitle"> Authorized Vendor Portal</div>
         <div class="muted" style="line-height:1.6;margin-top:8px;">
           Access our corporate vendor portal to browse pre-approved footwear models that meet all 
           SunPower safety specifications. Use your Employee ID at checkout for automatic program enrollment.
