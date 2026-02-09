@@ -1242,7 +1242,7 @@ function renderHome(publicData, recordData, userData) {
 
   const pct = clamp((scheduledMin / (maxHours * 60)) * 100, 0, 100);
 
-      // Get next pending step for home display
+  // Get next pending step for home display
   const stepsRaw = userData?.steps || [];
   const shiftApproved = (recordData?.shift?.approved === true) || (userData?.shift?.approved === true);
   const steps = stepsRaw.map(s => {
@@ -1254,6 +1254,58 @@ function renderHome(publicData, recordData, userData) {
   const nextStep = steps.find(s => !s.done);
   const completedCount = steps.filter(s => s.done).length;
   const totalCount = steps.length;
+  
+  // ============================================
+  // NUEVAS SECCIONES PARA DESPUÉS DEL PRIMER DÍA
+  // ============================================
+  const postFirstDaySections = `
+    <!-- Time Off Benefits & Perks (Deshabilitado hasta después del primer día) -->
+    <div class="azWide">
+      <div class="azCard" style="background-color: #f8f9fa; color: #6c757d; border-color: #dee2e6; opacity: 0.7; cursor: not-allowed;">
+        <div class="azCardTitle" style="color: #6c757d;">
+          <span style="opacity: 0.5;">⏳</span> Time Off Benefits & Perks
+        </div>
+        <div class="azCardSub" style="color: #adb5bd;">
+          Available after your first day of work
+        </div>
+        <div style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px 0 0;
+          color: #adb5bd;
+          font-size: 14px;
+        ">
+          <span>Coming soon...</span>
+          <span style="opacity: 0.5;">🔒</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payroll & Compensation (Deshabilitado hasta después del primer día) -->
+    <div class="azWide">
+      <div class="azCard" style="background-color: #f8f9fa; color: #6c757d; border-color: #dee2e6; opacity: 0.7; cursor: not-allowed;">
+        <div class="azCardTitle" style="color: #6c757d;">
+          <span style="opacity: 0.5;">⏳</span> Payroll & Compensation
+        </div>
+        <div class="azCardSub" style="color: #adb5bd;">
+          Available after your first day of work
+        </div>
+        <div style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px 0 0;
+          color: #adb5bd;
+          font-size: 14px;
+        ">
+          <span>Coming soon...</span>
+          <span style="opacity: 0.5;">🔒</span>
+        </div>
+      </div>
+    </div>
+  `;
+
   setPage(
     "Home",
     "Welcome to your SunPower employee portal",
@@ -1335,27 +1387,7 @@ function renderHome(publicData, recordData, userData) {
         )}
       </div>
 
-      <div class="azWide">
-        <div class="azCard">
-          <div class="azCardTitle">Payroll & Compensation</div>
-          <div class="azCardSub">Access pay stubs, tax forms, and direct deposit information</div>
-          <a class="azCardLink" href="#payroll">
-            <span>View payroll</span>
-            ${azIcon("chevR")}
-          </a>
-        </div>
-      </div>
-
-      <div class="azWide">
-        <div class="azCard">
-          <div class="azCardTitle">Benefits & Perks</div>
-          <div class="azCardSub">Health insurance, 401(k), and employee wellness programs</div>
-          <a class="azCardLink" href="#timeoff">
-            <span>Explore benefits</span>
-            ${azIcon("chevR")}
-          </a>
-        </div>
-      </div>
+      ${postFirstDaySections}
 
       <div class="azWide">
         <div class="azCard">
@@ -1371,7 +1403,6 @@ function renderHome(publicData, recordData, userData) {
     `
   );
 }
-
 // ===============================
 // PROFILE - Personal Information (desde admin)
 // ===============================
