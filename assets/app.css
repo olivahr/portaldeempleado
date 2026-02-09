@@ -1153,3 +1153,32 @@ select.inp{
     .form-grid { grid-template-columns: 1fr; }
     .tabs { overflow-x: auto; flex-wrap: nowrap; }
 }
+
+/* =========================
+   ADMIN PORTAL STYLES
+   (Solo aplican dentro de .admin-body o body cuando tiene clase admin)
+   ========================= */
+body:has(.header) {
+  /* Reset para el admin */
+  background: #f4f6fb !important;
+}
+
+body:has(.header) .topbar,
+body:has(.header) .sidebar,
+body:has(.header) .bottomnav {
+  display: none !important;
+}
+
+/* Ahora los estilos del admin con mayor especificidad */
+body:has(.header) {
+  /* Header Admin */
+  .header { 
+      background: linear-gradient(135deg, #0b1220, #1e3a5f) !important; 
+      color: white !important; 
+      padding: 20px !important; 
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 100 !important;
+  }
+  /* ... todo el resto de estilos del admin con !important ... */
+}
