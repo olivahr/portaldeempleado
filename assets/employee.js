@@ -1376,20 +1376,41 @@ function renderHome(publicData, recordData, userData) {
 // PROFILE - Personal Information (desde admin)
 // ===============================
 function renderProfile(userData, recordData) {
-  // Los datos vienen DENTRO de recordData.profile
-  const profile = recordData?.profile || {};
+  // ========== DEBUG ==========
+  console.log("🔄 RENDER PROFILE INICIADO");
+  console.log("🔹 userData (auth):", userData);
+  console.log("🔹 recordData (admin):", recordData);
+  console.log("🔹 ¿Tiene profile?:", recordData?.profile);
+  console.log("🔹 Employee ID:", userData?.employeeId);
+  console.log("🔹 User ID:", userData?.uid);
+  // ===========================
   
-  // DEBUG: Ver qué llega
-  console.log("🔍 PROFILE DATA:", profile);
-  console.log("🔍 First Name:", profile.firstName);
-  console.log("🔍 Last Name:", profile.lastName);
+  // Obtener datos del admin (si existen)
+  const adminProfile = recordData?.profile || {};
   
-  // Construir nombre completo desde firstName + lastName
-  const fullName = profile.firstName && profile.lastName 
-    ? `${profile.firstName} ${profile.lastName}`.trim()
+  // Nombre: Primero del admin, luego del user
+  const firstName = adminProfile.firstName || "";
+  const lastName = adminProfile.lastName || "";
+  const fullName = firstName && lastName 
+    ? `${firstName} ${lastName}`.trim()
     : userData?.fullName || "Employee";
     
   const empId = userData?.employeeId || "—";
+  
+  // Datos de contacto del admin
+  const phone = adminProfile.phone || "Not provided";
+  const address = adminProfile.address || "Not provided";
+  const cityStateZip = adminProfile.city && adminProfile.stateZip 
+    ? `${adminProfile.city}, ${adminProfile.stateZip}`
+    : adminProfile.city || adminProfile.stateZip || "Not provided";
+  const dob = adminProfile.dob || "Not provided";
+  const emergencyName = adminProfile.emergencyName || "Not provided";
+  const emergencyPhone = adminProfile.emergencyPhone || "Not provided";
+  
+  // Datos del usuario (login)
+  const userEmail = userData?.email || "—";
+  const position = userData?.shift?.position || "Pending assignment";
+  const shift = userData?.shift?.shift || "Pending selection";
   
   setPage(
     "My Profile",
@@ -1408,43 +1429,47 @@ function renderProfile(userData, recordData) {
           </div>
           <div class="profile-row">
             <span class="profile-label">Email</span>
-            <span class="profile-value">${escapeHtml(userData?.email || "—")}</span>
+            <span class="profile-value">${escapeHtml(userEmail)}</span>
           </div>
           <div class="profile-row">
             <span class="profile-label">Phone</span>
-            <span class="profile-value">${escapeHtml(profile.phone || "Not provided")}</span>
+            <span class="profile-value">${escapeHtml(phone)}</span>
           </div>
           <div class="profile-row">
             <span class="profile-label">Address</span>
-            <span class="profile-value">${escapeHtml(profile.address || "Not provided")}</span>
+            <span class="profile-value">${escapeHtml(address)}</span>
           </div>
           <div class="profile-row">
             <span class="profile-label">City / State / ZIP</span>
-            <span class="profile-value">${escapeHtml(profile.city ? `${profile.city}, ${profile.stateZip}` : profile.stateZip || "Not provided")}</span>
+            <span class="profile-value">${escapeHtml(cityStateZip)}</span>
           </div>
           <div class="profile-row">
             <span class="profile-label">Date of Birth</span>
-            <span class="profile-value">${escapeHtml(profile.dob || "Not provided")}</span>
+            <span class="profile-value">${escapeHtml(dob)}</span>
           </div>
           
           <!-- Información de emergencia -->
           <div class="profile-row">
             <span class="profile-label">Emergency Contact</span>
-            <span class="profile-value">${escapeHtml(profile.emergencyName || "Not provided")}</span>
+            <span class="profile-value">${escapeHtml(emergencyName)}</span>
           </div>
           <div class="profile-row">
             <span class="profile-label">Emergency Phone</span>
-            <span class="profile-value">${escapeHtml(profile.emergencyPhone || "Not provided")}</span>
+            <span class="profile-value">${escapeHtml(emergencyPhone)}</span>
           </div>
           
-          <!-- Información laboral (si existe en otro lugar) -->
+          <!-- Información laboral -->
           <div class="profile-row">
             <span class="profile-label">Position</span>
-            <span class="profile-value">${escapeHtml(userData?.shift?.position || "Pending assignment")}</span>
+            <span class="profile-value">${escapeHtml(position)}</span>
           </div>
           <div class="profile-row">
             <span class="profile-label">Shift</span>
-            <span class="profile-value">${escapeHtml(userData?.shift?.shift || "Pending selection")}</span>
+            <span class="profile-value">${escapeHtml(shift)}</span>
+          </div>
+          <div class="profile-row">
+            <span class="profile-label">Status</span>
+            <span class="profile-value">${escapeHtml(userData?.status || "Active")}</span>
           </div>
         </div>
       </div>
@@ -1462,6 +1487,7 @@ function renderProfile(userData, recordData) {
     `
   );
 }
+
 // ===============================
 // CHAT - HR Communication
 // ===============================
