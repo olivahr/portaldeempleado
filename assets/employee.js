@@ -4453,44 +4453,94 @@ const shiftMerged = {
     }
   });
 // ===========================================
-// 🔒 BLOQUEADOR DE ZOOM Y SCROLL HORIZONTAL
+// ✅ BLOQUEADOR CORRECTO: VERTICAL SÍ, HORIZONTAL NO
 // ===========================================
 (function() {
-    console.log('🔧 Activando bloqueador de zoom...');
+    console.log('🔧 Configurando scroll correcto...');
     
-    // 1. Viewport meta
+    // 1. VIEWPORT para bloquear zoom pero permitir scroll vertical
     let meta = document.querySelector('meta[name="viewport"]');
     if (meta) {
         meta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
     }
     
-    // 2. Solo el CSS necesario
-    const css = `
-    html, body { 
-        overflow-x: hidden !important; 
-        width: 100% !important; 
-        max-width: 100% !important; 
+    // 2. CSS que PERMITE vertical pero BLOQUEA horizontal
+    const fixCSS = `
+    /* 🔒 BLOQUEAR SOLO SCROLL HORIZONTAL */
+    html, body {
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        max-width: 100% !important;
+        width: 100% !important;
     }
-    body.portal { 
-        position: relative !important; 
-        overflow: hidden !important; 
+    
+    /* 📱 CONTENEDOR PRINCIPAL */
+    .content {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
     }
-    #pageBody, .content { 
-        max-width: 100% !important; 
-        overflow-x: hidden !important; 
+    
+    /* 🎯 ELEMENTOS QUE NO DEBEN DESBORDAR */
+    .azCard, .azMoreItem, .azRow2, .azHero, .azCalWrap,
+    .benefit-card, .profile-card, .chat-container {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* 📋 MENÚ DE PROGRESS - ASEGURAR QUE SE VEA COMPLETO */
+    .progress-timeline, .azMoreGrid, .benefits-grid {
+        width: 100% !important;
+        overflow-x: hidden !important;
+        overflow-y: visible !important;
+    }
+    
+    /* 🚫 PREVENIR ZOOM EN ELEMENTOS */
+    input, textarea, select {
+        font-size: 16px !important;
+        max-height: 44px !important;
     }
     `;
     
     const style = document.createElement('style');
-    style.textContent = css;
+    style.textContent = fixCSS;
     document.head.appendChild(style);
     
-    // 3. Solo eventos clave
-    document.addEventListener('touchstart', (e) => {
-        if (e.touches.length > 1) e.preventDefault();
+    // 3. BLOQUEAR GESTOS DE ZOOM pero permitir scroll
+    document.addEventListener('gesturestart', function(e) {
+        e.preventDefault();
     }, { passive: false });
     
-    console.log('✅ Bloqueador activado');
+    document.addEventListener('touchmove', function(e) {
+        // Permitir scroll vertical, bloquear horizontal excesivo
+        if (Math.abs(e.touches[0].clientX - window.touchStartX) > 10) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+    
+    // 4. ASEGURAR QUE TODO EL CONTENIDO SEA ACCESIBLE
+    function fixScrollAreas() {
+        // Asegurar que las áreas de scroll funcionen
+        const scrollAreas = document.querySelectorAll('.content, .chat-messages, .azMoreGrid, .progress-timeline');
+        scrollAreas.forEach(area => {
+            area.style.overflowY = 'auto';
+            area.style.overflowX = 'hidden';
+            area.style.webkitOverflowScrolling = 'touch';
+        });
+        
+        // Asegurar que el menú de progress sea completamente visible
+        const progressItems = document.querySelectorAll('.progress-item');
+        progressItems.forEach(item => {
+            item.style.minWidth = '0';
+            item.style.width = '100%';
+        });
+    }
+    
+    // Ejecutar después de que se cargue todo
+    setTimeout(fixScrollAreas, 100);
+    window.addEventListener('resize', fixScrollAreas);
+    
+    console.log('✅ Scroll configurado: Vertical ✓ | Horizontal ✗');
 })();
 
 }
