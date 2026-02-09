@@ -814,7 +814,9 @@ export function initAdminApp() {
     $('chatInput')?.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendChatMessage();
     });
-    $('btnAddEmp')?.addEventListener('click', addNewEmployee);
+   const btnAddEmp = document.getElementById('btnAddEmp');
+if (btnAddEmp) btnAddEmp.addEventListener('click', addNewEmployee);
+else console.error('btnAddEmp no encontrado');
     $('btnLogout')?.addEventListener('click', () => {
         window.location.href = './index.html';
     });
