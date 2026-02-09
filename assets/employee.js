@@ -1196,7 +1196,7 @@ function setActiveTabsAndSidebar() {
     (r === "payroll") ? "payroll" :
     (r === "timeoff" || r === "benefits") ? "timeoff" :
     "more";
-
+} 
   // Wire up shift selection
 document.querySelectorAll('.shift-option').forEach(card => {
   card.addEventListener('click', async function() {
@@ -1231,8 +1231,7 @@ document.querySelectorAll('.shift-option').forEach(card => {
     console.log("Saving shift:", newShiftData);
     await saveUserPatch({ shift: newShiftData });
   });
-});
-
+}
 // ===============================
 // UI blocks
 // ===============================
