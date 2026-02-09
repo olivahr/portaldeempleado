@@ -1488,8 +1488,61 @@ function renderProfile(userData, recordData) {
   );
 }
 // ===============================
-// CHAT - HR Communication - VERSION MEJORADA
+// CHAT - HR Communication - VERSION CORREGIDA
 // ===============================
+
+// Función global para agregar mensajes a la UI
+function addMessageToUI(text, sender, time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })) {
+  const messagesDiv = document.getElementById("chatMessages");
+  if (!messagesDiv) return;
+  
+  const messageDiv = document.createElement("div");
+  messageDiv.className = `chat-message ${sender}`;
+  messageDiv.innerHTML = `
+    <div>${text}</div>
+    <div class="chat-time">${time}</div>
+  `;
+  
+  messagesDiv.appendChild(messageDiv);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// Función para cargar mensajes del historial
+async function loadChatMessages(empId) {
+  if (!isFirebaseConfigured() || !empId) return;
+  
+  try {
+    const chatRef = CHAT_COL(empId);
+    const q = query(chatRef, orderBy("timestamp", "desc"), limit(50));
+    const snapshot = await getDocs(q);
+    
+    const messagesDiv = document.getElementById("chatMessages");
+    if (!messagesDiv || messagesDiv.children.length > 1) return; // Ya tiene mensajes
+    
+    // Mostrar historial si existe (orden inverso para mostrar más antiguos primero)
+    const messages = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      messages.push({ ...data, id: doc.id });
+    });
+    
+    // Ordenar de más antiguo a más reciente
+    messages.reverse().forEach(msg => {
+      if (msg.text && (msg.sender === 'employee' || msg.sender === 'admin' || msg.sender === 'user')) {
+        const senderType = msg.sender === 'employee' ? 'employee' : 'admin';
+        const time = msg.timestamp ? 
+          new Date(msg.timestamp.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 
+          new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        addMessageToUI(msg.text, senderType, time);
+      }
+    });
+  } catch (error) {
+    console.log("No se pudo cargar historial de chat:", error);
+    // No mostrar error al usuario, continuar con chat vacío
+  }
+}
+
 function renderChat(userData, empId) {
   // Sistema mejorado de respuestas automáticas
   const autoResponses = [
@@ -1603,8 +1656,10 @@ function renderChat(userData, empId) {
     `
   );
 
-  // Cargar mensajes existentes desde Firestore (solo lectura, no escritura)
-  loadChatMessages(empId);
+  // Limpiar mensajes existentes y cargar historial
+  setTimeout(() => {
+    loadChatMessages(empId);
+  }, 100);
 
   // Setup send functionality
   const sendBtn = document.getElementById("chatSendBtn");
@@ -1636,22 +1691,6 @@ function renderChat(userData, empId) {
     
     // 4. Respuesta genérica
     return `Gracias por tu pregunta. Para obtener la información más precisa sobre "${question}", te recomiendo:<br><br>• Revisar la sección correspondiente en el portal<br>• Contactar a HR al (800) 876-4321<br>• Usar los botones de preguntas frecuentes arriba`;
-  };
-  
-  // Función para agregar mensaje a la UI
-  const addMessageToUI = (text, sender, time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })) => {
-    const messagesDiv = document.getElementById("chatMessages");
-    if (!messagesDiv) return;
-    
-    const messageDiv = document.createElement("div");
-    messageDiv.className = `chat-message ${sender}`;
-    messageDiv.innerHTML = `
-      <div>${text}</div>
-      <div class="chat-time">${time}</div>
-    `;
-    
-    messagesDiv.appendChild(messageDiv);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
   };
   
   // Función para mostrar indicador de "escribiendo"
@@ -1734,8 +1773,7 @@ function renderChat(userData, empId) {
         }, 500);
       }
       
-      // 8. Opcional: Guardar en Firestore (solo lectura en esta versión)
-      // Si quieres guardar el historial, descomenta:
+      // 8. Opcional: Guardar en Firestore (si quieres historial persistente)
       // saveChatMessage(empId, text, response);
       
     }, responseDelay);
@@ -1775,6 +1813,33 @@ function renderChat(userData, empId) {
     }
   `;
   document.head.appendChild(style);
+}
+
+// Función opcional para guardar mensajes en Firestore
+async function saveChatMessage(empId, userMessage, botResponse) {
+  if (!isFirebaseConfigured() || !empId) return;
+  
+  try {
+    const chatRef = CHAT_COL(empId);
+    
+    // Guardar mensaje del usuario
+    await addDoc(chatRef, {
+      text: userMessage,
+      sender: 'employee',
+      timestamp: serverTimestamp(),
+      autoResponse: false
+    });
+    
+    // Guardar respuesta del bot
+    await addDoc(chatRef, {
+      text: botResponse,
+      sender: 'admin',
+      timestamp: serverTimestamp(),
+      autoResponse: true
+    });
+  } catch (error) {
+    console.error("Error al guardar mensaje de chat:", error);
+  }
 }
 // ===============================
 // SCHEDULE: Tabs + Calendar
