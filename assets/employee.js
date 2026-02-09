@@ -3890,7 +3890,7 @@ function renderNotifications(userData, recordData, publicData) {
 }
 
 // ===============================
-// HELP & SUPPORT
+// HELP & SUPPORT - MEJORADO
 // ===============================
 function renderHelp(publicData, empId, user) {
   const h = publicData?.help || defaultPublicContent().help;
@@ -3898,125 +3898,237 @@ function renderHelp(publicData, empId, user) {
 
   setPage(
     "Help & Support",
-    "Contact the SunPower HR team",
+    "SunPower Warehouse Support Center",
     `
-      <div class="azCard">
-        <div class="azCardTitle">HR Department</div>
-        <div class="muted" style="line-height:1.6;margin-top:12px;">
-          Our HR team is available to assist with payroll, benefits, scheduling, 
-          and any workplace concerns. Choose the best way to reach us below.
+      <div class="azCard" style="border-left:4px solid rgba(29,78,216,.60);">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <div style="width:48px;height:48px;border-radius:12px;background:rgba(29,78,216,.10);display:flex;align-items:center;justify-content:center;color:rgba(29,78,216,1);">
+            ${azIcon("shield")}
+          </div>
+          <div>
+            <div class="azCardTitle" style="font-size:16px;">SunPower Warehouse Support</div>
+            <div class="muted" style="line-height:1.5;margin-top:4px;">
+              Our dedicated support teams are here to assist you 24/7. Choose the appropriate contact below.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="azCard" style="margin-top:16px;">
+        <div class="azCardTitle">📞 Immediate Assistance Contacts</div>
+        <div class="muted" style="margin-top:8px;margin-bottom:20px;">
+          For urgent warehouse operations issues during your shift
         </div>
 
-        <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;">
-          <a class="btn ghost" href="${escapeHtml(telLink(h.phone))}" style="display:flex;align-items:center;gap:12px;padding:16px;border-radius:16px;">
-            <div style="width:40px;height:40px;border-radius:10px;background:rgba(29,78,216,.10);display:flex;align-items:center;justify-content:center;color:rgba(29,78,216,1);">
-              ${azIcon("bell")}
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <a class="btn ghost" href="tel:8008764321" style="display:flex;align-items:center;gap:14px;padding:16px;border-radius:16px;background:rgba(29,78,216,.03);">
+            <div style="width:48px;height:48px;border-radius:12px;background:rgba(29,78,216,.10);display:flex;align-items:center;justify-content:center;color:rgba(29,78,216,1);">
+              ${azIcon("briefcase")}
             </div>
             <div style="flex:1;text-align:left;">
-              <div style="font-weight:1000;font-size:14px;">HR Main Line</div>
-              <div class="muted" style="font-size:12px;">${escapeHtml(h.phone)}</div>
+              <div style="font-weight:1000;font-size:14px;">HR & Payroll Main Line</div>
+              <div class="muted" style="font-size:12px;margin-top:2px;">Employee relations, payroll, benefits</div>
+              <div style="font-weight:1000;color:rgba(29,78,216,1);font-size:13px;margin-top:4px;">(800) 876-4321</div>
             </div>
             ${azIcon("chevR")}
           </a>
 
-          <a class="btn ghost" href="${escapeHtml(`mailto:${h.email}`)}" style="display:flex;align-items:center;gap:12px;padding:16px;border-radius:16px;">
+          <a class="btn ghost" href="tel:6157869543" style="display:flex;align-items:center;gap:14px;padding:16px;border-radius:16px;background:rgba(22,163,74,.03);">
+            <div style="width:48px;height:48px;border-radius:12px;background:rgba(22,163,74,.10);display:flex;align-items:center;justify-content:center;color:rgba(22,163,74,1);">
+              ${azIcon("shield")}
+            </div>
+            <div style="flex:1;text-align:left;">
+              <div style="font-weight:1000;font-size:14px;">Warehouse Safety Office</div>
+              <div class="muted" style="font-size:12px;margin-top:2px;">Safety incidents, PPE, emergency procedures</div>
+              <div style="font-weight:1000;color:rgba(22,163,74,1);font-size:13px;margin-top:4px;">(615) 786-9543</div>
+            </div>
+            ${azIcon("chevR")}
+          </a>
+
+          <a class="btn ghost" href="tel:5024678976" style="display:flex;align-items:center;gap:14px;padding:16px;border-radius:16px;background:rgba(245,158,11,.03);">
+            <div style="width:48px;height:48px;border-radius:12px;background:rgba(245,158,11,.10);display:flex;align-items:center;justify-content:center;color:rgba(245,158,11,1);">
+              ${azIcon("building")}
+            </div>
+            <div style="flex:1;text-align:left;">
+              <div style="font-weight:1000;font-size:14px;">Operations Manager</div>
+              <div class="muted" style="font-size:12px;margin-top:2px;">Shift issues, production questions, facility access</div>
+              <div style="font-weight:1000;color:rgba(245,158,11,1);font-size:13px;margin-top:4px;">(502) 467-8976</div>
+            </div>
+            ${azIcon("chevR")}
+          </a>
+        </div>
+      </div>
+
+      <div class="azCard" style="margin-top:16px;">
+        <div class="azCardTitle">🏭 Warehouse Department Contacts</div>
+        <div class="muted" style="margin-top:8px;margin-bottom:20px;">
+          Direct lines to specific warehouse departments
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr;gap:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:rgba(2,6,23,.03);border-radius:12px;">
+            <div>
+              <div style="font-weight:1000;font-size:13px;">Material Handling</div>
+              <div class="muted" style="font-size:12px;">Pallet jacks, forklifts, inventory issues</div>
+            </div>
+            <a href="tel:6155551234" style="color:rgba(29,78,216,1);font-weight:1000;font-size:13px;">(615) 555-1234</a>
+          </div>
+          
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:rgba(2,6,23,.03);border-radius:12px;">
+            <div>
+              <div style="font-weight:1000;font-size:13px;">Quality Control</div>
+              <div class="muted" style="font-size:12px;">Product inspection, defect reporting</div>
+            </div>
+            <a href="tel:6155552345" style="color:rgba(29,78,216,1);font-weight:1000;font-size:13px;">(615) 555-2345</a>
+          </div>
+          
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:rgba(2,6,23,.03);border-radius:12px;">
+            <div>
+              <div style="font-weight:1000;font-size:13px;">Shipping & Receiving</div>
+              <div class="muted" style="font-size:12px;">Loading docks, shipments, deliveries</div>
+            </div>
+            <a href="tel:6155553456" style="color:rgba(29,78,216,1);font-weight:1000;font-size:13px;">(615) 555-3456</a>
+          </div>
+          
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:rgba(2,6,23,.03);border-radius:12px;">
+            <div>
+              <div style="font-weight:1000;font-size:13px;">Maintenance & Facilities</div>
+              <div class="muted" style="font-size:12px;">Equipment repair, building issues</div>
+            </div>
+            <a href="tel:6155554567" style="color:rgba(29,78,216,1);font-weight:1000;font-size:13px;">(615) 555-4567</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="azCard" style="margin-top:16px;">
+        <div class="azCardTitle">📧 Email Support Channels</div>
+        <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;">
+          <a class="btn ghost" href="mailto:hr@sunpowerc.energy" style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;">
             <div style="width:40px;height:40px;border-radius:10px;background:rgba(29,78,216,.10);display:flex;align-items:center;justify-content:center;color:rgba(29,78,216,1);">
               ${azIcon("message")}
             </div>
             <div style="flex:1;text-align:left;">
-              <div style="font-weight:1000;font-size:14px;">Email HR</div>
-              <div class="muted" style="font-size:12px;">${escapeHtml(h.email)}</div>
+              <div style="font-weight:1000;font-size:13px;">HR General Inquiries</div>
+              <div class="muted" style="font-size:11px;">hr@sunpowerc.energy</div>
             </div>
-            ${azIcon("chevR")}
           </a>
 
-          <a class="btn ghost" href="#chat" style="display:flex;align-items:center;gap:12px;padding:16px;border-radius:16px;">
-            <div style="width:40px;height:40px;border-radius:10px;background:rgba(29,78,216,.10);display:flex;align-items:center;justify-content:center;color:rgba(29,78,216,1);">
-              ${azIcon("chat")}
+          <a class="btn ghost" href="mailto:payroll@sunpowerc.energy" style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;">
+            <div style="width:40px;height:40px;border-radius:10px;background:rgba(22,163,74,.10);display:flex;align-items:center;justify-content:center;color:rgba(22,163,74,1);">
+              ${azIcon("dollar")}
             </div>
             <div style="flex:1;text-align:left;">
-              <div style="font-weight:1000;font-size:14px;">Live Chat</div>
-              <div class="muted" style="font-size:12px;">Message HR directly</div>
+              <div style="font-weight:1000;font-size:13px;">Payroll Department</div>
+              <div class="muted" style="font-size:11px;">payroll@sunpowerc.energy</div>
             </div>
-            ${azIcon("chevR")}
+          </a>
+
+          <a class="btn ghost" href="mailto:safety@sunpowerc.energy" style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;">
+            <div style="width:40px;height:40px;border-radius:10px;background:rgba(245,158,11,.10);display:flex;align-items:center;justify-content:center;color:rgba(245,158,11,1);">
+              ${azIcon("alert")}
+            </div>
+            <div style="flex:1;text-align:left;">
+              <div style="font-weight:1000;font-size:13px;">Safety Office</div>
+              <div class="muted" style="font-size:11px;">safety@sunpowerc.energy</div>
+            </div>
+          </a>
+
+          <a class="btn ghost" href="mailto:facilities@sunpowerc.energy" style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;">
+            <div style="width:40px;height:40px;border-radius:10px;background:rgba(124,58,237,.10);display:flex;align-items:center;justify-content:center;color:rgba(124,58,237,1);">
+              ${azIcon("building")}
+            </div>
+            <div style="flex:1;text-align:left;">
+              <div style="font-weight:1000;font-size:13px;">Facilities Management</div>
+              <div class="muted" style="font-size:11px;">facilities@sunpowerc.energy</div>
+            </div>
           </a>
         </div>
       </div>
 
-      <div class="azCard" style="margin-top:16px;">
-        <div class="azCardTitle">Department Contacts</div>
-        <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(229,234,242,.40);border-radius:10px;">
-            <div>
-              <div style="font-weight:1000;font-size:13px;">Site Manager</div>
-              <div class="muted" style="font-size:12px;">Facility operations</div>
-            </div>
-            <a href="${escapeHtml(telLink(site.managerPhone))}" style="color:rgba(29,78,216,1);font-weight:1000;font-size:13px;">
-              ${escapeHtml(site.managerPhone)}
-            </a>
-          </div>
-          
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(229,234,242,.40);border-radius:10px;">
-            <div>
-              <div style="font-weight:1000;font-size:13px;">Safety Supervisor</div>
-              <div class="muted" style="font-size:12px;">Safety concerns & incidents</div>
-            </div>
-            <a href="${escapeHtml(telLink(site.safetyPhone))}" style="color:rgba(29,78,216,1);font-weight:1000;font-size:13px;">
-              ${escapeHtml(site.safetyPhone)}
-            </a>
-          </div>
-          
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(229,234,242,.40);border-radius:10px;">
-            <div>
-              <div style="font-weight:1000;font-size:13px;">Payroll Department</div>
-              <div class="muted" style="font-size:12px;">Paychecks, taxes, direct deposit</div>
-            </div>
-            <a href="${escapeHtml(telLink(h.phone))}" style="color:rgba(29,78,216,1);font-weight:1000;font-size:13px;">
-              ${escapeHtml(h.phone)}
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <div class="azCard" style="margin-top:16px;background:rgba(220,38,38,.04);border-color:rgba(220,38,38,.15);">
+      <div class="azCard" style="margin-top:16px;background:rgba(245,158,11,.05);border-color:rgba(245,158,11,.20);">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-          <div style="color:rgba(220,38,38,1);">${azIcon("alert")}</div>
-          <div class="azCardTitle" style="color:rgba(220,38,38,1);">Emergency</div>
+          <div style="color:rgba(245,158,11,1);">${azIcon("alert")}</div>
+          <div class="azCardTitle" style="color:rgba(245,158,11,1);">⚠️ Urgent Support Protocol</div>
         </div>
-        <div class="muted" style="line-height:1.6;margin-bottom:16px;">
-          For immediate danger or medical emergencies, call 911 first. 
-          Then notify your supervisor and HR as soon as possible.
+        <div class="muted" style="line-height:1.6;">
+          <strong>For immediate assistance during your shift:</strong><br><br>
+          1. <strong>Notify your Supervisor</strong> directly on the floor<br>
+          2. <strong>Contact Safety Office</strong> at (615) 786-9543 for any incidents<br>
+          3. <strong>Call HR</strong> at (800) 876-4321 for personnel matters<br>
+          4. <strong>Use the emergency call boxes</strong> located throughout the warehouse
         </div>
-        <a class="btn primary" href="tel:911" style="display:block;width:100%;text-align:center;border-radius:16px;background:rgba(220,38,38,1);">
-          Call 911 Emergency
-        </a>
       </div>
 
       <div class="azCard" style="margin-top:16px;">
-        <div class="azCardTitle">Submit Support Ticket</div>
+        <div class="azCardTitle">📋 Submit Support Ticket</div>
         <div class="muted" style="line-height:1.6;margin-top:12px;">
-          For non-urgent requests, submit a ticket and we'll respond within 24 business hours.
+          For non-urgent requests or detailed inquiries, submit a ticket below.
+          We'll respond within 24 business hours.
         </div>
         
         <div style="margin-top:16px;">
-          <label style="font-size:12px;font-weight:900;color:rgba(2,6,23,.60);text-transform:uppercase;letter-spacing:0.5px;">Category</label>
+          <label style="font-size:12px;font-weight:900;color:rgba(2,6,23,.60);text-transform:uppercase;letter-spacing:0.5px;">Department</label>
           <select id="t_cat" class="inp" style="margin-top:6px;margin-bottom:12px;">
-            <option>Payroll Question</option>
+            <option>HR & Employee Relations</option>
+            <option>Payroll & Compensation</option>
             <option>Benefits Enrollment</option>
-            <option>Schedule Change</option>
-            <option>Safety Concern</option>
-            <option>Technical Issue</option>
+            <option>Warehouse Operations</option>
+            <option>Safety & Compliance</option>
+            <option>Facilities & Maintenance</option>
+            <option>Schedule & Attendance</option>
+            <option>Technical Support</option>
             <option>Other</option>
           </select>
           
-          <label style="font-size:12px;font-weight:900;color:rgba(2,6,23,.60);text-transform:uppercase;letter-spacing:0.5px;">Message</label>
-          <textarea id="t_msg" class="inp" rows="4" placeholder="Describe your question or concern..." style="margin-top:6px;"></textarea>
+          <label style="font-size:12px;font-weight:900;color:rgba(2,6,23,.60);text-transform:uppercase;letter-spacing:0.5px;">Priority</label>
+          <select id="t_priority" class="inp" style="margin-top:6px;margin-bottom:12px;">
+            <option>Normal - Response within 48h</option>
+            <option>High - Response within 24h</option>
+            <option>Urgent - Response within 4h</option>
+          </select>
+          
+          <label style="font-size:12px;font-weight:900;color:rgba(2,6,23,.60);text-transform:uppercase;letter-spacing:0.5px;">Description</label>
+          <textarea id="t_msg" class="inp" rows="5" placeholder="Please provide details about your issue or question..." style="margin-top:6px;"></textarea>
           
           <button class="btn primary" id="btnTicket" type="button" style="width:100%;margin-top:12px;border-radius:16px;padding:16px;">
-            Submit Ticket
+            Submit Support Ticket
           </button>
           
           <div id="ticketMsg" class="small muted" style="margin-top:12px;text-align:center;"></div>
+          
+          <div class="small muted" style="margin-top:16px;padding:12px;background:rgba(2,6,23,.03);border-radius:10px;text-align:center;">
+            <strong>For immediate assistance, call:</strong><br>
+            HR: (800) 876-4321 • Safety: (615) 786-9543 • Operations: (502) 467-8976
+          </div>
+        </div>
+      </div>
+
+      <div class="azCard" style="margin-top:16px;background:rgba(2,6,23,.02);">
+        <div class="azCardTitle">🏢 On-Site Support Locations</div>
+        <div style="margin-top:16px;display:flex;flex-direction:column;gap:14px;">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:36px;height:36px;border-radius:8px;background:rgba(29,78,216,.10);display:flex;align-items:center;justify-content:center;color:rgba(29,78,216,1);font-weight:1000;flex-shrink:0;">1</div>
+            <div>
+              <div style="font-weight:1000;font-size:13px;color:rgba(2,6,23,.85);">HR Office - Building A</div>
+              <div class="muted" style="font-size:12px;margin-top:2px;">First floor, near main entrance. Hours: 7AM-6PM M-F</div>
+            </div>
+          </div>
+          
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:36px;height:36px;border-radius:8px;background:rgba(22,163,74,.10);display:flex;align-items:center;justify-content:center;color:rgba(22,163,74,1);font-weight:1000;flex-shrink:0;">2</div>
+            <div>
+              <div style="font-weight:1000;font-size:13px;color:rgba(2,6,23,.85);">Safety Office - Production Floor</div>
+              <div class="muted" style="font-size:12px;margin-top:2px;">Central location near Assembly Line 3. Always staffed</div>
+            </div>
+          </div>
+          
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:36px;height:36px;border-radius:8px;background:rgba(245,158,11,.10);display:flex;align-items:center;justify-content:center;color:rgba(245,158,11,1);font-weight:1000;flex-shrink:0;">3</div>
+            <div>
+              <div style="font-weight:1000;font-size:13px;color:rgba(2,6,23,.85);">Operations Desk - Control Room</div>
+              <div class="muted" style="font-size:12px;margin-top:2px;">24/7 operations support. Radio channel 7 for immediate contact</div>
+            </div>
+          </div>
         </div>
       </div>
     `
@@ -4029,10 +4141,11 @@ function renderHelp(publicData, empId, user) {
       try {
         const msg = (document.getElementById("t_msg")?.value || "").trim();
         const cat = (document.getElementById("t_cat")?.value || "Other").trim();
+        const priority = (document.getElementById("t_priority")?.value || "Normal").trim();
         const out = document.getElementById("ticketMsg");
 
         if (!msg) {
-          if (out) out.textContent = "Please enter a message.";
+          if (out) out.textContent = "Please enter a description of your issue.";
           return;
         }
 
@@ -4045,14 +4158,19 @@ function renderHelp(publicData, empId, user) {
           employeeId: empId || "",
           userUid: user?.uid || "",
           userEmail: user?.email || "",
-          category: cat,
+          department: cat,
+          priority: priority,
           message: msg,
           status: "open",
           createdAt: serverTimestamp()
         });
 
-        if (out) out.textContent = "Ticket submitted! HR will respond within 24 hours.";
-        uiToast("Ticket submitted successfully");
+        if (out) {
+          out.textContent = "✅ Support ticket submitted! We'll respond within the selected timeframe.";
+          out.style.color = "rgba(22,163,74,1)";
+          out.style.fontWeight = "1000";
+        }
+        uiToast("Support ticket submitted successfully");
         document.getElementById("t_msg").value = "";
       } catch (e) {
         uiToast(e?.message || String(e));
