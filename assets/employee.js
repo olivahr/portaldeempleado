@@ -1404,8 +1404,6 @@ function renderProfile(userData, recordData) {
     ? `${adminProfile.city}, ${adminProfile.stateZip}`
     : adminProfile.city || adminProfile.stateZip || "Not provided";
   const dob = adminProfile.dob || "Not provided";
-  const emergencyName = adminProfile.emergencyName || "Not provided";
-  const emergencyPhone = adminProfile.emergencyPhone || "Not provided";
   
   // Datos del usuario (login)
   const userEmail = userData?.email || "—";
