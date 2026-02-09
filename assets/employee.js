@@ -1623,36 +1623,6 @@ function renderChat(userData, empId) {
           `).join('')}
         </div>
       </div>
-      
-      <div class="azCard" style="margin-top:16px;">
-        ${sectionHeader("🤖 ¿Cómo funciona?")}
-        <div class="muted" style="line-height:1.6;">
-          <strong>Asistente virtual automático:</strong><br>
-          • Responde 24/7 a tus preguntas<br>
-          • Proporciona información oficial de SunPower<br>
-          • Sugiere contactar HR cuando sea necesario<br>
-          • Guarda tu historial de conversación
-        </div>
-      </div>
-      
-      <div class="azCard" style="margin-top:16px;">
-        ${sectionHeader("📞 Contacto humano")}
-        <div class="muted" style="line-height:1.6;">
-          <strong>HR Directo:</strong><br>
-          <strong>Teléfono:</strong> (800) 876-4321<br>
-          <strong>Email:</strong> hr@sunpowerc.energy<br>
-          <strong>Horario:</strong> Lunes-Viernes 8:00 AM - 6:00 PM EST<br>
-          <strong>Emergencia 24/7:</strong> (615) 786-9543
-        </div>
-        <div style="display:flex;gap:8px;margin-top:12px;">
-          <a class="btn sm primary" href="tel:8008764321" style="flex:1;text-align:center;">
-            Llamar a HR
-          </a>
-          <a class="btn sm ghost" href="mailto:hr@sunpowerc.energy" style="flex:1;text-align:center;">
-            Email HR
-          </a>
-        </div>
-      </div>
     `
   );
 
