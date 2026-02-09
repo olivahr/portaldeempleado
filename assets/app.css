@@ -1154,365 +1154,963 @@ select.inp{
     .tabs { overflow-x: auto; flex-wrap: nowrap; }
 }
 
-/* =========================
-   ADMIN PORTAL STYLES
-   (Solo aplican dentro de .admin-body o body cuando tiene clase admin)
-   ========================= */
-body:has(.header) {
-  /* Reset para el admin */
-  background: #f4f6fb !important;
-}
-
-body:has(.header) .topbar,
-body:has(.header) .sidebar,
-body:has(.header) .bottomnav {
-  display: none !important;
-}
-
-/* Ahora los estilos del admin con mayor especificidad */
-body:has(.header) {
-  /* Header Admin */
-  .header { 
-      background: linear-gradient(135deg, #0b1220, #1e3a5f) !important; 
-      color: white !important; 
-      padding: 20px !important; 
-      position: sticky !important;
-      top: 0 !important;
-      z-index: 100 !important;
-  }
-  /* ... todo el resto de estilos del admin con !important ... */
-}
-
 /* ==========================================================================
-   PREMIUM ENHANCEMENTS - TOQUES DURAS Y TERMINACIONES DE LUJO
-   (Añadidos sin modificar ninguna línea existente)
+   ORBITA PREMIUM PARA ADMIN PORTAL - TOQUES DUROS
+   (Todo lo del employee.js y admin con estilo premium)
    ========================================================================== */
 
-/* ELEVACIÓN Y PROFUNDIDAD EXTRA */
-.auth-card, .card, .kpi, .tile, .rowcard, .list-item, .cal, .event {
-  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), 
-              box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+/* 1. HEADER SUPER VISIBLE - EMPLEADO CLARÍSIMO */
+.header { 
+    background: linear-gradient(135deg, 
+        rgba(11, 18, 32, 0.98) 0%, 
+        rgba(30, 58, 95, 0.95) 100%) !important;
+    color: white !important;
+    padding: 22px 0 !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 9999 !important;
+    backdrop-filter: blur(30px) saturate(200%) !important;
+    border-bottom: 3px solid rgba(59, 130, 246, 0.5) !important;
+    box-shadow: 
+        0 30px 70px rgba(2, 6, 23, 0.45),
+        0 15px 35px rgba(15, 23, 42, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
-.auth-card:hover, .card:hover, .kpi:hover, .tile:hover, 
-.rowcard:hover, .list-item:hover, .cal:hover {
-  transform: translateY(-4px) !important;
-  box-shadow: 0 24px 60px rgba(2, 6, 23, 0.22) !important;
+.header-content { 
+    max-width: 1400px !important;
+    margin: 0 auto !important;
+    padding: 0 24px !important;
 }
 
-/* BORDAS DE LUJO CON GRADIENTES */
-.btn.primary, .topbar, .sidebar .nav-item.active, 
-.bottomnav .nav-item.active, .cal-head {
-  position: relative !important;
-  overflow: hidden !important;
+.header-top { 
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 20px !important;
+    flex-wrap: wrap !important;
+    gap: 20px !important;
 }
 
-.btn.primary::after, .topbar::after, 
-.sidebar .nav-item.active::after, 
-.bottomnav .nav-item.active::after {
-  content: '' !important;
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(255, 255, 255, 0.18) 50%, 
-    transparent 100%) !important;
-  opacity: 0 !important;
-  transition: opacity 0.6s ease !important;
-  pointer-events: none !important;
+.logo { 
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    font-size: 28px !important;
+    font-weight: 1000 !important;
+    letter-spacing: -0.02em !important;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
 }
 
-.btn.primary:hover::after, .topbar:hover::after,
-.sidebar .nav-item.active:hover::after,
-.bottomnav .nav-item.active:hover::after {
-  opacity: 1 !important;
-  animation: shimmer 1.5s infinite !important;
+.logo-dot { 
+    width: 18px !important;
+    height: 18px !important;
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+    border-radius: 50% !important;
+    box-shadow: 
+        0 10px 25px rgba(34, 197, 94, 0.6),
+        0 5px 15px rgba(34, 197, 94, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+    animation: orbitPulse 2s infinite ease-in-out !important;
 }
 
-@keyframes shimmer {
-  0% { transform: translateX(-100%) !important; }
-  100% { transform: translateX(100%) !important; }
+@keyframes orbitPulse {
+    0%, 100% { 
+        transform: scale(1) rotate(0deg); 
+        box-shadow: 
+            0 10px 25px rgba(34, 197, 94, 0.6),
+            0 5px 15px rgba(34, 197, 94, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+    }
+    50% { 
+        transform: scale(1.15) rotate(180deg); 
+        box-shadow: 
+            0 15px 35px rgba(34, 197, 94, 0.8),
+            0 8px 20px rgba(34, 197, 94, 0.6),
+            inset 0 2px 0 rgba(255, 255, 255, 0.6) !important;
+    }
 }
 
-/* TIPOGRAFÍA PREMIUM MEJORADA */
-body, .btn, .inp, .nav-item, .card-title, .kpi-val {
-  font-feature-settings: "kern" 1, "liga" 1, "calt" 1, "ss01" 1 !important;
-  -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important;
-  text-rendering: optimizeLegibility !important;
+.current-emp {
+    background: linear-gradient(135deg, 
+        #22c55e 0%, 
+        #16a34a 100%) !important;
+    padding: 14px 28px !important;
+    border-radius: 28px !important;
+    font-size: 16px !important;
+    font-weight: 1000 !important;
+    letter-spacing: 0.8px !important;
+    color: white !important;
+    box-shadow: 
+        0 15px 35px rgba(34, 197, 94, 0.6),
+        0 8px 20px rgba(34, 197, 94, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2) !important;
+    border: 3px solid rgba(255, 255, 255, 0.5) !important;
+    backdrop-filter: blur(15px) !important;
+    animation: orbitGlow 3s infinite alternate !important;
+    display: none !important;
+    position: relative !important;
+    overflow: hidden !important;
 }
 
-.h3, .card-title, .kpi-title, .tile-title, .row-title, .event-title, 
-.brand-title, .brand-mini .brand-title, .page-head h1 {
-  font-weight: 1000 !important;
-  letter-spacing: -0.01em !important;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+@keyframes orbitGlow {
+    0% { 
+        box-shadow: 
+            0 15px 35px rgba(34, 197, 94, 0.6),
+            0 8px 20px rgba(34, 197, 94, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+    }
+    100% { 
+        box-shadow: 
+            0 20px 45px rgba(34, 197, 94, 0.8),
+            0 12px 30px rgba(34, 197, 94, 0.6),
+            inset 0 2px 0 rgba(255, 255, 255, 0.6) !important;
+    }
 }
 
-/* EFECTO VIDRIO ESMEIRADO MEJORADO */
-.topbar, .sidebar, .bottomnav, .topbar-pill {
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  background: rgba(255, 255, 255, 0.82) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  box-shadow: 
-    0 8px 32px rgba(15, 23, 42, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+.current-emp.active {
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
 }
 
-.topbar {
-  background: linear-gradient(90deg, 
-    rgba(29, 78, 216, 0.95) 0%, 
-    rgba(14, 165, 233, 0.95) 100%) !important;
-  backdrop-filter: blur(24px) saturate(200%) !important;
+.current-emp::before {
+    content: "👨‍💼" !important;
+    font-size: 20px !important;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3)) !important;
 }
 
-/* BORDES CON GRADIENTE PARA ELEMENTOS DESTACADOS */
-.card, .kpi, .tile, .rowcard, .list-item, .cal, .event {
-  border: none !important;
-  position: relative !important;
-  background-clip: padding-box !important;
+.current-emp::after {
+    content: '' !important;
+    position: absolute !important;
+    top: -2px !important;
+    left: -2px !important;
+    right: -2px !important;
+    bottom: -2px !important;
+    background: linear-gradient(45deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.3), 
+        transparent) !important;
+    z-index: -1 !important;
+    border-radius: inherit !important;
+    animation: orbitShimmer 3s infinite linear !important;
 }
 
-.card::before, .kpi::before, .tile::before, 
-.rowcard::before, .list-item::before, .cal::before, .event::before {
-  content: '' !important;
-  position: absolute !important;
-  top: -1px !important;
-  left: -1px !important;
-  right: -1px !important;
-  bottom: -1px !important;
-  background: linear-gradient(135deg, 
-    rgba(29, 78, 216, 0.15), 
-    rgba(14, 165, 233, 0.08),
-    rgba(241, 245, 249, 0.05)) !important;
-  border-radius: inherit !important;
-  z-index: -1 !important;
-  opacity: 0 !important;
-  transition: opacity 0.3s ease !important;
+@keyframes orbitShimmer {
+    0% { transform: translateX(-100%) rotate(0deg); }
+    100% { transform: translateX(100%) rotate(360deg); }
 }
 
-.card:hover::before, .kpi:hover::before, .tile:hover::before,
-.rowcard:hover::before, .list-item:hover::before, 
-.cal:hover::before, .event:hover::before {
-  opacity: 1 !important;
+/* 2. SELECTOR DE EMPLEADO - ESTILO PREMIUM */
+.employee-selector { 
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.15) 0%, 
+        rgba(255, 255, 255, 0.08) 100%) !important;
+    padding: 22px !important;
+    border-radius: 20px !important;
+    display: flex !important;
+    gap: 18px !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 
+        0 20px 50px rgba(15, 23, 42, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1) !important;
 }
 
-/* ANIMACIONES SUAVES DE ENTRADA */
-.auth-card, .card, .kpi, .tile, .rowcard, .list-item, 
-.cal, .event, .alert, .toast {
-  animation: fadeInUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+.selector-label { 
+    font-weight: 1000 !important;
+    font-size: 16px !important;
+    letter-spacing: 0.5px !important;
+    color: rgba(255, 255, 255, 0.95) !important;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0 !important;
-    transform: translateY(20px) !important;
-  }
-  to {
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-  }
+.selector-input { 
+    flex: 1 !important;
+    min-width: 280px !important;
+    padding: 16px 22px !important;
+    border: 3px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 16px !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+    font-size: 18px !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.5px !important;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    backdrop-filter: blur(10px) !important;
 }
 
-/* EFECTO PULSO SUAVE PARA ELEMENTOS ACTIVOS */
-.sidebar .nav-item.active, .bottomnav .nav-item.active {
-  animation: gentlePulse 3s infinite !important;
+.selector-input::placeholder { 
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-weight: 600 !important;
 }
 
-@keyframes gentlePulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(29, 78, 216, 0.1) !important; }
-  50% { box-shadow: 0 0 0 8px rgba(29, 78, 216, 0) !important; }
+.selector-input:focus {
+    background: rgba(255, 255, 255, 0.25) !important;
+    border-color: rgba(59, 130, 246, 0.8) !important;
+    box-shadow: 
+        0 0 0 6px rgba(59, 130, 246, 0.3),
+        0 15px 35px rgba(59, 130, 246, 0.4) !important;
+    transform: translateY(-2px) !important;
 }
 
-/* MEJORA EN LOS BOTONES */
-.btn {
-  position: relative !important;
-  isolation: isolate !important;
-  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+.selector-btn { 
+    padding: 18px 32px !important;
+    background: linear-gradient(135deg, 
+        #2563eb 0%, 
+        #1d4ed8 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 16px !important;
+    cursor: pointer !important;
+    font-weight: 1000 !important;
+    font-size: 16px !important;
+    letter-spacing: 0.8px !important;
+    box-shadow: 
+        0 15px 35px rgba(37, 99, 235, 0.5),
+        0 8px 20px rgba(29, 78, 216, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    position: relative !important;
+    overflow: hidden !important;
 }
 
-.btn::before {
-  content: '' !important;
-  position: absolute !important;
-  inset: 0 !important;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.15), 
-    rgba(255, 255, 255, 0)) !important;
-  border-radius: inherit !important;
-  opacity: 0 !important;
-  transition: opacity 0.3s ease !important;
-  z-index: 1 !important;
+.selector-btn:hover {
+    transform: translateY(-4px) scale(1.05) !important;
+    box-shadow: 
+        0 25px 50px rgba(37, 99, 235, 0.7),
+        0 15px 30px rgba(29, 78, 216, 0.6),
+        inset 0 2px 0 rgba(255, 255, 255, 0.5) !important;
+    background: linear-gradient(135deg, 
+        #3b82f6 0%, 
+        #2563eb 100%) !important;
 }
 
-.btn:hover::before {
-  opacity: 1 !important;
+.selector-btn::after {
+    content: '🚀' !important;
+    position: absolute !important;
+    right: 20px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    opacity: 0.9 !important;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)) !important;
 }
 
-.btn.primary {
-  background: linear-gradient(135deg, 
-    var(--blue) 0%, 
-    #2563eb 50%, 
-    var(--blue2) 100%) !important;
-  background-size: 200% 200% !important;
-  transition: background-position 0.8s ease !important;
+/* 3. TABS - ESTILO ORBITA PREMIUM */
+.tabs { 
+    display: flex !important;
+    gap: 12px !important;
+    margin-bottom: 32px !important;
+    flex-wrap: wrap !important;
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.98) 0%, 
+        rgba(248, 250, 252, 0.98) 100%) !important;
+    padding: 14px !important;
+    border-radius: 20px !important;
+    box-shadow: 
+        0 25px 60px rgba(15, 23, 42, 0.2),
+        0 10px 30px rgba(15, 23, 42, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+    border: 2px solid rgba(229, 234, 242, 0.8) !important;
+    backdrop-filter: blur(20px) !important;
 }
 
-.btn.primary:hover {
-  background-position: 100% 100% !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 
-    0 20px 40px rgba(29, 78, 216, 0.4),
-    0 8px 20px rgba(29, 78, 216, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+.tab { 
+    padding: 16px 28px !important;
+    border-radius: 14px !important;
+    cursor: pointer !important;
+    font-weight: 1000 !important;
+    font-size: 15px !important;
+    letter-spacing: 0.5px !important;
+    border: 2px solid transparent !important;
+    background: rgba(243, 244, 246, 0.8) !important;
+    color: #6b7280 !important;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    position: relative !important;
+    overflow: hidden !important;
 }
 
-/* MEJORA EN LOS INPUTS */
-.inp {
-  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
-  border-width: 2px !important;
+.tab:hover { 
+    background: rgba(229, 231, 235, 0.9) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18) !important;
+    color: #4b5563 !important;
 }
 
-.inp:focus {
-  transform: translateY(-1px) !important;
-  box-shadow: 
-    var(--ring),
-    0 12px 28px rgba(29, 78, 216, 0.15) !important;
-  border-color: var(--blue) !important;
+.tab.active { 
+    background: linear-gradient(135deg, 
+        #2563eb 0%, 
+        #3b82f6 100%) !important;
+    color: white !important;
+    box-shadow: 
+        0 15px 35px rgba(37, 99, 235, 0.5),
+        0 8px 20px rgba(29, 78, 216, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    transform: translateY(-2px) scale(1.05) !important;
 }
 
-/* SCROLLBAR PREMIUM */
-@media (min-width: 921px) {
-  ::-webkit-scrollbar {
-    width: 12px !important;
-  }
-  
-  ::-webkit-scrollbar-thumb {
+.tab.active::before {
+    content: '★' !important;
+    position: absolute !important;
+    right: 15px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    opacity: 0.8 !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
+}
+
+/* 4. CARDS PREMIUM PARA TODO EL ADMIN */
+.card { 
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.98) 0%, 
+        rgba(248, 250, 252, 0.98) 100%) !important;
+    border-radius: 24px !important;
+    padding: 32px !important;
+    margin-bottom: 28px !important;
+    box-shadow: 
+        0 30px 70px rgba(15, 23, 42, 0.2),
+        0 15px 35px rgba(15, 23, 42, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(229, 234, 242, 0.5) !important;
+    border: 2px solid rgba(229, 234, 242, 0.8) !important;
+    backdrop-filter: blur(20px) !important;
+    transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.card:hover {
+    transform: translateY(-6px) !important;
+    box-shadow: 
+        0 40px 90px rgba(15, 23, 42, 0.3),
+        0 20px 45px rgba(15, 23, 42, 0.22),
+        inset 0 2px 0 rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+.card::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 4px !important;
+    background: linear-gradient(90deg, 
+        #2563eb, 
+        #3b82f6, 
+        #60a5fa) !important;
+    border-radius: 24px 24px 0 0 !important;
+}
+
+.card-title { 
+    font-size: 22px !important;
+    font-weight: 1000 !important;
+    margin-bottom: 24px !important;
+    color: #0b1220 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+    letter-spacing: -0.01em !important;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+}
+
+.card-title::before {
+    content: '' !important;
+    width: 8px !important;
+    height: 24px !important;
+    background: linear-gradient(180deg, #2563eb, #3b82f6) !important;
+    border-radius: 4px !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4) !important;
+}
+
+/* 5. CHAT PREMIUM - ORBITA STYLE */
+.chat-container { 
+    border: 3px solid rgba(229, 234, 242, 0.8) !important;
+    border-radius: 28px !important;
+    height: 650px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.98) 0%, 
+        rgba(248, 250, 252, 0.98) 100%) !important;
+    backdrop-filter: blur(30px) !important;
+    box-shadow: 
+        0 35px 80px rgba(15, 23, 42, 0.25),
+        0 15px 40px rgba(15, 23, 42, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        inset 0 -1px 0 rgba(229, 234, 242, 0.6) !important;
+    overflow: hidden !important;
+}
+
+.chat-header { 
+    padding: 24px 32px !important;
+    background: linear-gradient(135deg, 
+        rgba(249, 250, 251, 0.95) 0%, 
+        rgba(243, 244, 246, 0.95) 100%) !important;
+    border-bottom: 2px solid rgba(229, 231, 235, 0.8) !important;
+    font-weight: 1000 !important;
+    font-size: 20px !important;
+    letter-spacing: 0.5px !important;
+    color: #0b1220 !important;
+    backdrop-filter: blur(20px) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+}
+
+.chat-header::before {
+    content: '💬' !important;
+    font-size: 24px !important;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)) !important;
+}
+
+.chat-messages { 
+    flex: 1 !important;
+    overflow-y: auto !important;
+    padding: 24px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+    background: rgba(255, 255, 255, 0.5) !important;
+}
+
+.chat-input-area { 
+    display: flex !important;
+    gap: 16px !important;
+    padding: 24px 32px !important;
+    background: linear-gradient(135deg, 
+        rgba(249, 250, 251, 0.95) 0%, 
+        rgba(243, 244, 246, 0.95) 100%) !important;
+    border-top: 2px solid rgba(229, 231, 235, 0.8) !important;
+    backdrop-filter: blur(20px) !important;
+}
+
+.chat-input { 
+    flex: 1 !important;
+    padding: 18px 24px !important;
+    border: 3px solid rgba(229, 231, 235, 0.8) !important;
+    border-radius: 18px !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    box-shadow: 
+        0 8px 25px rgba(15, 23, 42, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+}
+
+.chat-input:focus {
+    border-color: rgba(59, 130, 246, 0.6) !important;
+    box-shadow: 
+        0 0 0 6px rgba(59, 130, 246, 0.2),
+        0 12px 35px rgba(59, 130, 246, 0.3),
+        inset 0 2px 0 rgba(255, 255, 255, 0.9) !important;
+    transform: translateY(-2px) !important;
+    background: white !important;
+}
+
+.message { 
+    max-width: 75% !important;
+    padding: 18px 22px !important;
+    border-radius: 22px !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    line-height: 1.5 !important;
+    box-shadow: 
+        0 12px 30px rgba(0, 0, 0, 0.1),
+        0 5px 15px rgba(0, 0, 0, 0.08) !important;
+    position: relative !important;
+    word-wrap: break-word !important;
+    animation: messagePop 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+@keyframes messagePop {
+    from { 
+        opacity: 0 !important;
+        transform: translateY(20px) scale(0.95) !important;
+    }
+    to { 
+        opacity: 1 !important;
+        transform: translateY(0) scale(1) !important;
+    }
+}
+
+.message.admin { 
+    background: linear-gradient(135deg, 
+        #2563eb 0%, 
+        #3b82f6 100%) !important;
+    color: white !important;
+    align-self: flex-end !important;
+    border-bottom-right-radius: 8px !important;
+    margin-left: auto !important;
+    box-shadow: 
+        0 15px 35px rgba(37, 99, 235, 0.4),
+        0 8px 20px rgba(29, 78, 216, 0.3) !important;
+}
+
+.message.employee { 
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.95) 0%, 
+        rgba(249, 250, 251, 0.95) 100%) !important;
+    color: #0b1220 !important;
+    align-self: flex-start !important;
+    border-bottom-left-radius: 8px !important;
+    border: 2px solid rgba(229, 231, 235, 0.8) !important;
+}
+
+/* 6. FORMULARIOS PREMIUM */
+.form-grid { 
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+    gap: 22px !important;
+}
+
+.form-group { 
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+}
+
+.form-label { 
+    font-size: 13px !important;
+    font-weight: 1000 !important;
+    text-transform: uppercase !important;
+    color: #6b7280 !important;
+    letter-spacing: 1px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+.form-label::before {
+    content: '▸' !important;
+    color: #2563eb !important;
+    font-size: 16px !important;
+}
+
+.form-input, .form-select, .form-textarea { 
+    padding: 18px 22px !important;
+    border: 3px solid rgba(229, 231, 235, 0.8) !important;
+    border-radius: 16px !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 
+        0 8px 25px rgba(15, 23, 42, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus { 
+    border-color: rgba(59, 130, 246, 0.7) !important;
+    box-shadow: 
+        0 0 0 6px rgba(59, 130, 246, 0.2),
+        0 15px 35px rgba(59, 130, 246, 0.25),
+        inset 0 2px 0 rgba(255, 255, 255, 0.9) !important;
+    transform: translateY(-2px) !important;
+    background: white !important;
+    outline: none !important;
+}
+
+.form-textarea { 
+    resize: vertical !important;
+    min-height: 140px !important;
+    line-height: 1.6 !important;
+}
+
+/* 7. BOTONES PREMIUM ADMIN */
+.btn-primary { 
+    background: linear-gradient(135deg, 
+        #2563eb 0%, 
+        #3b82f6 100%) !important;
+    color: white !important;
+    border: none !important;
+    padding: 18px 32px !important;
+    border-radius: 16px !important;
+    font-weight: 1000 !important;
+    font-size: 16px !important;
+    letter-spacing: 0.8px !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    box-shadow: 
+        0 15px 35px rgba(37, 99, 235, 0.5),
+        0 8px 20px rgba(29, 78, 216, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.btn-primary:hover {
+    transform: translateY(-4px) scale(1.05) !important;
+    box-shadow: 
+        0 25px 50px rgba(37, 99, 235, 0.7),
+        0 15px 30px rgba(29, 78, 216, 0.6),
+        inset 0 2px 0 rgba(255, 255, 255, 0.5) !important;
+    background: linear-gradient(135deg, 
+        #3b82f6 0%, 
+        #60a5fa 100%) !important;
+}
+
+.btn-success { 
+    background: linear-gradient(135deg, 
+        #22c55e 0%, 
+        #16a34a 100%) !important;
+    color: white !important;
+    border: none !important;
+    padding: 18px 32px !important;
+    border-radius: 16px !important;
+    font-weight: 1000 !important;
+    font-size: 16px !important;
+    letter-spacing: 0.8px !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    box-shadow: 
+        0 15px 35px rgba(34, 197, 94, 0.5),
+        0 8px 20px rgba(22, 163, 74, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+.btn-success:hover {
+    transform: translateY(-4px) scale(1.05) !important;
+    box-shadow: 
+        0 25px 50px rgba(34, 197, 94, 0.7),
+        0 15px 30px rgba(22, 163, 74, 0.6),
+        inset 0 2px 0 rgba(255, 255, 255, 0.5) !important;
+    background: linear-gradient(135deg, 
+        #4ade80 0%, 
+        #22c55e 100%) !important;
+}
+
+.btn-danger { 
+    background: linear-gradient(135deg, 
+        #ef4444 0%, 
+        #dc2626 100%) !important;
+    color: white !important;
+    border: none !important;
+    padding: 18px 32px !important;
+    border-radius: 16px !important;
+    font-weight: 1000 !important;
+    font-size: 16px !important;
+    letter-spacing: 0.8px !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    box-shadow: 
+        0 15px 35px rgba(239, 68, 68, 0.5),
+        0 8px 20px rgba(220, 38, 38, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+.btn-danger:hover {
+    transform: translateY(-4px) scale(1.05) !important;
+    box-shadow: 
+        0 25px 50px rgba(239, 68, 68, 0.7),
+        0 15px 30px rgba(220, 38, 38, 0.6),
+        inset 0 2px 0 rgba(255, 255, 255, 0.5) !important;
+    background: linear-gradient(135deg, 
+        #f87171 0%, 
+        #ef4444 100%) !important;
+}
+
+/* 8. LISTA DE EMPLEADOS PREMIUM */
+.employee-list { 
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+}
+
+.employee-item { 
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 22px 28px !important;
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.95) 0%, 
+        rgba(249, 250, 251, 0.95) 100%) !important;
+    border-radius: 20px !important;
+    border: 3px solid rgba(229, 231, 235, 0.8) !important;
+    box-shadow: 
+        0 15px 35px rgba(15, 23, 42, 0.15),
+        0 8px 20px rgba(15, 23, 42, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    backdrop-filter: blur(15px) !important;
+}
+
+.employee-item:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 
+        0 25px 50px rgba(15, 23, 42, 0.25),
+        0 15px 30px rgba(15, 23, 42, 0.18),
+        inset 0 2px 0 rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(59, 130, 246, 0.5) !important;
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.98) 0%, 
+        rgba(255, 255, 255, 0.98) 100%) !important;
+}
+
+.employee-info { 
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+}
+
+.employee-id { 
+    font-weight: 1000 !important;
+    color: #2563eb !important;
+    font-size: 18px !important;
+    letter-spacing: 0.5px !important;
+    text-shadow: 0 2px 4px rgba(37, 99, 235, 0.2) !important;
+}
+
+.employee-name { 
+    color: #6b7280 !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.3px !important;
+}
+
+.status-badge { 
+    padding: 10px 22px !important;
+    border-radius: 28px !important;
+    font-size: 13px !important;
+    font-weight: 1000 !important;
+    letter-spacing: 1px !important;
+    text-transform: uppercase !important;
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.status-active { 
+    background: linear-gradient(135deg, 
+        #dcfce7 0%, 
+        #bbf7d0 100%) !important;
+    color: #166534 !important;
+    border-color: rgba(34, 197, 94, 0.3) !important;
+}
+
+.status-inactive { 
+    background: linear-gradient(135deg, 
+        #fee2e2 0%, 
+        #fecaca 100%) !important;
+    color: #991b1b !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+/* 9. TOAST PREMIUM */
+.toast-container { 
+    position: fixed !important;
+    bottom: 32px !important;
+    right: 32px !important;
+    z-index: 99999 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+}
+
+.toast { 
+    padding: 22px 32px !important;
+    border-radius: 20px !important;
+    color: white !important;
+    font-weight: 1000 !important;
+    font-size: 15px !important;
+    letter-spacing: 0.5px !important;
+    animation: orbitSlideIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    max-width: 450px !important;
+    box-shadow: 
+        0 25px 60px rgba(0, 0, 0, 0.3),
+        0 15px 35px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+@keyframes orbitSlideIn { 
+    from { 
+        transform: translateX(100%) rotate(5deg) !important; 
+        opacity: 0 !important;
+    }
+    to { 
+        transform: translateX(0) rotate(0) !important; 
+        opacity: 1 !important;
+    }
+}
+
+.toast.success { 
+    background: linear-gradient(135deg, 
+        rgba(34, 197, 94, 0.95) 0%, 
+        rgba(22, 163, 74, 0.95) 100%) !important;
+}
+
+.toast.error { 
+    background: linear-gradient(135deg, 
+        rgba(239, 68, 68, 0.95) 0%, 
+        rgba(220, 38, 38, 0.95) 100%) !important;
+}
+
+.toast.info { 
+    background: linear-gradient(135deg, 
+        rgba(59, 130, 246, 0.95) 0%, 
+        rgba(37, 99, 235, 0.95) 100%) !important;
+}
+
+/* 10. ANIMACIONES DE FONDO PREMIUM */
+body:has(.header)::before {
+    content: '' !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background-image: 
+        radial-gradient(circle at 15% 85%, rgba(37, 99, 235, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 85% 15%, rgba(34, 197, 94, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.04) 0%, transparent 70%) !important;
+    pointer-events: none !important;
+    z-index: -1 !important;
+    animation: orbitBackground 20s infinite linear !important;
+}
+
+@keyframes orbitBackground {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.05); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
+/* 11. RESPONSIVE PREMIUM */
+@media (max-width: 768px) {
+    .form-grid { 
+        grid-template-columns: 1fr !important;
+    }
+    
+    .tabs { 
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+        padding: 12px !important;
+    }
+    
+    .tab { 
+        padding: 14px 22px !important;
+        font-size: 14px !important;
+        min-width: 140px !important;
+    }
+    
+    .employee-selector { 
+        flex-direction: column !important;
+        gap: 16px !important;
+        align-items: stretch !important;
+    }
+    
+    .selector-input { 
+        min-width: 100% !important;
+    }
+    
+    .header-top { 
+        flex-direction: column !important;
+        gap: 16px !important;
+        align-items: stretch !important;
+    }
+    
+    .current-emp { 
+        order: 1 !important;
+        margin-top: 10px !important;
+        text-align: center !important;
+        justify-content: center !important;
+    }
+    
+    .logo { 
+        order: 2 !important;
+        justify-content: center !important;
+    }
+    
+    .logout-btn { 
+        order: 3 !important;
+        width: 100% !important;
+        text-align: center !important;
+    }
+    
+    .chat-container { 
+        height: 500px !important;
+        border-radius: 20px !important;
+    }
+    
+    .message { 
+        max-width: 85% !important;
+        font-size: 14px !important;
+        padding: 14px 18px !important;
+    }
+    
+    .toast-container { 
+        bottom: 20px !important;
+        right: 20px !important;
+        left: 20px !important;
+    }
+    
+    .toast { 
+        max-width: 100% !important;
+        padding: 18px 24px !important;
+    }
+}
+
+/* 12. SCROLLBAR PREMIUM PARA CHAT Y LISTAS */
+.chat-messages::-webkit-scrollbar,
+.employee-list::-webkit-scrollbar {
+    width: 10px !important;
+}
+
+.chat-messages::-webkit-scrollbar-thumb,
+.employee-list::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, 
-      var(--blue), 
-      var(--blue2)) !important;
-    border-radius: 999px !important;
-    border: 3px solid rgba(255, 255, 255, 0.95) !important;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: rgba(241, 245, 249, 0.8) !important;
-    border-radius: 999px !important;
-    border: 1px solid rgba(229, 234, 242, 0.5) !important;
-  }
+        rgba(37, 99, 235, 0.8), 
+        rgba(59, 130, 246, 0.8)) !important;
+    border-radius: 10px !important;
+    border: 3px solid rgba(255, 255, 255, 0.9) !important;
 }
 
-/* EFECTO DE PARTICULAS EN FONDO (muy sutil) */
-body::after {
-  content: '' !important;
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  background-image: 
-    radial-gradient(circle at 20% 80%, rgba(29, 78, 216, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.03) 0%, transparent 50%) !important;
-  pointer-events: none !important;
-  z-index: -1 !important;
+.chat-messages::-webkit-scrollbar-track,
+.employee-list::-webkit-scrollbar-track {
+    background: rgba(243, 244, 246, 0.8) !important;
+    border-radius: 10px !important;
+    border: 2px solid rgba(229, 231, 235, 0.8) !important;
 }
 
-/* MEJORA EN LOS BADGES Y PILLS */
-.pill, .status-chip, .topbar-pill, .event-pill {
-  border-width: 2px !important;
-  font-weight: 1000 !important;
-  letter-spacing: 0.02em !important;
-  transition: all 0.25s ease !important;
+/* 13. EFECTO ORBITA FINAL - BRILOS Y SOMBRAS */
+.card::after,
+.chat-container::after,
+.employee-item::after {
+    content: '' !important;
+    position: absolute !important;
+    top: -2px !important;
+    left: -2px !important;
+    right: -2px !important;
+    bottom: -2px !important;
+    background: linear-gradient(45deg, 
+        rgba(59, 130, 246, 0.1), 
+        rgba(34, 197, 94, 0.1), 
+        rgba(59, 130, 246, 0.1)) !important;
+    border-radius: inherit !important;
+    z-index: -1 !important;
+    opacity: 0 !important;
+    transition: opacity 0.6s ease !important;
 }
 
-.pill:hover, .status-chip:hover, .topbar-pill:hover, .event-pill:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12) !important;
+.card:hover::after,
+.chat-container:hover::after,
+.employee-item:hover::after {
+    opacity: 1 !important;
+    animation: orbitShine 2s infinite linear !important;
 }
 
-/* EFECTO DE SATINADO EN SUPERFICIES */
-.sidebar, .bottomnav, .topbar-pill {
-  background: rgba(255, 255, 255, 0.94) !important;
-  backdrop-filter: blur(24px) saturate(200%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(200%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  box-shadow: 
-    0 8px 32px rgba(15, 23, 42, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -1px 0 rgba(15, 23, 42, 0.05) !important;
-}
-
-/* ANIMACIÓN DE CARGA PARA PROGRESS BARS */
-.progress > span {
-  transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
-  position: relative !important;
-  overflow: hidden !important;
-}
-
-.progress > span::after {
-  content: '' !important;
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  background: linear-gradient(90deg, 
-    transparent, 
-    rgba(255, 255, 255, 0.4), 
-    transparent) !important;
-  animation: loadingShimmer 2s infinite !important;
-}
-
-@keyframes loadingShimmer {
-  0% { transform: translateX(-100%) !important; }
-  100% { transform: translateX(100%) !important; }
-}
-
-/* MEJORA FINAL EN LAS SOMBRAS */
-:root {
-  --shadow-premium: 0 24px 60px rgba(2, 6, 23, 0.18),
-                    0 8px 24px rgba(15, 23, 42, 0.12) !important;
-  --shadow-premium-hover: 0 32px 72px rgba(2, 6, 23, 0.24),
-                          0 12px 32px rgba(15, 23, 42, 0.16) !important;
-}
-
-.auth-card, .card, .kpi, .tile, .rowcard, .list-item, .cal, .event {
-  box-shadow: var(--shadow-premium) !important;
-}
-
-.auth-card:hover, .card:hover, .kpi:hover, .tile:hover,
-.rowcard:hover, .list-item:hover, .cal:hover, .event:hover {
-  box-shadow: var(--shadow-premium-hover) !important;
-}
-
-/* TOQUE FINAL: BRILLO EN BORDES */
-.btn.primary, .sidebar .nav-item.active, 
-.bottomnav .nav-item.active, .cal-day.is-today {
-  position: relative !important;
-}
-
-.btn.primary::before, .sidebar .nav-item.active::before,
-.bottomnav .nav-item.active::before, .cal-day.is-today::before {
-  content: '' !important;
-  position: absolute !important;
-  inset: -2px !important;
-  background: linear-gradient(45deg, 
-    var(--blue), 
-    var(--blue2), 
-    rgba(255, 255, 255, 0.8), 
-    var(--blue)) !important;
-  border-radius: inherit !important;
-  z-index: -1 !important;
-  opacity: 0 !important;
-  transition: opacity 0.4s ease !important;
-  filter: blur(8px) !important;
-}
-
-.btn.primary:hover::before, .sidebar .nav-item.active:hover::before,
-.bottomnav .nav-item.active:hover::before, .cal-day.is-today:hover::before {
-  opacity: 0.6 !important;
+@keyframes orbitShine {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
