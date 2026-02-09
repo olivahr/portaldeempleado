@@ -2610,11 +2610,12 @@ function renderFootwear(userData, saveUserPatch, publicData) {
   if (btnImBack) {
     btnImBack.onclick = async () => {
       btnImBack.disabled = true;
-      btnImBack.textContent = "Confirming purchase...";
+      btnImBack.textContent = "Confirming...";
       
       try {
         const currentFw = userData?.footwear || {};
         
+        // Guardar en Firebase
         await saveUserPatch({
           footwear: { 
             ...currentFw, 
@@ -2628,6 +2629,29 @@ function renderFootwear(userData, saveUserPatch, publicData) {
           sessionStorage.removeItem("fw_store_opened"); 
           sessionStorage.removeItem("fw_just_returned"); 
         } catch (e) {}
+        
+        // IMPORTANTE: Actualizar userData localmente para el re-render
+        userData.footwear = {
+          ...currentFw,
+          visitedStore: true,
+          visitedAt: Date.now()
+        };
+        
+        uiToast("Confirmed! Loading next step...");
+        
+        // NO recargar - re-renderizar directamente
+        setTimeout(() => {
+          renderFootwear(userData, saveUserPatch, publicData);
+        }, 500);
+        
+      } catch (e) {
+        console.error("Error:", e);
+        uiToast("Error saving. Please try again.");
+        btnImBack.disabled = false;
+        btnImBack.textContent = "✓ I've Completed My Purchase";
+      }
+    };
+  }
         
         uiToast("Purchase confirmed! Loading compliance acknowledgements...");
         
