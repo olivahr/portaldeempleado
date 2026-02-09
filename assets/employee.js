@@ -2741,13 +2741,13 @@ function renderFootwear(userData, saveUserPatch, publicData) {
         ${sectionHeader("Corporate Footwear Program")}
         <div class="muted" style="line-height:1.7;">
           SunPower Corporation provides a <strong>$100.00 reimbursement</strong> for ANSI-compliant 
-          safety footwear purchased through our authorized vendor network. This benefit is classified 
+          safety footwear purchased through our authorized network. This benefit is classified 
           as a <strong>conditional advance</strong> and will be processed through payroll on your 
           first paycheck, contingent upon:
         </div>
         
         <ul style="margin:12px 0;padding-left:20px;line-height:1.8;color:rgba(2,6,23,.70);">
-          <li>Verification of purchase through authorized vendor</li>
+          <li>Verification of purchase through authorized network</li>
           <li>Submission of valid receipt within 30 days of purchase</li>
           <li>Successful completion of your first week of employment</li>
           <li>Physical presentation of compliant footwear at orientation</li>
@@ -2781,9 +2781,9 @@ function renderFootwear(userData, saveUserPatch, publicData) {
       </div>
 
       <div class="azCard" style="margin-top:16px;background:rgba(2,6,23,.03);">
-        <div class="azCardTitle"> Authorized Vendor Portal</div>
+        <div class="azCardTitle"> Authorized Portal</div>
         <div class="muted" style="line-height:1.6;margin-top:8px;">
-          Access our corporate vendor portal to browse pre-approved footwear models that meet all 
+          Access our corporate portal to browse pre-approved footwear models that meet all 
           SunPower safety specifications. Use your Employee ID at checkout for automatic program enrollment.
           <strong>Important:</strong> Purchases made outside this portal are ineligible for reimbursement.
         </div>
@@ -2791,7 +2791,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
         ${!visitedStore ? `
           <button class="btn primary" id="btnGoStore"
             style="display:block;width:100%;text-align:center;margin-top:14px;border-radius:16px;padding:14px;">
-            Open Authorized Vendor Portal
+            Open Authorized Portal
           </button>
           
           ${showBackButton ? `
@@ -2801,14 +2801,14 @@ function renderFootwear(userData, saveUserPatch, publicData) {
             </button>
           ` : `
             <div class="small muted" style="margin-top:14px;line-height:1.5;text-align:center;padding:12px;background:rgba(2,6,23,.04);border-radius:10px;">
-              After completing your purchase through the authorized vendor, return to this page 
+              After completing your purchase through the authorized network, return to this page 
               and click the confirmation button above to proceed with your employment documentation.
             </div>
           `}
         ` : `
           <div style="margin-top:14px;padding:14px;background:rgba(22,163,74,.10);border-radius:12px;border:1px solid rgba(22,163,74,.25);">
             <div style="display:flex;align-items:center;gap:10px;color:rgba(22,163,74,1);font-weight:1000;">
-              ${azIcon("check")} Vendor portal access confirmed
+              ${azIcon("check")} Network portal access confirmed
             </div>
             <div style="font-size:12px;color:rgba(2,6,23,.60);margin-top:6px;">
               Completed on ${new Date(fw.visitedAt || Date.now()).toLocaleDateString()}
@@ -2819,10 +2819,10 @@ function renderFootwear(userData, saveUserPatch, publicData) {
 
       ${!visitedStore && !showBackButton ? `
         <div class="azCard" style="margin-top:16px;border:1px dashed rgba(29,78,216,.35);background:rgba(29,78,216,.03);">
-          <div class="azCardTitle">⏳ Awaiting Vendor Portal Access</div>
+          <div class="azCardTitle">⏳ Awaiting Portal Access</div>
           <div class="muted" style="line-height:1.6;margin-top:8px;">
-            This step requires verification of safety footwear procurement through our authorized vendor. 
-            Please click "Open Authorized Vendor Portal" above to browse options and complete your purchase.
+            This step requires verification of safety footwear procurement through our authorized network. 
+            Please click "Open Authorized Network Portal" above to browse options and complete your purchase.
           </div>
         </div>
       ` : ''}
@@ -2840,7 +2840,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
           
           ${ackRow("fwAck2", fw.ack2, "I confirm that I will purchase and possess ANSI Z41/ASTM F2413-18 compliant safety footwear prior to my first scheduled workday and will present this footwear during orientation check-in.")}
           
-          ${ackRow("fwAck3", fw.ack3, "I understand that reimbursement of up to $100.00 is available only for purchases made through SunPower's authorized vendor portal, and I agree to submit valid receipts within 30 days of purchase.")}
+          ${ackRow("fwAck3", fw.ack3, "I understand that reimbursement of up to $100.00 is available only for purchases made through SunPower's authorized network portal, and I agree to submit valid receipts within 30 days of purchase.")}
           
           ${ackRow("fwAck4", fw.ack4, "I acknowledge that failure to wear proper safety footwear will result in immediate removal from operational areas, potential disciplinary action up to and including termination, and forfeiture of any conditional reimbursement.")}
           
