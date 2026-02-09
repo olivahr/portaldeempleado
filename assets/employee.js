@@ -3962,15 +3962,14 @@ export async function initEmployeeApp() {
   // Guardar en employeeRecords (recordRef)
   promises.push(updateDoc(recordRef, { ...patch, updatedAt: serverTimestamp() }));
   
-  // SI el patch tiene footwear o steps, también guardar en users (userRef)
-  // para mantener sincronización
+  // SI el patch tiene footwear, steps, O SHIFT, también guardar en users (userRef)
   if (patch.footwear || patch.steps || patch.shift) {
     const userPatch = {};
     if (patch.footwear) userPatch.footwear = patch.footwear;
     if (patch.steps) userPatch.steps = patch.steps;
+    if (patch.shift) userPatch.shift = patch.shift;  // <-- MOVER AQUÍ, ANTES del push
     userPatch.updatedAt = serverTimestamp();
     promises.push(updateDoc(userRef, userPatch));
-    if (patch.shift) userPatch.shift = patch.shift;
   }
   
   await Promise.all(promises);
@@ -4078,8 +4077,8 @@ const shiftMerged = {
     uid: user.uid,
     steps: mergedSteps,
     appointment: (d.appointment && typeof d.appointment === "object") ? d.appointment : base.appointment,
-    shift: (d.shift && typeof d.shift === "object") ? d.shift : base.shift,
-    footwear: footwearMerged, // AHORA SÍ USA LOS DATOS ACTUALIZADOS
+    shift: shiftMerged,  // <-- CAMBIAR AQUÍ: usar shiftMerged en lugar de d.shift
+    footwear: footwearMerged,
     i9: (d.i9 && typeof d.i9 === "object") ? d.i9 : base.i9,
     notifications: Array.isArray(d.notifications) ? d.notifications : base.notifications,
     shiftChangeRequests: Array.isArray(d.shiftChangeRequests) ? d.shiftChangeRequests : []
