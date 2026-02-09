@@ -1254,7 +1254,6 @@ function renderHome(publicData, recordData, userData) {
   const nextStep = steps.find(s => !s.done);
   const completedCount = steps.filter(s => s.done).length;
   const totalCount = steps.length;
-  
   setPage(
     "Home",
     "Welcome to your SunPower employee portal",
@@ -1322,63 +1321,55 @@ function renderHome(publicData, recordData, userData) {
       <div style="height:10px"></div>
 
       <div class="azRow2">
+        <!-- Time Off DESHABILITADO -->
+        <div class="azCard" style="background-color: #f5f5f5; color: #757575; border-color: #e0e0e0; opacity: 0.7; cursor: not-allowed; pointer-events: none;">
+          <div class="azCardTitle" style="color: #616161;">
+            <span style="opacity: 0.6; margin-right: 6px;">⏳</span>Time Off
+          </div>
+          <div class="azCardSub" style="color: #9e9e9e;">
+            Request vacation and personal days
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e0e0e0; color: #9e9e9e; font-size: 14px;">
+            <span>Available after first day</span>
+            <span style="opacity: 0.5;">🔒</span>
+          </div>
+        </div>
+        
         ${azCard(
           "My Schedule",
           "View your upcoming shifts and availability",
           "View schedule",
           "#schedule"
         )}
-        ${azCard(
-          "Time Off",
-          "Request vacation and personal days",
-          "Request time off",
-          "#timeoff"
-        )}
       </div>
 
-      <!-- Time Off Benefits & Perks (Deshabilitado hasta después del primer día) -->
+      <!-- Payroll & Compensation DESHABILITADO -->
       <div class="azWide">
         <div class="azCard" style="background-color: #f5f5f5; color: #757575; border-color: #e0e0e0; opacity: 0.7; cursor: not-allowed; pointer-events: none;">
-          <div class="azCardTitle" style="color: #616161; display: flex; align-items: center; gap: 8px;">
-            <span style="opacity: 0.6;">⏳</span>
-            Time Off Benefits & Perks
+          <div class="azCardTitle" style="color: #616161;">
+            <span style="opacity: 0.6; margin-right: 6px;">⏳</span>Payroll & Compensation
           </div>
           <div class="azCardSub" style="color: #9e9e9e;">
-            Available after your first day of work
+            Access pay stubs, tax forms, and direct deposit information
           </div>
-          <div style="
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding-top: 12px;
-            color: #9e9e9e;
-            font-size: 14px;
-          ">
-            <span>Coming soon...</span>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e0e0e0; color: #9e9e9e; font-size: 14px;">
+            <span>Available after first day</span>
             <span style="opacity: 0.5;">🔒</span>
           </div>
         </div>
       </div>
 
-      <!-- Payroll & Compensation (Deshabilitado hasta después del primer día) -->
+      <!-- Benefits & Perks DESHABILITADO -->
       <div class="azWide">
         <div class="azCard" style="background-color: #f5f5f5; color: #757575; border-color: #e0e0e0; opacity: 0.7; cursor: not-allowed; pointer-events: none;">
-          <div class="azCardTitle" style="color: #616161; display: flex; align-items: center; gap: 8px;">
-            <span style="opacity: 0.6;">⏳</span>
-            Payroll & Compensation
+          <div class="azCardTitle" style="color: #616161;">
+            <span style="opacity: 0.6; margin-right: 6px;">⏳</span>Benefits & Perks
           </div>
           <div class="azCardSub" style="color: #9e9e9e;">
-            Available after your first day of work
+            Health insurance, 401(k), and employee wellness programs
           </div>
-          <div style="
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding-top: 12px;
-            color: #9e9e9e;
-            font-size: 14px;
-          ">
-            <span>Coming soon...</span>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e0e0e0; color: #9e9e9e; font-size: 14px;">
+            <span>Available after first day</span>
             <span style="opacity: 0.5;">🔒</span>
           </div>
         </div>
