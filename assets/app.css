@@ -948,4 +948,83 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(to bottom, var(--sunpower-teal), var(--sunpower-yellow));
+/* RESET DE EMERGENCIA */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* FIX PARA EL PORTAL ROTO */
+.employee-portal {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* HEADER FIX */
+.portal-header {
+    height: 60px !important; /* Forzar altura */
+    padding: 10px 20px !important;
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* NAV FIX */
+.portal-nav {
+    margin-top: 60px !important; /* Empujar debajo del header */
+    height: 50px !important;
+    position: fixed !important;
+    top: 60px;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    background: #f8f9fa;
+}
+
+/* CONTENT FIX - LO MÁS IMPORTANTE */
+.portal-content {
+    margin-top: 110px !important; /* Header (60) + Nav (50) */
+    padding: 20px;
+    flex: 1;
+    overflow-y: auto;
+    max-height: calc(100vh - 110px);
+}
+
+/* REMOVER CUALQUIER CSS QUE ESTÉ CAUSANDO EL PROBLEMA */
+@media (max-width: 768px) {
+    .portal-header, .portal-nav {
+        position: static !important;
+        height: auto !important;
+    }
+    
+    .portal-content {
+        margin-top: 0 !important;
+        max-height: none !important;
+    }
+}
+
+/* ELIMINAR ESTILOS CONFLICTIVOS */
+body, html {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* LIMPIAR CLASES CONFLICTIVAS */
+.container, .row, .col {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
 }
