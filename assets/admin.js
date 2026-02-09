@@ -664,9 +664,11 @@ async function addNewEmployee() {
     const nameInput = $('newEmpName');
     const emailInput = $('newEmpEmail');
     
-    const empId = normalizeEmpId(idInput?.value);
-    const name = nameInput?.value?.trim();
-    const email = emailInput?.value?.trim();
+    const rawId = idInput ? idInput.value : '';
+    const name = nameInput ? nameInput.value.trim() : '';
+    const email = emailInput ? emailInput.value.trim() : '';
+    
+    const empId = normalizeEmpId(rawId);
     
     if (!empId) {
         showToast('Invalid ID format. Use: SP001', 'error');
@@ -679,25 +681,31 @@ async function addNewEmployee() {
     }
     
     try {
+        // Verificar si ya existe
         const existing = await getDoc(doc(db, "allowedEmployees", empId));
         if (existing.exists()) {
             showToast('Employee ID already exists', 'error');
             return;
         }
         
+        // Crear timestamp local (más confiable que serverTimestamp)
+        const now = new Date().toISOString();
+        
+        // Guardar en allowedEmployees
         await setDoc(doc(db, "allowedEmployees", empId), {
             active: true,
             name: name,
             email: email || '',
-            createdAt: serverTimestamp(),
+            createdAt: now,
             onboardingComplete: false
         });
         
+        // Guardar en employeeRecords
         await setDoc(doc(db, "employeeRecords", empId), {
             employeeId: empId,
             name: name,
             email: email || '',
-            createdAt: serverTimestamp(),
+            createdAt: now,
             profile: {},
             appointment: {},
             notifications: [],
@@ -713,17 +721,19 @@ async function addNewEmployee() {
         
         showToast(`Employee ${empId} created!`, 'success');
         
+        // Limpiar inputs
         if (idInput) idInput.value = '';
         if (nameInput) nameInput.value = '';
         if (emailInput) emailInput.value = '';
         
+        // Recargar lista
         loadAllEmployees();
         
     } catch (error) {
+        console.error("Error creating employee:", error);
         showToast(`Error: ${error.message}`, 'error');
     }
 }
-
 // Funciones globales para onclick
 window.loadEmpFromList = async function(empId) {
     const input = $('currentEmpId');
