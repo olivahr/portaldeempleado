@@ -2615,7 +2615,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
       try {
         const currentFw = userData?.footwear || {};
         
-        // Guardar en Firebase
+        // Guardar en Firebase - USAR EL MISMO saveUserPatch que ya funciona
         await saveUserPatch({
           footwear: { 
             ...currentFw, 
@@ -2630,19 +2630,10 @@ function renderFootwear(userData, saveUserPatch, publicData) {
           sessionStorage.removeItem("fw_just_returned"); 
         } catch (e) {}
         
-        // IMPORTANTE: Actualizar userData localmente para el re-render
-        userData.footwear = {
-          ...currentFw,
-          visitedStore: true,
-          visitedAt: Date.now()
-        };
-        
         uiToast("Confirmed! Loading next step...");
         
-        // NO recargar - re-renderizar directamente
-        setTimeout(() => {
-          renderFootwear(userData, saveUserPatch, publicData);
-        }, 500);
+        // NO recargar - el onSnapshot se encargará de actualizar
+        // El re-render se hace automáticamente por el onSnapshot
         
       } catch (e) {
         console.error("Error:", e);
@@ -2675,7 +2666,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     btnNext.style.opacity = st.all ? "1" : ".6";
   };
 
-  // Autosave acks
+  // Autosave acks - AHORA SÍ FUNCIONA PORQUE saveUserPatch guarda en el lugar correcto
   let t = null;
   const autosave = () => {
     const st = readAcks();
