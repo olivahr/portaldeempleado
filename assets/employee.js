@@ -3915,7 +3915,7 @@ function renderHelp(publicData, empId, user) {
       </div>
 
       <div class="azCard" style="margin-top:16px;">
-        <div class="azCardTitle">📞 Immediate Assistance Contacts</div>
+        <div class="azCardTitle">Immediate Assistance Contacts</div>
         <div class="muted" style="margin-top:8px;margin-bottom:20px;">
           For urgent warehouse operations issues during your shift
         </div>
@@ -3960,7 +3960,7 @@ function renderHelp(publicData, empId, user) {
       </div>
 
       <div class="azCard" style="margin-top:16px;">
-        <div class="azCardTitle">🏭 Warehouse Department Contacts</div>
+        <div class="azCardTitle">Warehouse Department Contacts</div>
         <div class="muted" style="margin-top:8px;margin-bottom:20px;">
           Direct lines to specific warehouse departments
         </div>
@@ -4060,7 +4060,7 @@ function renderHelp(publicData, empId, user) {
       </div>
 
       <div class="azCard" style="margin-top:16px;">
-        <div class="azCardTitle">📋 Submit Support Ticket</div>
+        <div class="azCardTitle">Submit Support Ticket</div>
         <div class="muted" style="line-height:1.6;margin-top:12px;">
           For non-urgent requests or detailed inquiries, submit a ticket below.
           We'll respond within 24 business hours.
