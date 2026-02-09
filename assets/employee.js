@@ -2372,16 +2372,18 @@ function renderFootwear(userData, saveUserPatch, publicData) {
 
   const fwPublic = publicData?.footwear || defaultPublicContent().footwear;
   const fw = userData?.footwear || {};
+  
+  // IMPORTANTE: Verificar si ya completó la tienda (visitedStore guardado en Firebase)
   const visitedStore = userData?.footwear?.visitedStore === true;
   
-  // LIMPIEZA: Si no hay flag de "opened", limpiar "just_returned" para evitar estado inconsistente
-  if (sessionStorage.getItem("fw_store_opened") !== "1") {
-    try { sessionStorage.removeItem("fw_just_returned"); } catch (e) {}
-  }
+  // Verificar si acaba de volver de la tienda (sessionStorage temporal)
+  const justReturnedFromStore = sessionStorage.getItem("fw_just_returned") === "1";
   
-  const justReturned = sessionStorage.getItem("fw_just_returned") === "1";
-  const showBackBtn = justReturned && !visitedStore;
-  
+  // Mostrar botón "I'm Back" solo si:
+  // 1. Acaba de volver de la tienda (justReturnedFromStore)
+  // 2. Y todavía no ha marcado como completado (visitedStore es false)
+  const showBackButton = justReturnedFromStore && !visitedStore;
+
   // ---------- LOCKED ----------
   if (isLocked) {
     setPage(
@@ -2437,7 +2439,6 @@ function renderFootwear(userData, saveUserPatch, publicData) {
 
   // ---------- HELPERS ----------
   function ackRow(id, checked, text) {
-    // touch friendly (sin onmouseover)
     return `
       <label class="checkrow" for="${escapeHtml(id)}" style="
         display:flex;gap:12px;align-items:flex-start;
@@ -2451,8 +2452,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     `;
   }
 
-  // ---------- PAGE: ALWAYS SHOW INFO + STORE ----------
-  // ACKS SECTION is conditional (visitedStore)
+  // ---------- PAGE: INFO + STORE (Siempre visible) ----------
   setPage(
     fwPublic.programTitle || "Safety Footwear Program",
     "Required for all warehouse and production positions",
@@ -2497,91 +2497,113 @@ function renderFootwear(userData, saveUserPatch, publicData) {
           Keep your receipt for verification. Use your employee ID at checkout if prompted.
         </div>
 
-        <button class="btn primary" id="btnGoStore"
-  style="display:block;width:100%;text-align:center;margin-top:12px;border-radius:16px;">
-  Open Safety Footwear Store
-</button>
-
-${showBackBtn ? `
-  <button class="btn ghost" id="btnImBack"
-    style="display:block;width:100%;text-align:center;margin-top:10px;border-radius:16px;">
-    I'm Back From The Store (Unlock Next Step)
-  </button>
-` : ``}
-        <div class="small muted" style="margin-top:10px;line-height:1.4;text-align:center;">
-          After you finish shopping, return to this page to complete the acknowledgements and continue to the next step.
-        </div>
+        ${!visitedStore ? `
+          <button class="btn primary" id="btnGoStore"
+            style="display:block;width:100%;text-align:center;margin-top:12px;border-radius:16px;">
+            Open Safety Footwear Store
+          </button>
+          
+          ${showBackButton ? `
+            <button class="btn ghost" id="btnImBack"
+              style="display:block;width:100%;text-align:center;margin-top:10px;border-radius:16px;">
+              I'm Back From The Store (Unlock Next Step)
+            </button>
+          ` : `
+            <div class="small muted" style="margin-top:10px;line-height:1.4;text-align:center;">
+              After you finish shopping, return to this page to complete the acknowledgements and continue to the next step.
+            </div>
+          `}
+        ` : `
+          <div style="margin-top:12px;padding:12px;background:rgba(22,163,74,.10);border-radius:12px;border:1px solid rgba(22,163,74,.25);">
+            <div style="display:flex;align-items:center;gap:8px;color:rgba(22,163,74,1);font-weight:1000;">
+              ${azIcon("check")} Store visit completed
+            </div>
+          </div>
+        `}
       </div>
 
-      ${
-        !visitedStore
-          ? `
-            <div class="azCard" style="margin-top:16px;border:1px dashed rgba(29,78,216,.35);background:rgba(29,78,216,.03);">
-              <div class="azCardTitle">Next Step Locked</div>
-              <div class="muted" style="line-height:1.6;margin-top:8px;">
-                To continue, please open the vendor store first. Once you return, the acknowledgement section will unlock.
-              </div>
-            </div>
-          `
-          : `
-            <div class="azCard" style="margin-top:16px;">
-              ${sectionHeader("Required Acknowledgements")}
-              ${ackRow("fwAck1", fw.ack1, "I understand that safety footwear is mandatory and must be worn at all times in operational areas.")}
-              ${ackRow("fwAck2", fw.ack2, "I will purchase approved safety footwear before my first scheduled work day.")}
-              ${ackRow("fwAck3", fw.ack3, "I understand that purchases must be made through the designated vendor to qualify for reimbursement.")}
-              ${ackRow("fwAck4", fw.ack4, "I understand that reimbursement requires proof of purchase and completion of first week.")}
-              ${ackRow("fwAck5", fw.ack5, "I acknowledge that failure to wear proper safety equipment may result in disciplinary action.")}
+      ${!visitedStore && !showBackButton ? `
+        <div class="azCard" style="margin-top:16px;border:1px dashed rgba(29,78,216,.35);background:rgba(29,78,216,.03);">
+          <div class="azCardTitle">Next Step Locked</div>
+          <div class="muted" style="line-height:1.6;margin-top:8px;">
+            To continue, please open the vendor store first. Once you return, the acknowledgement section will unlock.
+          </div>
+        </div>
+      ` : ''}
 
-              <button class="btn primary" id="btnFootwearNext" type="button"
-                style="display:block;width:100%;text-align:center;border-radius:16px;padding:16px;margin-top:20px;opacity:.6;" disabled>
-                Continue to I-9 Verification
-              </button>
+      ${visitedStore ? `
+        <div class="azCard" style="margin-top:16px;">
+          ${sectionHeader("Required Acknowledgements")}
+          ${ackRow("fwAck1", fw.ack1, "I understand that safety footwear is mandatory and must be worn at all times in operational areas.")}
+          ${ackRow("fwAck2", fw.ack2, "I will purchase approved safety footwear before my first scheduled work day.")}
+          ${ackRow("fwAck3", fw.ack3, "I understand that purchases must be made through the designated vendor to qualify for reimbursement.")}
+          ${ackRow("fwAck4", fw.ack4, "I understand that reimbursement requires proof of purchase and completion of first week.")}
+          ${ackRow("fwAck5", fw.ack5, "I acknowledge that failure to wear proper safety equipment may result in disciplinary action.")}
 
-              <div class="small muted" style="margin-top:12px;line-height:1.4;text-align:center;">
-                This button will unlock after all acknowledgements are selected.
-              </div>
-            </div>
-          `
-      }
+          <button class="btn primary" id="btnFootwearNext" type="button"
+            style="display:block;width:100%;text-align:center;border-radius:16px;padding:16px;margin-top:20px;opacity:.6;" disabled>
+            Continue to I-9 Verification
+          </button>
+
+          <div class="small muted" style="margin-top:12px;line-height:1.4;text-align:center;">
+            This button will unlock after all acknowledgements are selected.
+          </div>
+        </div>
+      ` : ''}
     `
   );
 
-// -------- STORE BUTTON BEHAVIOR --------
-const btnGoStore = document.getElementById("btnGoStore");
-const btnImBack  = document.getElementById("btnImBack");
+  // -------- HANDLERS --------
 
-// 1) ABRIR TIENDA: marcamos que abrió la tienda Y que debe mostrar el botón al volver
-if (btnGoStore) {
-  btnGoStore.onclick = () => {
-    try { 
-      sessionStorage.setItem("fw_store_opened", "1"); 
-      sessionStorage.setItem("fw_just_returned", "1"); // NUEVO: Mostrará el botón "I'm Back" al volver
-    } catch (e) {}
-    window.location.href = fwPublic.shopUrl;
-  };
-}
-
-// 2) I'M BACK: aquí SÍ marcamos visitedStore:true y recargamos la página
-if (btnImBack) {
-  btnImBack.onclick = async () => {
-    try {
-      await saveUserPatch({
-        footwear: { ...(fw || {}), visitedStore: true, visitedAt: Date.now() }
-      });
+  // 1) BOTÓN "IR A TIENDA"
+  const btnGoStore = document.getElementById("btnGoStore");
+  if (btnGoStore) {
+    btnGoStore.onclick = () => {
+      // Marcar que va a la tienda - al volver, mostrará el botón "I'm Back"
       try { 
-        sessionStorage.removeItem("fw_store_opened"); 
-        sessionStorage.removeItem("fw_just_returned"); // NUEVO: Limpiar el flag
+        sessionStorage.setItem("fw_store_opened", "1"); 
+        sessionStorage.setItem("fw_just_returned", "1"); 
       } catch (e) {}
-    } catch (e) {}
+      window.location.href = fwPublic.shopUrl;
+    };
+  }
 
-    // fuerza re-render en iPhone/Safari
-    window.location.reload();
-  };
-}
-  // If acks not unlocked, stop here
+  // 2) BOTÓN "I'M BACK FROM THE STORE"
+  const btnImBack = document.getElementById("btnImBack");
+  if (btnImBack) {
+    btnImBack.onclick = async () => {
+      try {
+        // Guardar que visitó la tienda en Firebase
+        await saveUserPatch({
+          footwear: { 
+            ...(fw || {}), 
+            visitedStore: true, 
+            visitedAt: Date.now() 
+          }
+        });
+        
+        // Limpiar sessionStorage para que no vuelva a aparecer este botón
+        try { 
+          sessionStorage.removeItem("fw_store_opened"); 
+          sessionStorage.removeItem("fw_just_returned"); 
+        } catch (e) {}
+        
+        // Mostrar mensaje de éxito
+        uiToast("Store visit confirmed! Loading acknowledgements...");
+        
+        // Recargar para mostrar las acknowledgements
+        window.location.reload();
+      } catch (e) {
+        console.error("Error saving store visit:", e);
+        uiToast("Error saving progress. Please try again.");
+      }
+    };
+  }
+
+  // Si no ha visitado la tienda, no configurar los handlers de acknowledgements todavía
   if (!visitedStore) return;
 
-  // ---------- ACKS + NEXT STEP ----------
+  // ---------- ACKS + NEXT STEP (solo si visitedStore es true) ----------
   const btnNext = document.getElementById("btnFootwearNext");
 
   const readAcks = () => {
