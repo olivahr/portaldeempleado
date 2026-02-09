@@ -4009,21 +4009,30 @@ export async function initEmployeeApp() {
       });
 
       onSnapshot(recordRef, async (snap) => {
-        currentRecordData = snap.exists() ? (snap.data() || {}) : {};
+  currentRecordData = snap.exists() ? (snap.data() || {}) : {};
 
-        try {
-          const u = await getDoc(userRef);
-          const ud = u.exists() ? u.data() : {};
-          const userHasAppt = !!(ud?.appointment && (ud.appointment.date || ud.appointment.time || ud.appointment.address));
-          const recAppt = currentRecordData?.appointment || null;
-          const recHasAppt = !!(recAppt && (recAppt.date || recAppt.time || recAppt.address));
-          if (!userHasAppt && recHasAppt) {
-            await setDoc(userRef, { appointment: recAppt, updatedAt: serverTimestamp() }, { merge: true });
-          }
-        } catch {}
-        rerender();
-      });
+  // ========== DEBUG CRÍTICO - AGREGA ESTO ==========
+  console.log("📡 DATOS RECIBIDOS DE ADMIN:");
+  console.log("📡 Document Path:", recordRef.path);
+  console.log("📡 Employee ID del documento:", empId);
+  console.log("📡 ¿Documento existe?:", snap.exists());
+  console.log("📡 Todos los datos:", currentRecordData);
+  console.log("📡 Profile object:", currentRecordData?.profile);
+  console.log("📡 Claves del profile:", currentRecordData?.profile ? Object.keys(currentRecordData.profile) : "No profile");
+  // ================================================
 
+  try {
+    const u = await getDoc(userRef);
+    const ud = u.exists() ? u.data() : {};
+    const userHasAppt = !!(ud?.appointment && (ud.appointment.date || ud.appointment.time || ud.appointment.address));
+    const recAppt = currentRecordData?.appointment || null;
+    const recHasAppt = !!(recAppt && (recAppt.date || recAppt.time || recAppt.address));
+    if (!userHasAppt && recHasAppt) {
+      await setDoc(userRef, { appointment: recAppt, updatedAt: serverTimestamp() }, { merge: true });
+    }
+  } catch {}
+  rerender();
+});
   // Reemplaza TODO el bloque de onSnapshot(userRef) con esto:
 
 onSnapshot(userRef, async (snap) => {
