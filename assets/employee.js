@@ -2221,15 +2221,15 @@ const steps = stepsRaw.map(s => {
       shiftCard.style.opacity = '1';
       shiftCard.style.pointerEvents = 'auto';
       
-      // Save position immediately
-      const newShiftData = {
-        position: posValue,
-        shift: currentShift,
-        status: "draft",
-        approved: false,
-        updatedAt: new Date().toISOString()
-      };
-      
+     // CORRECCIÓN: Obtener la posición ACTUAL de userData  
+const existingShift = userData?.shift || {};
+const newShiftData = {
+  position: existingShift.position || "",  // Preservar position existente
+  shift: shiftValue,
+  status: "draft",
+  approved: false,
+  updatedAt: new Date().toISOString()
+};
       console.log("Saving position:", newShiftData);
       await saveUserPatch({ shift: newShiftData });
     });
@@ -3939,12 +3939,13 @@ export async function initEmployeeApp() {
   
   // SI el patch tiene footwear o steps, también guardar en users (userRef)
   // para mantener sincronización
-  if (patch.footwear || patch.steps) {
+  if (patch.footwear || patch.steps || patch.shift) {
     const userPatch = {};
     if (patch.footwear) userPatch.footwear = patch.footwear;
     if (patch.steps) userPatch.steps = patch.steps;
     userPatch.updatedAt = serverTimestamp();
     promises.push(updateDoc(userRef, userPatch));
+    if (patch.shift) userPatch.shift = patch.shift;
   }
   
   await Promise.all(promises);
@@ -4007,8 +4008,20 @@ onSnapshot(userRef, async (snap) => {
     ack3: !!fwSource.ack3,
     ack4: !!fwSource.ack4,
     ack5: !!fwSource.ack5
+  
   };
 
+ // USAR LOS DATOS MÁS RECIENTES: record tiene prioridad para shift también
+const shiftSource = recordData?.shift || d?.shift || {};
+const shiftMerged = {
+  position: shiftSource.position || "",
+  shift: shiftSource.shift || "",
+  status: shiftSource.status || "",
+  approved: !!shiftSource.approved,
+  shiftStartDate: shiftSource.shiftStartDate || "",
+  supervisor: shiftSource.supervisor || ""
+};
+ 
   // MIGRACIÓN DE STEPS - también usar record como fuente
   let mergedSteps = Array.isArray(d.steps) ? d.steps : [];
   const oldSteps = Array.isArray(recordData.steps) ? recordData.steps : 
