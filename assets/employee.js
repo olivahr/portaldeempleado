@@ -1634,7 +1634,6 @@ function renderChat(userData, empId) {
         </div>
       </div>
       
-    `
   );
 
   // Limpiar mensajes existentes y cargar historial
