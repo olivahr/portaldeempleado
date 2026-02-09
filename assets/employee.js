@@ -1438,7 +1438,6 @@ function renderProfile(userData, recordData) {
     `
   );
 }
-
 // ===============================
 // CHAT - HR Communication
 // ===============================
