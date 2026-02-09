@@ -3980,72 +3980,71 @@ export async function initEmployeeApp() {
         rerender();
       });
 
-      onSnapshot(userRef, (snap) => {
-        if (!snap.exists()) return;
-        const d = snap.data() || {};
-        const base = defaultUserDoc(user);
+  // Reemplaza TODO el bloque de onSnapshot(userRef) con esto:
 
-        // MIGRACIÓN DE STEPS CON MAPEO DE IDs ANTIGUOS
-        let mergedSteps = Array.isArray(d.steps) ? d.steps : [];
-        const oldSteps = Array.isArray(d.steps) ? d.steps : [];
+onSnapshot(userRef, async (snap) => {
+  if (!snap.exists()) return;
+  
+  // OBTENER DATOS ACTUALES DE RECORD REF TAMBIÉN
+  const recordSnap = await getDoc(recordRef);
+  const recordData = recordSnap.exists() ? recordSnap.data() : {};
+  
+  const d = snap.data() || {};
+  const base = defaultUserDoc(user);
 
-        // Mapeo de IDs antiguos a nuevos
-        const idMapping = {
-          "documents": "photo_badge",
-          "badge": "photo_badge",
-          "first_day": "firstday"
-        };
+  // USAR LOS DATOS MÁS RECIENTES: record tiene prioridad para footwear
+  const fwSource = recordData?.footwear || d?.footwear || {};
+  const footwearMerged = {
+    visitedStore: !!fwSource.visitedStore,
+    visitedAt: fwSource.visitedAt || null,
+    ack1: !!fwSource.ack1,
+    ack2: !!fwSource.ack2,
+    ack3: !!fwSource.ack3,
+    ack4: !!fwSource.ack4,
+    ack5: !!fwSource.ack5
+  };
 
-        mergedSteps = base.steps.map(s => {
-          // Buscar por ID exacto primero
-          let o = oldSteps.find(x => x.id === s.id);
-          
-          // Si no encuentra, buscar por ID antiguo mapeado
-          if (!o) {
-            const oldId = Object.keys(idMapping).find(key => idMapping[key] === s.id);
-            if (oldId) {
-              o = oldSteps.find(x => x.id === oldId);
-            }
-          }
-          
-          // Si encuentra el step antiguo, migrarlo
-          if (o) {
-            return { 
-              ...s, 
-              done: !!o.done,
-              // Preservar label correcto del base
-              label: s.label 
-            };
-          }
-          
-          return s;
-        });
+  // MIGRACIÓN DE STEPS - también usar record como fuente
+  let mergedSteps = Array.isArray(d.steps) ? d.steps : [];
+  const oldSteps = Array.isArray(recordData.steps) ? recordData.steps : 
+                   Array.isArray(d.steps) ? d.steps : [];
 
-        const fw = (d.footwear && typeof d.footwear === "object") ? d.footwear : {};
-        const footwearMerged = {
-          ack1: !!fw.ack1,
-          ack2: !!fw.ack2,
-          ack3: !!fw.ack3,
-          ack4: !!fw.ack4,
-          ack5: !!fw.ack5
-        };
+  const idMapping = {
+    "documents": "photo_badge",
+    "badge": "photo_badge",
+    "first_day": "firstday"
+  };
 
-        currentUserData = {
-          ...base,
-          ...d,
-          uid: user.uid,
-          steps: mergedSteps,
-          appointment: (d.appointment && typeof d.appointment === "object") ? d.appointment : base.appointment,
-          shift: (d.shift && typeof d.shift === "object") ? d.shift : base.shift,
-          footwear: footwearMerged,
-          i9: (d.i9 && typeof d.i9 === "object") ? d.i9 : base.i9,
-          notifications: Array.isArray(d.notifications) ? d.notifications : base.notifications,
-          shiftChangeRequests: Array.isArray(d.shiftChangeRequests) ? d.shiftChangeRequests : []
-        };
+  mergedSteps = base.steps.map(s => {
+    let o = oldSteps.find(x => x.id === s.id);
+    if (!o) {
+      const oldId = Object.keys(idMapping).find(key => idMapping[key] === s.id);
+      if (oldId) {
+        o = oldSteps.find(x => x.id === oldId);
+      }
+    }
+    if (o) {
+      return { ...s, done: !!o.done, label: s.label };
+    }
+    return s;
+  });
 
-        if (!location.hash) location.hash = "#home";
-        rerender();
-      });
+  currentUserData = {
+    ...base,
+    ...d,
+    uid: user.uid,
+    steps: mergedSteps,
+    appointment: (d.appointment && typeof d.appointment === "object") ? d.appointment : base.appointment,
+    shift: (d.shift && typeof d.shift === "object") ? d.shift : base.shift,
+    footwear: footwearMerged, // AHORA SÍ USA LOS DATOS ACTUALIZADOS
+    i9: (d.i9 && typeof d.i9 === "object") ? d.i9 : base.i9,
+    notifications: Array.isArray(d.notifications) ? d.notifications : base.notifications,
+    shiftChangeRequests: Array.isArray(d.shiftChangeRequests) ? d.shiftChangeRequests : []
+  };
+
+  if (!location.hash) location.hash = "#home";
+  rerender();
+});
 
       window.addEventListener("hashchange", rerender);
       window.addEventListener("resize", () => {
