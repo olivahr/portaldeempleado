@@ -2568,25 +2568,46 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     };
   }
 
-  // 2) BOTÓN "I'M BACK FROM THE STORE"
+    // 2) BOTÓN "I'M BACK FROM THE STORE" - VERSIÓN ALTERNATIVA
   const btnImBack = document.getElementById("btnImBack");
   if (btnImBack) {
     btnImBack.onclick = async () => {
+      btnImBack.disabled = true;
+      btnImBack.textContent = "Saving...";
+      
       try {
-        // Guardar que visitó la tienda en Firebase
+        const currentFw = userData?.footwear || {};
+        
         await saveUserPatch({
           footwear: { 
-            ...(fw || {}), 
+            ...currentFw, 
             visitedStore: true, 
             visitedAt: Date.now() 
           }
         });
         
-        // Limpiar sessionStorage para que no vuelva a aparecer este botón
+        // Limpiar sessionStorage
         try { 
           sessionStorage.removeItem("fw_store_opened"); 
           sessionStorage.removeItem("fw_just_returned"); 
         } catch (e) {}
+        
+        uiToast("Saved! Continuing...");
+        
+        // En lugar de reload, forzar navegación al mismo hash para re-render
+        setTimeout(() => {
+          location.hash = "#footwear";
+          window.location.reload();
+        }, 800);
+        
+      } catch (e) {
+        console.error("Error:", e);
+        uiToast("Error: " + (e.message || "Unknown error"));
+        btnImBack.disabled = false;
+        btnImBack.textContent = "I'm Back From The Store (Unlock Next Step)";
+      }
+    };
+  }
         
         // Mostrar mensaje de éxito
         uiToast("Store visit confirmed! Loading acknowledgements...");
