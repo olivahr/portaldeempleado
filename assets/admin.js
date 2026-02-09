@@ -136,8 +136,6 @@ async function saveProfile() {
         address: $('profAddress')?.value?.trim() || '',
         city: $('profCity')?.value?.trim() || '',
         stateZip: $('profStateZip')?.value?.trim() || '',
-        emergencyName: $('profEmergencyName')?.value?.trim() || '',
-        emergencyPhone: $('profEmergencyPhone')?.value?.trim() || '',
         updatedAt: serverTimestamp()
     };
     
