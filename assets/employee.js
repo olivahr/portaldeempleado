@@ -2774,7 +2774,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
           <div style="font-size:12px;line-height:1.6;color:rgba(2,6,23,.65);">
             Athletic shoes, hiking boots, and non-ANSI compliant footwear are <strong>strictly prohibited</strong> 
             regardless of steel toe presence. Open-toe, open-heel, or canvas construction footwear is 
-            <strong>never permitted</strong> in operational areas. Reimbursement is limited to one (1) pair per 
+            <strong>never permitted</strong> in operational areas. Reimbursement is limited to two (2) pair per 
             employee per calendar year, maximum $100.00 including taxes and shipping.
           </div>
         </div>
