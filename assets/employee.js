@@ -1586,14 +1586,14 @@ function renderChat(userData, empId) {
   
   // Preguntas frecuentes para botones rápidos
   const quickQuestions = [
-    { text: "📅 Horarios", q: "¿Cuáles son los horarios de trabajo?" },
-    { text: "💰 Pago", q: "¿Cuándo y cómo me pagan?" },
-    { text: "🏥 Beneficios", q: "¿Qué beneficios ofrece SunPower?" },
-    { text: "👟 Calzado", q: "Requisitos de calzado de seguridad" },
-    { text: "📋 Primer día", q: "¿Qué llevar el primer día?" },
-    { text: "📞 Contactar HR", q: "Necesito hablar con un humano" },
-    { text: "📱 App", q: "¿Cómo descargo la app de empleado?" },
-    { text: "🚌 Transporte", q: "Opciones de transporte a la fábrica" }
+    { text: " Horarios", q: "¿Cuáles son los horarios de trabajo?" },
+    { text: " Pago", q: "¿Cuándo y cómo me pagan?" },
+    { text: " Beneficios", q: "¿Qué beneficios ofrece SunPower?" },
+    { text: " Calzado", q: "Requisitos de calzado de seguridad" },
+    { text: " Primer día", q: "¿Qué llevar el primer día?" },
+    { text: " Contactar HR", q: "Necesito hablar con un humano" },
+    { text: " App", q: "¿Cómo descargo la app de empleado?" },
+    { text: " Transporte", q: "Opciones de transporte a la fábrica" }
   ];
 
   setPage(
