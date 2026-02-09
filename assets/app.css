@@ -1182,3 +1182,337 @@ body:has(.header) {
   }
   /* ... todo el resto de estilos del admin con !important ... */
 }
+
+/* ==========================================================================
+   PREMIUM ENHANCEMENTS - TOQUES DURAS Y TERMINACIONES DE LUJO
+   (Añadidos sin modificar ninguna línea existente)
+   ========================================================================== */
+
+/* ELEVACIÓN Y PROFUNDIDAD EXTRA */
+.auth-card, .card, .kpi, .tile, .rowcard, .list-item, .cal, .event {
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), 
+              box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+.auth-card:hover, .card:hover, .kpi:hover, .tile:hover, 
+.rowcard:hover, .list-item:hover, .cal:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 24px 60px rgba(2, 6, 23, 0.22) !important;
+}
+
+/* BORDAS DE LUJO CON GRADIENTES */
+.btn.primary, .topbar, .sidebar .nav-item.active, 
+.bottomnav .nav-item.active, .cal-head {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.btn.primary::after, .topbar::after, 
+.sidebar .nav-item.active::after, 
+.bottomnav .nav-item.active::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.18) 50%, 
+    transparent 100%) !important;
+  opacity: 0 !important;
+  transition: opacity 0.6s ease !important;
+  pointer-events: none !important;
+}
+
+.btn.primary:hover::after, .topbar:hover::after,
+.sidebar .nav-item.active:hover::after,
+.bottomnav .nav-item.active:hover::after {
+  opacity: 1 !important;
+  animation: shimmer 1.5s infinite !important;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) !important; }
+  100% { transform: translateX(100%) !important; }
+}
+
+/* TIPOGRAFÍA PREMIUM MEJORADA */
+body, .btn, .inp, .nav-item, .card-title, .kpi-val {
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1, "ss01" 1 !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+.h3, .card-title, .kpi-title, .tile-title, .row-title, .event-title, 
+.brand-title, .brand-mini .brand-title, .page-head h1 {
+  font-weight: 1000 !important;
+  letter-spacing: -0.01em !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+}
+
+/* EFECTO VIDRIO ESMEIRADO MEJORADO */
+.topbar, .sidebar, .bottomnav, .topbar-pill {
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 
+    0 8px 32px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+.topbar {
+  background: linear-gradient(90deg, 
+    rgba(29, 78, 216, 0.95) 0%, 
+    rgba(14, 165, 233, 0.95) 100%) !important;
+  backdrop-filter: blur(24px) saturate(200%) !important;
+}
+
+/* BORDES CON GRADIENTE PARA ELEMENTOS DESTACADOS */
+.card, .kpi, .tile, .rowcard, .list-item, .cal, .event {
+  border: none !important;
+  position: relative !important;
+  background-clip: padding-box !important;
+}
+
+.card::before, .kpi::before, .tile::before, 
+.rowcard::before, .list-item::before, .cal::before, .event::before {
+  content: '' !important;
+  position: absolute !important;
+  top: -1px !important;
+  left: -1px !important;
+  right: -1px !important;
+  bottom: -1px !important;
+  background: linear-gradient(135deg, 
+    rgba(29, 78, 216, 0.15), 
+    rgba(14, 165, 233, 0.08),
+    rgba(241, 245, 249, 0.05)) !important;
+  border-radius: inherit !important;
+  z-index: -1 !important;
+  opacity: 0 !important;
+  transition: opacity 0.3s ease !important;
+}
+
+.card:hover::before, .kpi:hover::before, .tile:hover::before,
+.rowcard:hover::before, .list-item:hover::before, 
+.cal:hover::before, .event:hover::before {
+  opacity: 1 !important;
+}
+
+/* ANIMACIONES SUAVES DE ENTRADA */
+.auth-card, .card, .kpi, .tile, .rowcard, .list-item, 
+.cal, .event, .alert, .toast {
+  animation: fadeInUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0 !important;
+    transform: translateY(20px) !important;
+  }
+  to {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
+}
+
+/* EFECTO PULSO SUAVE PARA ELEMENTOS ACTIVOS */
+.sidebar .nav-item.active, .bottomnav .nav-item.active {
+  animation: gentlePulse 3s infinite !important;
+}
+
+@keyframes gentlePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(29, 78, 216, 0.1) !important; }
+  50% { box-shadow: 0 0 0 8px rgba(29, 78, 216, 0) !important; }
+}
+
+/* MEJORA EN LOS BOTONES */
+.btn {
+  position: relative !important;
+  isolation: isolate !important;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+.btn::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.15), 
+    rgba(255, 255, 255, 0)) !important;
+  border-radius: inherit !important;
+  opacity: 0 !important;
+  transition: opacity 0.3s ease !important;
+  z-index: 1 !important;
+}
+
+.btn:hover::before {
+  opacity: 1 !important;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, 
+    var(--blue) 0%, 
+    #2563eb 50%, 
+    var(--blue2) 100%) !important;
+  background-size: 200% 200% !important;
+  transition: background-position 0.8s ease !important;
+}
+
+.btn.primary:hover {
+  background-position: 100% 100% !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 
+    0 20px 40px rgba(29, 78, 216, 0.4),
+    0 8px 20px rgba(29, 78, 216, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+/* MEJORA EN LOS INPUTS */
+.inp {
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  border-width: 2px !important;
+}
+
+.inp:focus {
+  transform: translateY(-1px) !important;
+  box-shadow: 
+    var(--ring),
+    0 12px 28px rgba(29, 78, 216, 0.15) !important;
+  border-color: var(--blue) !important;
+}
+
+/* SCROLLBAR PREMIUM */
+@media (min-width: 921px) {
+  ::-webkit-scrollbar {
+    width: 12px !important;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, 
+      var(--blue), 
+      var(--blue2)) !important;
+    border-radius: 999px !important;
+    border: 3px solid rgba(255, 255, 255, 0.95) !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: rgba(241, 245, 249, 0.8) !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(229, 234, 242, 0.5) !important;
+  }
+}
+
+/* EFECTO DE PARTICULAS EN FONDO (muy sutil) */
+body::after {
+  content: '' !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(29, 78, 216, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.03) 0%, transparent 50%) !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
+}
+
+/* MEJORA EN LOS BADGES Y PILLS */
+.pill, .status-chip, .topbar-pill, .event-pill {
+  border-width: 2px !important;
+  font-weight: 1000 !important;
+  letter-spacing: 0.02em !important;
+  transition: all 0.25s ease !important;
+}
+
+.pill:hover, .status-chip:hover, .topbar-pill:hover, .event-pill:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12) !important;
+}
+
+/* EFECTO DE SATINADO EN SUPERFICIES */
+.sidebar, .bottomnav, .topbar-pill {
+  background: rgba(255, 255, 255, 0.94) !important;
+  backdrop-filter: blur(24px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 
+    0 8px 32px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.05) !important;
+}
+
+/* ANIMACIÓN DE CARGA PARA PROGRESS BARS */
+.progress > span {
+  transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.progress > span::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.4), 
+    transparent) !important;
+  animation: loadingShimmer 2s infinite !important;
+}
+
+@keyframes loadingShimmer {
+  0% { transform: translateX(-100%) !important; }
+  100% { transform: translateX(100%) !important; }
+}
+
+/* MEJORA FINAL EN LAS SOMBRAS */
+:root {
+  --shadow-premium: 0 24px 60px rgba(2, 6, 23, 0.18),
+                    0 8px 24px rgba(15, 23, 42, 0.12) !important;
+  --shadow-premium-hover: 0 32px 72px rgba(2, 6, 23, 0.24),
+                          0 12px 32px rgba(15, 23, 42, 0.16) !important;
+}
+
+.auth-card, .card, .kpi, .tile, .rowcard, .list-item, .cal, .event {
+  box-shadow: var(--shadow-premium) !important;
+}
+
+.auth-card:hover, .card:hover, .kpi:hover, .tile:hover,
+.rowcard:hover, .list-item:hover, .cal:hover, .event:hover {
+  box-shadow: var(--shadow-premium-hover) !important;
+}
+
+/* TOQUE FINAL: BRILLO EN BORDES */
+.btn.primary, .sidebar .nav-item.active, 
+.bottomnav .nav-item.active, .cal-day.is-today {
+  position: relative !important;
+}
+
+.btn.primary::before, .sidebar .nav-item.active::before,
+.bottomnav .nav-item.active::before, .cal-day.is-today::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: -2px !important;
+  background: linear-gradient(45deg, 
+    var(--blue), 
+    var(--blue2), 
+    rgba(255, 255, 255, 0.8), 
+    var(--blue)) !important;
+  border-radius: inherit !important;
+  z-index: -1 !important;
+  opacity: 0 !important;
+  transition: opacity 0.4s ease !important;
+  filter: blur(8px) !important;
+}
+
+.btn.primary:hover::before, .sidebar .nav-item.active:hover::before,
+.bottomnav .nav-item.active:hover::before, .cal-day.is-today:hover::before {
+  opacity: 0.6 !important;
+}
