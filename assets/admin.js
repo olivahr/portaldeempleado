@@ -108,8 +108,7 @@ async function loadProfileData() {
             'profAddress': profile.address || '',
             'profCity': profile.city || '',
             'profStateZip': profile.stateZip || '',
-            'profEmergencyName': profile.emergencyName || '',
-            'profEmergencyPhone': profile.emergencyPhone || ''
+        
         };
         
         Object.entries(fields).forEach(([id, value]) => {
