@@ -1492,97 +1492,161 @@ function renderProfile(userData, recordData) {
 // CHAT - HR Communication
 // ===============================
 function renderChat(userData, empId) {
+  // Respuestas automáticas del bot
+  const autoResponses = {
+    // Preguntas sobre horarios
+    'horario': 'Los horarios de trabajo son de lunes a viernes, 6:00 AM a 2:30 PM para turno temprano, 2:00 PM a 10:30 PM para turno medio.',
+    'schedule': 'Puedes ver tu horario en la sección "My Schedule". Tu supervisor confirmará tu horario final.',
+    'turno': 'Los turnos disponibles son: Temprano (6AM-2:30PM), Medio (2PM-10:30PM), Nocturno (10PM-6:30AM).',
+    
+    // Preguntas sobre pago
+    'pago': 'El pago es semanal cada viernes. Tu primer cheque llegará el viernes después de tu primera semana completa.',
+    'payroll': 'Accede a tu información de nómina en la sección "Payroll" después de tu primer pago.',
+    'salario': 'El salario inicial varía según la posición, desde $18 hasta $24 por hora.',
+    
+    // Preguntas sobre beneficios
+    'beneficios': 'Los beneficios incluyen seguro médico, dental, visión, 401(k) con aporte de la empresa, y PTO acumulativo.',
+    'seguro': 'El seguro médico comienza el primer día de trabajo para empleados de tiempo completo.',
+    
+    // Preguntas generales
+    'hola': '¡Hola! Soy el asistente virtual de SunPower HR. ¿En qué puedo ayudarte hoy?',
+    'help': 'Puedo ayudarte con: horarios, nómina, beneficios, calzado de seguridad, y proceso de onboarding.',
+    'hr': 'Para contactar a HR directamente: Tel: (800) 876-4321 | Email: hr@sunpowerc.energy',
+    
+    // Preguntas de onboarding
+    'onboarding': 'Tu proceso de onboarding incluye: 1) Selección de turno, 2) Calzado de seguridad, 3) Verificación I-9, 4) Foto credencial, 5) Primer día.',
+    'first day': 'Tu primer día: Llega 15 minutos antes, trae identificación, tarjeta del seguro social, y calzado de seguridad.',
+    'calzado': 'El calzado de seguridad debe cumplir con ANSI Z41. Tienes un reembolso de $100 a través de nuestro proveedor autorizado.',
+    
+    // Preguntas sobre la empresa
+    'sunpower': 'SunPower es líder en energía solar, fabricando paneles solares de alta eficiencia en nuestras instalaciones.',
+    'ubicación': 'Nuestra fábrica está ubicada en: [Dirección de la instalación]. El transporte público está disponible.',
+  };
+
   setPage(
     "HR Chat",
-    "Direct messaging with Human Resources",
+    "Asistente virtual de Recursos Humanos",
     `
       <div class="chat-container">
         <div class="chat-messages" id="chatMessages">
           <div class="chat-message admin">
-            <div>Welcome to SunPower HR Chat. How can we help you today?</div>
-            <div class="chat-time">HR Team</div>
+            <div>¡Hola! Soy el asistente virtual de SunPower HR.</div>
+            <div class="chat-time">Puedo ayudarte con: horarios, nómina, beneficios, y más. ¿En qué puedo asistirte hoy?</div>
           </div>
         </div>
         <div class="chat-input-area">
-          <input type="text" class="chat-input" id="chatInput" placeholder="Type your message..." maxlength="500">
+          <input type="text" class="chat-input" id="chatInput" placeholder="Escribe tu pregunta aquí..." maxlength="500">
           <button class="chat-send" id="chatSendBtn">${azIcon("send")}</button>
         </div>
       </div>
       
       <div class="azCard" style="margin-top:16px;">
-        ${sectionHeader("Chat Hours")}
+        ${sectionHeader("Temas comunes")}
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+          <button class="btn sm ghost quick-question" data-q="horario">📅 Horarios</button>
+          <button class="btn sm ghost quick-question" data-q="pago">💰 Nómina</button>
+          <button class="btn sm ghost quick-question" data-q="beneficios">🏥 Beneficios</button>
+          <button class="btn sm ghost quick-question" data-q="first day">📋 Primer día</button>
+          <button class="btn sm ghost quick-question" data-q="calzado">👢 Calzado seguro</button>
+          <button class="btn sm ghost quick-question" data-q="hr">📞 Contactar HR</button>
+        </div>
+      </div>
+      
+      <div class="azCard" style="margin-top:16px;">
+        ${sectionHeader("Chat en vivo con HR")}
         <div class="muted" style="line-height:1.6;">
-          <strong>Monday - Friday:</strong> 8:00 AM - 6:00 PM EST<br>
-          <strong>Saturday:</strong> 9:00 AM - 2:00 PM EST<br>
-          <strong>Sunday:</strong> Closed<br><br>
-          For urgent matters outside these hours, please call HR Emergency Line: (800) 876-4321
+          <strong>¿Necesitas hablar con un humano?</strong><br>
+          <strong>Lunes - Viernes:</strong> 8:00 AM - 6:00 PM EST<br>
+          <strong>Sábado:</strong> 9:00 AM - 2:00 PM EST<br>
+          <strong>Teléfono de emergencia:</strong> (800) 876-4321
         </div>
       </div>
     `
   );
 
-  // Load existing messages
+  // Cargar mensajes existentes
   loadChatMessages(empId);
 
   // Setup send functionality
   const sendBtn = document.getElementById("chatSendBtn");
   const input = document.getElementById("chatInput");
   
+  const getAutoResponse = (question) => {
+    const qLower = question.toLowerCase();
+    
+    // Buscar coincidencias en las respuestas automáticas
+    for (const [key, response] of Object.entries(autoResponses)) {
+      if (qLower.includes(key.toLowerCase())) {
+        return response;
+      }
+    }
+    
+    // Respuesta por defecto si no encuentra coincidencia
+    return `Gracias por tu pregunta sobre "${question}". Para una respuesta específica, por favor contacta a HR directamente al (800) 876-4321 o envía un ticket de soporte desde la sección "Help & Support".`;
+  };
+  
   const sendMessage = async () => {
     const text = input.value.trim();
     if (!text) return;
     
-    if (!isFirebaseConfigured()) {
-      // Preview mode - just show locally
-      addMessageToUI(text, "employee", new Date().toLocaleTimeString());
-      input.value = "";
-      return;
-    }
-
-    try {
-      await addDoc(CHAT_COL(empId), {
-        text: text,
-        sender: "employee",
-        timestamp: serverTimestamp(),
-        read: false
-      });
-      addMessageToUI(text, "employee", new Date().toLocaleTimeString());
-      input.value = "";
-    } catch (e) {
-      uiToast("Failed to send message. Please try again.");
-    }
+    // Mostrar mensaje del usuario inmediatamente
+    addMessageToUI(text, "employee", new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    input.value = "";
+    
+    // Simular "escribiendo..."
+    const typingIndicator = document.createElement("div");
+    typingIndicator.className = "chat-message admin typing";
+    typingIndicator.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div>`;
+    document.getElementById("chatMessages").appendChild(typingIndicator);
+    document.getElementById("chatMessages").scrollTop = document.getElementById("chatMessages").scrollHeight;
+    
+    // Esperar 1-2 segundos (simular respuesta)
+    setTimeout(() => {
+      // Remover indicador de escribiendo
+      typingIndicator.remove();
+      
+      // Obtener respuesta automática
+      const response = getAutoResponse(text);
+      
+      // Mostrar respuesta
+      addMessageToUI(response, "admin", new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      
+      // Si es pregunta de contacto, mostrar botón
+      if (text.toLowerCase().includes('contactar') || text.toLowerCase().includes('humano')) {
+        setTimeout(() => {
+          const contactBtn = document.createElement("div");
+          contactBtn.className = "chat-message admin";
+          contactBtn.innerHTML = `
+            <div>¿Te gustaría que un representante de HR te contacte?</div>
+            <button class="btn sm primary" id="requestCall" style="margin-top:8px;">Sí, solicitar llamada</button>
+          `;
+          document.getElementById("chatMessages").appendChild(contactBtn);
+          document.getElementById("chatMessages").scrollTop = document.getElementById("chatMessages").scrollHeight;
+          
+          document.getElementById("requestCall")?.addEventListener("click", () => {
+            addMessageToUI("✅ Solicitud enviada. HR te contactará dentro de 24 horas hábiles.", "admin", new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+          });
+        }, 500);
+      }
+      
+    }, 1500 + Math.random() * 1000); // Respuesta aleatoria entre 1.5-2.5 segundos
   };
 
   sendBtn.onclick = sendMessage;
   input.addEventListener("keypress", (e) => {
     if (e.key === "Enter") sendMessage();
   });
-}
-
-function addMessageToUI(text, sender, time) {
-  const container = document.getElementById("chatMessages");
-  if (!container) return;
   
-  const msgDiv = document.createElement("div");
-  msgDiv.className = `chat-message ${sender}`;
-  msgDiv.innerHTML = `
-    <div>${escapeHtml(text)}</div>
-    <div class="chat-time">${escapeHtml(time)}</div>
-  `;
-  container.appendChild(msgDiv);
-  container.scrollTop = container.scrollHeight;
-}
-
-async function loadChatMessages(empId) {
-  if (!isFirebaseConfigured()) return;
-  
-  try {
-    const q = query(CHAT_COL(empId), orderBy("timestamp", "asc"));
-    // In a real implementation, you'd use onSnapshot for real-time updates
-    // For now, we'll just show the welcome message
-  } catch (e) {
-    console.error("Error loading chat:", e);
-  }
+  // Agregar preguntas rápidas
+  setTimeout(() => {
+    document.querySelectorAll('.quick-question').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const question = btn.dataset.q;
+        input.value = question;
+        sendMessage();
+      });
+    });
+  }, 100);
 }
 
 // ===============================
