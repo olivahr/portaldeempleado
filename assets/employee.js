@@ -4048,7 +4048,7 @@ function renderHelp(publicData, empId, user) {
       <div class="azCard" style="margin-top:16px;background:rgba(245,158,11,.05);border-color:rgba(245,158,11,.20);">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
           <div style="color:rgba(245,158,11,1);">${azIcon("alert")}</div>
-          <div class="azCardTitle" style="color:rgba(245,158,11,1);">⚠️ Urgent Support Protocol</div>
+          <div class="azCardTitle" style="color:rgba(245,158,11,1);">Urgent Support Protocol</div>
         </div>
         <div class="muted" style="line-height:1.6;">
           <strong>For immediate assistance during your shift:</strong><br><br>
@@ -4104,7 +4104,7 @@ function renderHelp(publicData, empId, user) {
       </div>
 
       <div class="azCard" style="margin-top:16px;background:rgba(2,6,23,.02);">
-        <div class="azCardTitle">🏢 On-Site Support Locations</div>
+        <div class="azCardTitle">On-Site Support Locations</div>
         <div style="margin-top:16px;display:flex;flex-direction:column;gap:14px;">
           <div style="display:flex;gap:12px;align-items:flex-start;">
             <div style="width:36px;height:36px;border-radius:8px;background:rgba(29,78,216,.10);display:flex;align-items:center;justify-content:center;color:rgba(29,78,216,1);font-weight:1000;flex-shrink:0;">1</div>
