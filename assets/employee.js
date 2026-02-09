@@ -1255,57 +1255,6 @@ function renderHome(publicData, recordData, userData) {
   const completedCount = steps.filter(s => s.done).length;
   const totalCount = steps.length;
   
-  // ============================================
-  // NUEVAS SECCIONES PARA DESPUÉS DEL PRIMER DÍA
-  // ============================================
-  const postFirstDaySections = `
-    <!-- Time Off Benefits & Perks (Deshabilitado hasta después del primer día) -->
-    <div class="azWide">
-      <div class="azCard" style="background-color: #f8f9fa; color: #6c757d; border-color: #dee2e6; opacity: 0.7; cursor: not-allowed;">
-        <div class="azCardTitle" style="color: #6c757d;">
-          <span style="opacity: 0.5;">⏳</span> Time Off Benefits & Perks
-        </div>
-        <div class="azCardSub" style="color: #adb5bd;">
-          Available after your first day of work
-        </div>
-        <div style="
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 12px 0 0;
-          color: #adb5bd;
-          font-size: 14px;
-        ">
-          <span>Coming soon...</span>
-          <span style="opacity: 0.5;">🔒</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Payroll & Compensation (Deshabilitado hasta después del primer día) -->
-    <div class="azWide">
-      <div class="azCard" style="background-color: #f8f9fa; color: #6c757d; border-color: #dee2e6; opacity: 0.7; cursor: not-allowed;">
-        <div class="azCardTitle" style="color: #6c757d;">
-          <span style="opacity: 0.5;">⏳</span> Payroll & Compensation
-        </div>
-        <div class="azCardSub" style="color: #adb5bd;">
-          Available after your first day of work
-        </div>
-        <div style="
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 12px 0 0;
-          color: #adb5bd;
-          font-size: 14px;
-        ">
-          <span>Coming soon...</span>
-          <span style="opacity: 0.5;">🔒</span>
-        </div>
-      </div>
-    </div>
-  `;
-
   setPage(
     "Home",
     "Welcome to your SunPower employee portal",
@@ -1387,7 +1336,53 @@ function renderHome(publicData, recordData, userData) {
         )}
       </div>
 
-      ${postFirstDaySections}
+      <!-- Time Off Benefits & Perks (Deshabilitado hasta después del primer día) -->
+      <div class="azWide">
+        <div class="azCard" style="background-color: #f5f5f5; color: #757575; border-color: #e0e0e0; opacity: 0.7; cursor: not-allowed; pointer-events: none;">
+          <div class="azCardTitle" style="color: #616161; display: flex; align-items: center; gap: 8px;">
+            <span style="opacity: 0.6;">⏳</span>
+            Time Off Benefits & Perks
+          </div>
+          <div class="azCardSub" style="color: #9e9e9e;">
+            Available after your first day of work
+          </div>
+          <div style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 12px;
+            color: #9e9e9e;
+            font-size: 14px;
+          ">
+            <span>Coming soon...</span>
+            <span style="opacity: 0.5;">🔒</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payroll & Compensation (Deshabilitado hasta después del primer día) -->
+      <div class="azWide">
+        <div class="azCard" style="background-color: #f5f5f5; color: #757575; border-color: #e0e0e0; opacity: 0.7; cursor: not-allowed; pointer-events: none;">
+          <div class="azCardTitle" style="color: #616161; display: flex; align-items: center; gap: 8px;">
+            <span style="opacity: 0.6;">⏳</span>
+            Payroll & Compensation
+          </div>
+          <div class="azCardSub" style="color: #9e9e9e;">
+            Available after your first day of work
+          </div>
+          <div style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 12px;
+            color: #9e9e9e;
+            font-size: 14px;
+          ">
+            <span>Coming soon...</span>
+            <span style="opacity: 0.5;">🔒</span>
+          </div>
+        </div>
+      </div>
 
       <div class="azWide">
         <div class="azCard">
