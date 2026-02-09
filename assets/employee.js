@@ -1324,7 +1324,7 @@ function renderHome(publicData, recordData, userData) {
         <!-- Time Off DESHABILITADO -->
         <div class="azCard" style="background-color: #f5f5f5; color: #757575; border-color: #e0e0e0; opacity: 0.7; cursor: not-allowed; pointer-events: none;">
           <div class="azCardTitle" style="color: #616161;">
-            <span style="opacity: 0.6; margin-right: 6px;">⏳</span>Time Off
+            <span style="opacity: 0.6; margin-right: 6px;"> </span>Time Off
           </div>
           <div class="azCardSub" style="color: #9e9e9e;">
             Request vacation and personal days
@@ -1347,7 +1347,7 @@ function renderHome(publicData, recordData, userData) {
       <div class="azWide">
         <div class="azCard" style="background-color: #f5f5f5; color: #757575; border-color: #e0e0e0; opacity: 0.7; cursor: not-allowed; pointer-events: none;">
           <div class="azCardTitle" style="color: #616161;">
-            <span style="opacity: 0.6; margin-right: 6px;">⏳</span>Payroll & Compensation
+            <span style="opacity: 0.6; margin-right: 6px;"> </span>Payroll & Compensation
           </div>
           <div class="azCardSub" style="color: #9e9e9e;">
             Access pay stubs, tax forms, and direct deposit information
@@ -1363,7 +1363,7 @@ function renderHome(publicData, recordData, userData) {
       <div class="azWide">
         <div class="azCard" style="background-color: #f5f5f5; color: #757575; border-color: #e0e0e0; opacity: 0.7; cursor: not-allowed; pointer-events: none;">
           <div class="azCardTitle" style="color: #616161;">
-            <span style="opacity: 0.6; margin-right: 6px;">⏳</span>Benefits & Perks
+            <span style="opacity: 0.6; margin-right: 6px;"> </span>Benefits & Perks
           </div>
           <div class="azCardSub" style="color: #9e9e9e;">
             Health insurance, 401(k), and employee wellness programs
