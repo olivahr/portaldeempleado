@@ -2373,15 +2373,13 @@ function renderFootwear(userData, saveUserPatch, publicData) {
   const fwPublic = publicData?.footwear || defaultPublicContent().footwear;
   const fw = userData?.footwear || {};
   
-  // IMPORTANTE: Verificar si ya completó la tienda (visitedStore guardado en Firebase)
+  // Verificar si ya completó la tienda (visitedStore guardado en Firebase)
   const visitedStore = userData?.footwear?.visitedStore === true;
   
   // Verificar si acaba de volver de la tienda (sessionStorage temporal)
   const justReturnedFromStore = sessionStorage.getItem("fw_just_returned") === "1";
   
-  // Mostrar botón "I'm Back" solo si:
-  // 1. Acaba de volver de la tienda (justReturnedFromStore)
-  // 2. Y todavía no ha marcado como completado (visitedStore es false)
+  // Mostrar botón "I'm Back" solo si acaba de volver y no ha confirmado visita
   const showBackButton = justReturnedFromStore && !visitedStore;
 
   // ---------- LOCKED ----------
@@ -2452,7 +2450,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     `;
   }
 
-  // ---------- PAGE: INFO + STORE (Siempre visible) ----------
+  // ---------- PAGE CONTENT ----------
   setPage(
     fwPublic.programTitle || "Safety Footwear Program",
     "Required for all warehouse and production positions",
@@ -2460,63 +2458,92 @@ function renderFootwear(userData, saveUserPatch, publicData) {
       <div class="azCard" style="border-left:4px solid rgba(220,38,38,.50);">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
           <div style="color:rgba(220,38,38,1);">${azIcon("alert")}</div>
-          <div class="azCardTitle" style="color:rgba(220,38,38,1);">Mandatory Requirement</div>
+          <div class="azCardTitle" style="color:rgba(220,38,38,1);">OSHA Compliance Requirement</div>
         </div>
         <div class="muted" style="line-height:1.6;">
-          Approved safety footwear is <strong>mandatory</strong> for all operational positions
-          (warehouse, production, assembly, maintenance, and any role entering active work zones).
-          You must have proper safety shoes <strong>before your first day</strong>.
-          Failure to comply may result in rescheduling your start date.
+          In accordance with <strong>OSHA Standard 29 CFR 1910.136</strong>, all personnel entering 
+          operational zones must wear protective footwear. This is a <strong>mandatory condition of employment</strong> 
+          for all warehouse, production, assembly, maintenance, and logistics positions. 
+          Failure to present compliant safety footwear on your first scheduled workday will result 
+          in <strong>immediate exclusion from the facility</strong> and potential rescheduling of your employment start date.
         </div>
       </div>
 
       <div class="azCard" style="margin-top:16px;">
-        ${sectionHeader("Program Overview")}
+        ${sectionHeader("Corporate Footwear Program")}
         <div class="muted" style="line-height:1.7;">
-          SunPower provides a <strong>$100 reimbursement</strong> for approved safety footwear
-          purchased through our designated vendor. This benefit is processed in your <strong>first paycheck</strong>
-          after verification of purchase and first-week attendance.
+          SunPower Corporation provides a <strong>$100.00 reimbursement</strong> for ANSI-compliant 
+          safety footwear purchased through our authorized vendor network. This benefit is classified 
+          as a <strong>conditional advance</strong> and will be processed through payroll on your 
+          first paycheck, contingent upon:
         </div>
+        
+        <ul style="margin:12px 0;padding-left:20px;line-height:1.8;color:rgba(2,6,23,.70);">
+          <li>Verification of purchase through authorized vendor</li>
+          <li>Submission of valid receipt within 30 days of purchase</li>
+          <li>Successful completion of your first week of employment</li>
+          <li>Physical presentation of compliant footwear at orientation</li>
+        </ul>
 
         <div style="margin-top:16px;padding:16px;background:rgba(29,78,216,.04);border-radius:12px;border:1px solid rgba(29,78,216,.15);">
-          <div style="font-weight:1000;font-size:13px;color:rgba(29,78,216,1);margin-bottom:8px;">Required Specifications:</div>
-          <ul class="ul" style="margin:0;padding-left:18px;">
-            <li style="margin:6px 0;">Steel toe or composite toe protection</li>
-            <li style="margin:6px 0;">Slip-resistant outsole</li>
-            <li style="margin:6px 0;">Electrical hazard protection (EH rated)</li>
-            <li style="margin:6px 0;">Ankle support (6&quot; minimum height recommended)</li>
-            <li style="margin:6px 0;">ASTM F2413-18 compliant</li>
+          <div style="font-weight:1000;font-size:13px;color:rgba(29,78,216,1);margin-bottom:10px;">ANSI Z41 / ASTM F2413-18 Requirements:</div>
+          <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.8;color:rgba(2,6,23,.70);">
+            <li><strong>Impact Resistance:</strong> I/75 rating minimum (75 foot-pounds)</li>
+            <li><strong>Compression Resistance:</strong> C/75 rating minimum (2,500 pounds)</li>
+            <li><strong>Metatarsal Protection:</strong> Mt/75 rating (where applicable)</li>
+            <li><strong>Electrical Hazard:</strong> EH rating (20,000 volts maximum, 60 Hz, dry conditions)</li>
+            <li><strong>Static Dissipative:</strong> SD rating (10⁶ to 10⁸ ohms resistance)</li>
+            <li><strong>Puncture Resistance:</strong> PR rating where required by job function</li>
+            <li><strong>Slip Resistance:</strong> Mark II oily/wet testing standards</li>
           </ul>
+        </div>
+
+        <div style="margin-top:16px;padding:14px;background:rgba(234,179,8,.06);border-radius:12px;border:1px solid rgba(234,179,8,.25);">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span style="color:rgba(234,179,8,1);">${azIcon("alert")}</span>
+            <span style="font-weight:1000;font-size:12px;color:rgba(234,179,8,1);">EXCLUSIONS & LIMITATIONS</span>
+          </div>
+          <div style="font-size:12px;line-height:1.6;color:rgba(2,6,23,.65);">
+            Athletic shoes, hiking boots, and non-ANSI compliant footwear are <strong>strictly prohibited</strong> 
+            regardless of steel toe presence. Open-toe, open-heel, or canvas construction footwear is 
+            <strong>never permitted</strong> in operational areas. Reimbursement is limited to one (1) pair per 
+            employee per calendar year, maximum $100.00 including taxes and shipping.
+          </div>
         </div>
       </div>
 
       <div class="azCard" style="margin-top:16px;background:rgba(2,6,23,.03);">
-        <div class="azCardTitle">🛒 Purchase Your Safety Shoes</div>
+        <div class="azCardTitle">🛒 Authorized Vendor Portal</div>
         <div class="muted" style="line-height:1.6;margin-top:8px;">
-          Use the official vendor link below to browse approved styles and complete your purchase.
-          Keep your receipt for verification. Use your employee ID at checkout if prompted.
+          Access our corporate vendor portal to browse pre-approved footwear models that meet all 
+          SunPower safety specifications. Use your Employee ID at checkout for automatic program enrollment.
+          <strong>Important:</strong> Purchases made outside this portal are ineligible for reimbursement.
         </div>
 
         ${!visitedStore ? `
           <button class="btn primary" id="btnGoStore"
-            style="display:block;width:100%;text-align:center;margin-top:12px;border-radius:16px;">
-            Open Safety Footwear Store
+            style="display:block;width:100%;text-align:center;margin-top:14px;border-radius:16px;padding:14px;">
+            Open Authorized Vendor Portal
           </button>
           
           ${showBackButton ? `
             <button class="btn ghost" id="btnImBack"
-              style="display:block;width:100%;text-align:center;margin-top:10px;border-radius:16px;">
-              I'm Back From The Store (Unlock Next Step)
+              style="display:block;width:100%;text-align:center;margin-top:12px;border-radius:16px;padding:14px;border:2px solid #2563eb;color:#2563eb;">
+              ✓ I've Completed My Purchase - Continue to Acknowledgements
             </button>
           ` : `
-            <div class="small muted" style="margin-top:10px;line-height:1.4;text-align:center;">
-              After you finish shopping, return to this page to complete the acknowledgements and continue to the next step.
+            <div class="small muted" style="margin-top:14px;line-height:1.5;text-align:center;padding:12px;background:rgba(2,6,23,.04);border-radius:10px;">
+              After completing your purchase through the authorized vendor, return to this page 
+              and click the confirmation button above to proceed with your employment documentation.
             </div>
           `}
         ` : `
-          <div style="margin-top:12px;padding:12px;background:rgba(22,163,74,.10);border-radius:12px;border:1px solid rgba(22,163,74,.25);">
-            <div style="display:flex;align-items:center;gap:8px;color:rgba(22,163,74,1);font-weight:1000;">
-              ${azIcon("check")} Store visit completed
+          <div style="margin-top:14px;padding:14px;background:rgba(22,163,74,.10);border-radius:12px;border:1px solid rgba(22,163,74,.25);">
+            <div style="display:flex;align-items:center;gap:10px;color:rgba(22,163,74,1);font-weight:1000;">
+              ${azIcon("check")} Vendor portal access confirmed
+            </div>
+            <div style="font-size:12px;color:rgba(2,6,23,.60);margin-top:6px;">
+              Completed on ${new Date(fw.visitedAt || Date.now()).toLocaleDateString()}
             </div>
           </div>
         `}
@@ -2524,29 +2551,40 @@ function renderFootwear(userData, saveUserPatch, publicData) {
 
       ${!visitedStore && !showBackButton ? `
         <div class="azCard" style="margin-top:16px;border:1px dashed rgba(29,78,216,.35);background:rgba(29,78,216,.03);">
-          <div class="azCardTitle">Next Step Locked</div>
+          <div class="azCardTitle">⏳ Awaiting Vendor Portal Access</div>
           <div class="muted" style="line-height:1.6;margin-top:8px;">
-            To continue, please open the vendor store first. Once you return, the acknowledgement section will unlock.
+            This step requires verification of safety footwear procurement through our authorized vendor. 
+            Please click "Open Authorized Vendor Portal" above to browse options and complete your purchase.
           </div>
         </div>
       ` : ''}
 
       ${visitedStore ? `
         <div class="azCard" style="margin-top:16px;">
-          ${sectionHeader("Required Acknowledgements")}
-          ${ackRow("fwAck1", fw.ack1, "I understand that safety footwear is mandatory and must be worn at all times in operational areas.")}
-          ${ackRow("fwAck2", fw.ack2, "I will purchase approved safety footwear before my first scheduled work day.")}
-          ${ackRow("fwAck3", fw.ack3, "I understand that purchases must be made through the designated vendor to qualify for reimbursement.")}
-          ${ackRow("fwAck4", fw.ack4, "I understand that reimbursement requires proof of purchase and completion of first week.")}
-          ${ackRow("fwAck5", fw.ack5, "I acknowledge that failure to wear proper safety equipment may result in disciplinary action.")}
+          ${sectionHeader("Legal Acknowledgements & Compliance Agreement")}
+          <div class="muted" style="font-size:12px;line-height:1.6;margin-bottom:16px;color:rgba(2,6,23,.65);">
+            By selecting each item below, you acknowledge understanding and agreement to these 
+            legally binding terms regarding safety footwear compliance. These acknowledgements 
+            become part of your permanent employment record.
+          </div>
+          
+          ${ackRow("fwAck1", fw.ack1, "I acknowledge that OSHA-compliant safety footwear is a mandatory condition of employment and I will wear approved protective footwear at all times while in operational, warehouse, production, or maintenance areas.")}
+          
+          ${ackRow("fwAck2", fw.ack2, "I confirm that I will purchase and possess ANSI Z41/ASTM F2413-18 compliant safety footwear prior to my first scheduled workday and will present this footwear during orientation check-in.")}
+          
+          ${ackRow("fwAck3", fw.ack3, "I understand that reimbursement of up to $100.00 is available only for purchases made through SunPower's authorized vendor portal, and I agree to submit valid receipts within 30 days of purchase.")}
+          
+          ${ackRow("fwAck4", fw.ack4, "I acknowledge that failure to wear proper safety footwear will result in immediate removal from operational areas, potential disciplinary action up to and including termination, and forfeiture of any conditional reimbursement.")}
+          
+          ${ackRow("fwAck5", fw.ack5, "I understand that SunPower reserves the right to inspect footwear for compliance at any time, and I agree to replace non-compliant footwear immediately upon notification at my own expense.")}
 
           <button class="btn primary" id="btnFootwearNext" type="button"
             style="display:block;width:100%;text-align:center;border-radius:16px;padding:16px;margin-top:20px;opacity:.6;" disabled>
-            Continue to I-9 Verification
+            Continue to I-9 Employment Eligibility Verification
           </button>
 
           <div class="small muted" style="margin-top:12px;line-height:1.4;text-align:center;">
-            This button will unlock after all acknowledgements are selected.
+            All five (5) acknowledgements are required to proceed. This action is recorded in your employment file.
           </div>
         </div>
       ` : ''}
@@ -2559,7 +2597,6 @@ function renderFootwear(userData, saveUserPatch, publicData) {
   const btnGoStore = document.getElementById("btnGoStore");
   if (btnGoStore) {
     btnGoStore.onclick = () => {
-      // Marcar que va a la tienda - al volver, mostrará el botón "I'm Back"
       try { 
         sessionStorage.setItem("fw_store_opened", "1"); 
         sessionStorage.setItem("fw_just_returned", "1"); 
@@ -2568,12 +2605,12 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     };
   }
 
-    // 2) BOTÓN "I'M BACK FROM THE STORE" - VERSIÓN ALTERNATIVA
+  // 2) BOTÓN "I'M BACK FROM THE STORE"
   const btnImBack = document.getElementById("btnImBack");
   if (btnImBack) {
     btnImBack.onclick = async () => {
       btnImBack.disabled = true;
-      btnImBack.textContent = "Saving...";
+      btnImBack.textContent = "Confirming purchase...";
       
       try {
         const currentFw = userData?.footwear || {};
@@ -2592,31 +2629,18 @@ function renderFootwear(userData, saveUserPatch, publicData) {
           sessionStorage.removeItem("fw_just_returned"); 
         } catch (e) {}
         
-        uiToast("Saved! Continuing...");
+        uiToast("Purchase confirmed! Loading compliance acknowledgements...");
         
-        // En lugar de reload, forzar navegación al mismo hash para re-render
+        // Esperar un poco y recargar
         setTimeout(() => {
-          location.hash = "#footwear";
           window.location.reload();
-        }, 800);
+        }, 1000);
         
-      } catch (e) {
-        console.error("Error:", e);
-        uiToast("Error: " + (e.message || "Unknown error"));
-        btnImBack.disabled = false;
-        btnImBack.textContent = "I'm Back From The Store (Unlock Next Step)";
-      }
-    };
-  }
-        
-        // Mostrar mensaje de éxito
-        uiToast("Store visit confirmed! Loading acknowledgements...");
-        
-        // Recargar para mostrar las acknowledgements
-        window.location.reload();
       } catch (e) {
         console.error("Error saving store visit:", e);
-        uiToast("Error saving progress. Please try again.");
+        uiToast("Error: " + (e.message || "Could not save progress. Please try again."));
+        btnImBack.disabled = false;
+        btnImBack.textContent = "✓ I've Completed My Purchase - Continue to Acknowledgements";
       }
     };
   }
@@ -2643,7 +2667,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     btnNext.style.opacity = st.all ? "1" : ".6";
   };
 
-  // Autosave acks (para que si refresca, se queden marcados)
+  // Autosave acks
   let t = null;
   const autosave = () => {
     const st = readAcks();
@@ -2677,7 +2701,7 @@ function renderFootwear(userData, saveUserPatch, publicData) {
     btnNext.onclick = async () => {
       const st = readAcks();
       if (!st.all) {
-        uiToast("Please confirm all acknowledgements.");
+        uiToast("Please confirm all five legal acknowledgements to proceed.");
         return;
       }
 
@@ -2699,11 +2723,12 @@ function renderFootwear(userData, saveUserPatch, publicData) {
         stage: "i9"
       });
 
-      uiToast("Safety footwear step completed!");
+      uiToast("Safety footwear compliance completed. Proceeding to I-9 Verification...");
       location.hash = "#i9";
     };
   }
 }
+
 function renderI9(userData, saveUserPatch) {
   const status = getStepStatus("i9", userData);
   
