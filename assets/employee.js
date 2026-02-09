@@ -1487,157 +1487,267 @@ function renderProfile(userData, recordData) {
     `
   );
 }
-
 // ===============================
-// CHAT - HR Communication
+// CHAT - HR Communication - VERSION MEJORADA
 // ===============================
 function renderChat(userData, empId) {
-  // Respuestas automáticas del bot
-  const autoResponses = {
-    // Preguntas sobre horarios
-    'horario': 'Los horarios de trabajo son de lunes a viernes, 6:00 AM a 2:30 PM para turno temprano, 2:00 PM a 10:30 PM para turno medio.',
-    'schedule': 'Puedes ver tu horario en la sección "My Schedule". Tu supervisor confirmará tu horario final.',
-    'turno': 'Los turnos disponibles son: Temprano (6AM-2:30PM), Medio (2PM-10:30PM), Nocturno (10PM-6:30AM).',
+  // Sistema mejorado de respuestas automáticas
+  const autoResponses = [
+    // Saludos y preguntas generales
+    { pattern: /hola|hi|hello/i, response: '¡Hola! Soy el asistente virtual de SunPower HR. ¿En qué puedo ayudarte hoy?' },
+    { pattern: /cómo estás|how are you/i, response: 'Estoy aquí para ayudarte con tus preguntas de recursos humanos. ¿En qué puedo asistirte?' },
+    { pattern: /gracias|thank you|thanks/i, response: '¡De nada! Si necesitas más ayuda, no dudes en preguntar.' },
     
-    // Preguntas sobre pago
-    'pago': 'El pago es semanal cada viernes. Tu primer cheque llegará el viernes después de tu primera semana completa.',
-    'payroll': 'Accede a tu información de nómina en la sección "Payroll" después de tu primer pago.',
-    'salario': 'El salario inicial varía según la posición, desde $18 hasta $24 por hora.',
+    // Horarios y turnos
+    { pattern: /horario|schedule|turno|shift/i, response: 'Los horarios disponibles son:<br>• Turno Temprano: 6:00 AM - 2:30 PM<br>• Turno Medio: 2:00 PM - 10:30 PM<br>• Turno Nocturno: 10:00 PM - 6:30 AM (con diferencial +$1.50/hr)<br><br>Tu horario se confirmará después de la aprobación de tu selección.' },
+    { pattern: /cambio de turno|change shift/i, response: 'Para solicitar un cambio de turno, debes completar tu primera semana. Luego puedes enviar la solicitud desde "My Schedule".' },
+    { pattern: /supervisor|jefe/i, response: 'Tu supervisor será asignado durante tu primer día de trabajo. Contacta a HR si necesitas información urgente.' },
     
-    // Preguntas sobre beneficios
-    'beneficios': 'Los beneficios incluyen seguro médico, dental, visión, 401(k) con aporte de la empresa, y PTO acumulativo.',
-    'seguro': 'El seguro médico comienza el primer día de trabajo para empleados de tiempo completo.',
+    // Pago y nómina
+    { pattern: /pago|salario|pay|paycheck|nómina|salary/i, response: 'Información de pago:<br>• Frecuencia: Semanal (cada viernes)<br>• Primer pago: Viernes después de tu primera semana completa<br>• Método: Direct deposit (configurar primer día)<br><br>Accede a "Payroll" después de tu primer pago.' },
+    { pattern: /impuestos|taxes|w-4/i, response: 'El formulario W-4 estará disponible después de tu primera semana. HR te ayudará a completarlo.' },
+    { pattern: /depósito directo|direct deposit|cuenta bancaria/i, response: 'Configura tu direct deposit durante tu primer día de orientación. Trae tu número de cuenta y routing.' },
     
-    // Preguntas generales
-    'hola': '¡Hola! Soy el asistente virtual de SunPower HR. ¿En qué puedo ayudarte hoy?',
-    'help': 'Puedo ayudarte con: horarios, nómina, beneficios, calzado de seguridad, y proceso de onboarding.',
-    'hr': 'Para contactar a HR directamente: Tel: (800) 876-4321 | Email: hr@sunpowerc.energy',
+    // Beneficios
+    { pattern: /beneficios|benefits|seguro|insurance/i, response: 'Beneficios de SunPower:<br>• Seguro médico, dental y visión (día 1)<br>• 401(k) con aporte de la empresa<br>• PTO acumulativo<br>• Programa de calzado de seguridad ($100 reembolso)<br><br>Detalles completos en "Benefits & Time Off".' },
+    { pattern: /vacaciones|time off|pto|días libres/i, response: 'El PTO se acumula según tu antigüedad. Puedes solicitar tiempo libre después de 90 días desde la sección "Benefits & Time Off".' },
     
-    // Preguntas de onboarding
-    'onboarding': 'Tu proceso de onboarding incluye: 1) Selección de turno, 2) Calzado de seguridad, 3) Verificación I-9, 4) Foto credencial, 5) Primer día.',
-    'first day': 'Tu primer día: Llega 15 minutos antes, trae identificación, tarjeta del seguro social, y calzado de seguridad.',
-    'calzado': 'El calzado de seguridad debe cumplir con ANSI Z41. Tienes un reembolso de $100 a través de nuestro proveedor autorizado.',
+    // Onboarding y primer día
+    { pattern: /primer día|first day|orientación|orientation/i, response: 'Para tu primer día:<br>1. Llega 15 minutos antes<br>2. Trae documentos originales (ID, seguro social)<br>3. Usa calzado de seguridad aprobado<br>4. Trae tu smartphone para la app<br><br>Verifica tu cita en "Progress".' },
+    { pattern: /documentos|documents|i-9/i, response: 'Para I-9 necesitas:<br>• Pasaporte estadounidense O<br>• Licencia de conducir + Seguro social<br><br>Documentos ORIGINALES, no copias.' },
+    { pattern: /calzado|footwear|zapatos de seguridad/i, response: 'Calzado requerido:<br>• Cumplir ANSI Z41 / ASTM F2413-18<br>• Reembolso de $100 por proveedor autorizado<br>• Obligatorio para el primer día<br><br>Compra desde "Safety Footwear".' },
     
-    // Preguntas sobre la empresa
-    'sunpower': 'SunPower es líder en energía solar, fabricando paneles solares de alta eficiencia en nuestras instalaciones.',
-    'ubicación': 'Nuestra fábrica está ubicada en: [Dirección de la instalación]. El transporte público está disponible.',
-  };
+    // Contacto y soporte
+    { pattern: /contactar hr|hablar con humano|human/i, response: 'Para hablar con un representante de HR:<br>• Teléfono: (800) 876-4321<br>• Email: hr@sunpowerc.energy<br>• Horario: Lunes-Viernes 8AM-6PM EST<br><br>¿Te gustaría que te contactemos?' },
+    { pattern: /emergencia|911|accidente/i, response: '⚠️ <strong>EMERGENCIA:</strong><br>1. Llama al 911 inmediatamente<br>2. Notifica a tu supervisor<br>3. Contacta a HR después<br><br>Teléfono de seguridad: (615) 786-9543' },
+    
+    // Compañía e instalaciones
+    { pattern: /sunpower|empresa|company/i, response: 'SunPower es líder en energía solar con fábricas en Norteamérica. Fabricamos paneles solares de alta eficiencia para hogares y empresas.' },
+    { pattern: /ubicación|location|dirección|address/i, response: 'Nuestra instalación está ubicada en [Dirección de la fábrica].<br><br>Transporte público disponible:<br>• Ruta 25: Para desde frente<br>• Estación Central: 10 min caminando' },
+    { pattern: /transporte|transportation|commute/i, response: 'Opciones de transporte:<br>• Estacionamiento gratuito en sitio<br>• Parada de autobús frente a instalación<br>• Programa de viajes compartidos disponible' },
+    
+    // Tecnología y app
+    { pattern: /app|aplicación|mobile|teléfono/i, response: 'La app SunPower Employee incluye:<br>• Horario y timecard<br>• Pay stubs y documentos<br>• Comunicación con HR<br>• Noticias de la empresa<br><br>Descarga durante tu primer día.' },
+    { pattern: /contraseña|password|login|acceso/i, response: 'Para problemas de acceso:<br>1. Usa "Forgot Password" en login<br>2. Contacta a IT support: itsupport@sunpowerc.energy<br>3. Llama a HR: (800) 876-4321' }
+  ];
+  
+  // Preguntas frecuentes para botones rápidos
+  const quickQuestions = [
+    { text: "📅 Horarios", q: "¿Cuáles son los horarios de trabajo?" },
+    { text: "💰 Pago", q: "¿Cuándo y cómo me pagan?" },
+    { text: "🏥 Beneficios", q: "¿Qué beneficios ofrece SunPower?" },
+    { text: "👟 Calzado", q: "Requisitos de calzado de seguridad" },
+    { text: "📋 Primer día", q: "¿Qué llevar el primer día?" },
+    { text: "📞 Contactar HR", q: "Necesito hablar con un humano" },
+    { text: "📱 App", q: "¿Cómo descargo la app de empleado?" },
+    { text: "🚌 Transporte", q: "Opciones de transporte a la fábrica" }
+  ];
 
   setPage(
     "HR Chat",
-    "Asistente virtual de Recursos Humanos",
+    "Asistente virtual 24/7 - Respuestas automáticas",
     `
       <div class="chat-container">
         <div class="chat-messages" id="chatMessages">
           <div class="chat-message admin">
-            <div>¡Hola! Soy el asistente virtual de SunPower HR.</div>
-            <div class="chat-time">Puedo ayudarte con: horarios, nómina, beneficios, y más. ¿En qué puedo asistirte hoy?</div>
+            <div>¡Hola! Soy tu asistente virtual de SunPower HR.</div>
+            <div class="chat-time">Puedo responder preguntas sobre horarios, pago, beneficios, onboarding y más. ¿En qué puedo ayudarte?</div>
           </div>
         </div>
         <div class="chat-input-area">
-          <input type="text" class="chat-input" id="chatInput" placeholder="Escribe tu pregunta aquí..." maxlength="500">
+          <input type="text" class="chat-input" id="chatInput" placeholder="Escribe tu pregunta aquí..." maxlength="500" autocomplete="off">
           <button class="chat-send" id="chatSendBtn">${azIcon("send")}</button>
         </div>
       </div>
       
       <div class="azCard" style="margin-top:16px;">
-        ${sectionHeader("Temas comunes")}
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
-          <button class="btn sm ghost quick-question" data-q="horario">📅 Horarios</button>
-          <button class="btn sm ghost quick-question" data-q="pago">💰 Nómina</button>
-          <button class="btn sm ghost quick-question" data-q="beneficios">🏥 Beneficios</button>
-          <button class="btn sm ghost quick-question" data-q="first day">📋 Primer día</button>
-          <button class="btn sm ghost quick-question" data-q="calzado">👢 Calzado seguro</button>
-          <button class="btn sm ghost quick-question" data-q="hr">📞 Contactar HR</button>
+        ${sectionHeader("💬 Preguntas frecuentes")}
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;" id="quickQuestions">
+          ${quickQuestions.map(q => `
+            <button class="btn sm ghost quick-question" data-q="${escapeHtml(q.q)}">
+              ${escapeHtml(q.text)}
+            </button>
+          `).join('')}
         </div>
       </div>
       
       <div class="azCard" style="margin-top:16px;">
-        ${sectionHeader("Chat en vivo con HR")}
+        ${sectionHeader("🤖 ¿Cómo funciona?")}
         <div class="muted" style="line-height:1.6;">
-          <strong>¿Necesitas hablar con un humano?</strong><br>
-          <strong>Lunes - Viernes:</strong> 8:00 AM - 6:00 PM EST<br>
-          <strong>Sábado:</strong> 9:00 AM - 2:00 PM EST<br>
-          <strong>Teléfono de emergencia:</strong> (800) 876-4321
+          <strong>Asistente virtual automático:</strong><br>
+          • Responde 24/7 a tus preguntas<br>
+          • Proporciona información oficial de SunPower<br>
+          • Sugiere contactar HR cuando sea necesario<br>
+          • Guarda tu historial de conversación
+        </div>
+      </div>
+      
+      <div class="azCard" style="margin-top:16px;">
+        ${sectionHeader("📞 Contacto humano")}
+        <div class="muted" style="line-height:1.6;">
+          <strong>HR Directo:</strong><br>
+          <strong>Teléfono:</strong> (800) 876-4321<br>
+          <strong>Email:</strong> hr@sunpowerc.energy<br>
+          <strong>Horario:</strong> Lunes-Viernes 8:00 AM - 6:00 PM EST<br>
+          <strong>Emergencia 24/7:</strong> (615) 786-9543
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <a class="btn sm primary" href="tel:8008764321" style="flex:1;text-align:center;">
+            Llamar a HR
+          </a>
+          <a class="btn sm ghost" href="mailto:hr@sunpowerc.energy" style="flex:1;text-align:center;">
+            Email HR
+          </a>
         </div>
       </div>
     `
   );
 
-  // Cargar mensajes existentes
+  // Cargar mensajes existentes desde Firestore (solo lectura, no escritura)
   loadChatMessages(empId);
 
   // Setup send functionality
   const sendBtn = document.getElementById("chatSendBtn");
   const input = document.getElementById("chatInput");
   
+  // Función mejorada para obtener respuesta automática
   const getAutoResponse = (question) => {
-    const qLower = question.toLowerCase();
+    const qLower = question.toLowerCase().trim();
     
-    // Buscar coincidencias en las respuestas automáticas
-    for (const [key, response] of Object.entries(autoResponses)) {
-      if (qLower.includes(key.toLowerCase())) {
-        return response;
+    // 1. Buscar coincidencia con patrones
+    for (const rule of autoResponses) {
+      if (rule.pattern.test(qLower)) {
+        return rule.response;
       }
     }
     
-    // Respuesta por defecto si no encuentra coincidencia
-    return `Gracias por tu pregunta sobre "${question}". Para una respuesta específica, por favor contacta a HR directamente al (800) 876-4321 o envía un ticket de soporte desde la sección "Help & Support".`;
+    // 2. Si pregunta sobre contacto humano, ofrecer opción
+    if (qLower.includes('humano') || qLower.includes('persona') || qLower.includes('representante')) {
+      return `Entiendo que prefieres hablar con un humano. ¿Te gustaría que un representante de HR te contacte dentro de 24 horas hábiles?`;
+    }
+    
+    // 3. Respuesta por defecto inteligente
+    const topics = ['horario', 'pago', 'beneficio', 'documento', 'primer día', 'calzado', 'app', 'transporte'];
+    const matchedTopic = topics.find(topic => qLower.includes(topic));
+    
+    if (matchedTopic) {
+      return `Tengo información sobre ${matchedTopic}. Para una respuesta específica a tu pregunta, por favor:<br><br>1. Contacta a HR al (800) 876-4321<br>2. O usa los botones de preguntas frecuentes arriba`;
+    }
+    
+    // 4. Respuesta genérica
+    return `Gracias por tu pregunta. Para obtener la información más precisa sobre "${question}", te recomiendo:<br><br>• Revisar la sección correspondiente en el portal<br>• Contactar a HR al (800) 876-4321<br>• Usar los botones de preguntas frecuentes arriba`;
   };
   
+  // Función para agregar mensaje a la UI
+  const addMessageToUI = (text, sender, time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })) => {
+    const messagesDiv = document.getElementById("chatMessages");
+    if (!messagesDiv) return;
+    
+    const messageDiv = document.createElement("div");
+    messageDiv.className = `chat-message ${sender}`;
+    messageDiv.innerHTML = `
+      <div>${text}</div>
+      <div class="chat-time">${time}</div>
+    `;
+    
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  };
+  
+  // Función para mostrar indicador de "escribiendo"
+  const showTypingIndicator = () => {
+    const messagesDiv = document.getElementById("chatMessages");
+    if (!messagesDiv) return null;
+    
+    const indicator = document.createElement("div");
+    indicator.className = "chat-message admin typing";
+    indicator.innerHTML = `
+      <div style="display:flex;gap:4px;align-items:center;">
+        <div class="typing-dot" style="animation-delay:0s"></div>
+        <div class="typing-dot" style="animation-delay:0.2s"></div>
+        <div class="typing-dot" style="animation-delay:0.4s"></div>
+      </div>
+    `;
+    
+    messagesDiv.appendChild(indicator);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    return indicator;
+  };
+  
+  // Función principal para enviar mensaje
   const sendMessage = async () => {
     const text = input.value.trim();
     if (!text) return;
     
-    // Mostrar mensaje del usuario inmediatamente
-    addMessageToUI(text, "employee", new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    // 1. Mostrar mensaje del usuario
+    addMessageToUI(text, "employee");
     input.value = "";
     
-    // Simular "escribiendo..."
-    const typingIndicator = document.createElement("div");
-    typingIndicator.className = "chat-message admin typing";
-    typingIndicator.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div>`;
-    document.getElementById("chatMessages").appendChild(typingIndicator);
-    document.getElementById("chatMessages").scrollTop = document.getElementById("chatMessages").scrollHeight;
+    // 2. Mostrar indicador de "escribiendo"
+    const typingIndicator = showTypingIndicator();
     
-    // Esperar 1-2 segundos (simular respuesta)
+    // 3. Simular tiempo de respuesta (1-2 segundos)
+    const responseDelay = 1000 + Math.random() * 1000;
+    
     setTimeout(() => {
-      // Remover indicador de escribiendo
-      typingIndicator.remove();
+      // 4. Remover indicador
+      if (typingIndicator) typingIndicator.remove();
       
-      // Obtener respuesta automática
+      // 5. Obtener respuesta automática
       const response = getAutoResponse(text);
       
-      // Mostrar respuesta
-      addMessageToUI(response, "admin", new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      // 6. Mostrar respuesta
+      addMessageToUI(response, "admin");
       
-      // Si es pregunta de contacto, mostrar botón
-      if (text.toLowerCase().includes('contactar') || text.toLowerCase().includes('humano')) {
+      // 7. Si es pregunta de contacto humano, mostrar botón
+      if (text.toLowerCase().includes('humano') || text.toLowerCase().includes('contactar') || 
+          response.includes('¿Te gustaría que un representante')) {
         setTimeout(() => {
           const contactBtn = document.createElement("div");
           contactBtn.className = "chat-message admin";
           contactBtn.innerHTML = `
-            <div>¿Te gustaría que un representante de HR te contacte?</div>
-            <button class="btn sm primary" id="requestCall" style="margin-top:8px;">Sí, solicitar llamada</button>
+            <div>¿Deseas que HR te contacte?</div>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button class="btn sm primary request-call" data-type="call">
+                Sí, llamada
+              </button>
+              <button class="btn sm ghost request-call" data-type="email">
+                Sí, email
+              </button>
+            </div>
           `;
           document.getElementById("chatMessages").appendChild(contactBtn);
           document.getElementById("chatMessages").scrollTop = document.getElementById("chatMessages").scrollHeight;
           
-          document.getElementById("requestCall")?.addEventListener("click", () => {
-            addMessageToUI("✅ Solicitud enviada. HR te contactará dentro de 24 horas hábiles.", "admin", new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+          // Configurar botones de solicitud
+          document.querySelectorAll('.request-call').forEach(btn => {
+            btn.addEventListener('click', function() {
+              const type = this.dataset.type;
+              const confirmMsg = type === 'call' 
+                ? '✅ Solicitud de llamada enviada. HR te contactará dentro de 24 horas hábiles.'
+                : '✅ Solicitud de email enviada. Recibirás respuesta dentro de 24 horas hábiles.';
+              
+              addMessageToUI(confirmMsg, "admin");
+              this.parentElement.parentElement.remove();
+            });
           });
         }, 500);
       }
       
-    }, 1500 + Math.random() * 1000); // Respuesta aleatoria entre 1.5-2.5 segundos
+      // 8. Opcional: Guardar en Firestore (solo lectura en esta versión)
+      // Si quieres guardar el historial, descomenta:
+      // saveChatMessage(empId, text, response);
+      
+    }, responseDelay);
   };
 
+  // Configurar eventos
   sendBtn.onclick = sendMessage;
   input.addEventListener("keypress", (e) => {
     if (e.key === "Enter") sendMessage();
   });
   
-  // Agregar preguntas rápidas
+  // Configurar preguntas rápidas
   setTimeout(() => {
     document.querySelectorAll('.quick-question').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1647,8 +1757,25 @@ function renderChat(userData, empId) {
       });
     });
   }, 100);
+  
+  // Agregar estilos CSS para los puntos de escritura
+  const style = document.createElement('style');
+  style.textContent = `
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background-color: rgba(2,6,23,.3);
+      border-radius: 50%;
+      animation: typingBounce 1.4s infinite ease-in-out;
+    }
+    
+    @keyframes typingBounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+  `;
+  document.head.appendChild(style);
 }
-
 // ===============================
 // SCHEDULE: Tabs + Calendar
 // ===============================
