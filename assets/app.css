@@ -603,8 +603,8 @@ body {
   }
   
   .quick-questions .btn.quick-question {
-    width: 100%;
-    justify-content: center;
+    flex: 1 1 calc(50% - 4px);
+    min-width: 140px;
   }
 }
 
