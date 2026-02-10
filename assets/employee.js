@@ -227,33 +227,50 @@ async function ensureEmployeeId(user) {
   const snap = await getDoc(userRef);
   const data = snap.exists() ? snap.data() : {};
 
+  // Si ya tiene ID asignado, retornarlo
   if (data?.employeeId) return data.employeeId;
 
+  // Pedir ID al usuario
   let empId = prompt("Enter your Employee ID (example: SP023):");
   empId = normalizeEmpId(empId);
 
-  if (!empId) throw new Error("Employee ID required.");
+  if (!empId) throw new Error("Employee ID required. Format: SP001, SP023, etc.");
 
+  // ✅ VALIDACIÓN ESTRICTA: Verificar que exista en allowedEmployees
   const allowedRef = doc(db, "allowedEmployees", empId);
   const allowedSnap = await getDoc(allowedRef);
 
-  let ok = false;
-
-  if (allowedSnap.exists()) {
-    ok = (allowedSnap.data()?.active === true);
-  } else {
-    const n = empIdToNumber(empId);
-    if (n !== null && n >= EMP_ID_RANGE.min && n <= EMP_ID_RANGE.max) {
-      ok = true;
-      if (AUTO_CREATE_ALLOWED_ID) {
-        await setDoc(allowedRef, { active: true, createdAt: serverTimestamp() }, { merge: true });
-      }
-    }
+  // ❌ SI NO EXISTE EN ADMIN: Error inmediato
+  if (!allowedSnap.exists()) {
+    throw new Error(`Employee ID ${empId} NOT FOUND. Contact HR to register your ID in the admin portal first.`);
   }
 
-  if (!ok) throw new Error("Invalid Employee ID. Contact HR.");
+  const empData = allowedSnap.data();
 
-  await setDoc(userRef, { employeeId: empId, updatedAt: serverTimestamp() }, { merge: true });
+  // ❌ SI ESTÁ INACTIVO: Error
+  if (empData.active !== true) {
+    throw new Error(`Employee ID ${empId} is INACTIVE. Contact HR.`);
+  }
+
+  // ❌ SI YA ESTÁ VINCULADO A OTRO USUARIO: Error
+  if (empData.uid && empData.uid !== "" && empData.uid !== user.uid) {
+    throw new Error(`Employee ID ${empId} is already registered to another account.`);
+  }
+
+  // ✅ TODO OK: Guardar en user y actualizar allowedEmployees con el UID
+  await setDoc(userRef, { 
+    employeeId: empId, 
+    updatedAt: serverTimestamp() 
+  }, { merge: true });
+
+  // Vincular el UID en allowedEmployees para evitar re-uso
+  await setDoc(allowedRef, {
+    uid: user.uid,
+    email: user.email,
+    registeredAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  }, { merge: true });
+
   return empId;
 }
 
