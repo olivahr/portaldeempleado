@@ -724,3 +724,50 @@ body {
   background: var(--primary-100);
   color: var(--primary-900);
 }
+
+/* ============================================
+   QUICK QUESTIONS - BOTONES VISIBLES
+   ============================================ */
+
+.quick-questions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.quick-questions .btn.quick-q {
+    background: #ffffff;
+    border: 2px solid var(--gray-300);
+    color: var(--gray-800);
+    padding: 16px 20px;
+    border-radius: var(--radius);
+    text-align: left;
+    font-size: 15px;
+    font-weight: 600;
+    justify-content: flex-start;
+    box-shadow: var(--shadow-xs);
+    transition: all 0.2s ease;
+    width: 100%;
+    line-height: 1.4;
+}
+
+.quick-questions .btn.quick-q:hover {
+    background: var(--primary-50);
+    border-color: var(--primary-500);
+    color: var(--primary-800);
+    box-shadow: var(--shadow-sm);
+    transform: translateX(6px);
+}
+
+.quick-questions .btn.quick-q:active {
+    transform: translateX(2px);
+}
+
+/* Icono al inicio */
+.quick-questions .btn.quick-q::before {
+    content: '❓';
+    margin-right: 12px;
+    font-size: 18px;
+    flex-shrink: 0;
+}
