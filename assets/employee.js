@@ -4226,7 +4226,14 @@ export async function initEmployeeApp() {
      
       await ensureUserDocExists(user);
 
-      const empId = await ensureEmployeeId(user);
+      let empId;
+      try {
+        empId = await ensureEmployeeId(user);
+      } catch (idError) {
+        alert(idError.message);
+        window.location.href = "./index.html";
+        return;
+      }
       uiSetText(badge, empId);
 
       const userRef = doc(db, "users", user.uid);
