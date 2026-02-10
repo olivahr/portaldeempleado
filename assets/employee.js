@@ -1596,7 +1596,7 @@ function renderChat(userData, empId) {
       
       <div class="azCard" style="margin-top:16px;">
         ${sectionHeader("Quick Questions")}
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;" id="quickQuestions">
+        <div class="quick-questions" id="quickQuestions">
           ${quickQuestions.map(q => `
             <button class="btn sm ghost quick-question" data-q="${escapeHtml(q.q)}">
               ${escapeHtml(q.text)}
