@@ -71,7 +71,6 @@ async function loadCurrentEmployee() {
         await loadProfileData();
         await loadAppointmentData();
         await loadShiftData();
-        await initChat();
         await loadNotifications();
         await loadProgressData();
         
