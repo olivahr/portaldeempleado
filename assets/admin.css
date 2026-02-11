@@ -1371,3 +1371,33 @@ body::before {
         transition-duration: 0.01ms !important;
     }
 }
+
+/* Fix para pestañas activas - texto visible */
+.tab.active {
+    color: #ffffff !important; /* Texto blanco en pestaña activa */
+    background-color: #2563eb; /* Azul de fondo */
+}
+
+.tab.active .tab-icon,
+.tab.active svg {
+    color: #ffffff !important; /* Icono también blanco */
+    fill: #ffffff !important;
+}
+
+/* Asegurar que el texto no se tape */
+.tab {
+    position: relative;
+    z-index: 1;
+}
+
+.tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 3px;
+    background-color: #f59e0b; /* Línea amarilla indicadora */
+    border-radius: 2px;
+}
