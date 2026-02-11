@@ -1401,3 +1401,16 @@ body::before {
     background-color: #f59e0b; /* Línea amarilla indicadora */
     border-radius: 2px;
 }
+
+/* FIX ULTRA FUERTE para pestañas activas */
+.tab.active,
+.tab.active *,
+.tab.active span,
+.tab.active div,
+.tab.active i,
+.tab.active svg {
+    color: #ffffff !important;
+    fill: #ffffff !important;
+    background-color: transparent !important;
+    -webkit-text-fill-color: #ffffff !important;
+}
