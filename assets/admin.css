@@ -1443,3 +1443,59 @@ body::before {
 html {
     scroll-padding-top: 200px; /* Altura del header completo */
 }
+
+/* ============================================
+   FIX: PESTAÑAS SIEMPRE VISIBLES ARRIBA
+   ============================================ */
+
+/* Las tabs deben estar por encima del contenido */
+.tabs {
+    position: relative;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.95); /* Fondo sólido para que no se vea través */
+    backdrop-filter: blur(10px);
+}
+
+/* El container principal necesita contexto de apilamiento */
+.container {
+    position: relative;
+    z-index: 1;
+}
+
+/* Las secciones de contenido deben quedar DEBAJO de las tabs */
+.content-section {
+    position: relative;
+    z-index: 1;
+}
+
+/* Asegurar que las cards no se suban encima */
+.card {
+    position: relative;
+    z-index: 1;
+}
+
+/* FIX CRÍTICO: Prevenir que el contenido tape las pestañas al hacer scroll */
+.content-section.active {
+    position: relative;
+    z-index: 1;
+    /* Añadir padding superior para crear separación visual */
+    padding-top: 10px;
+}
+
+/* Si el problema es el scroll dentro de las secciones */
+.content-section {
+    overflow: visible; /* o auto si necesitas scroll interno */
+}
+
+/* Asegurar que el header también esté por encima */
+.header {
+    z-index: 200; /* Más alto que las tabs */
+}
+
+/* FIX ULTRA: Aislar las tabs en su propio contexto */
+.tabs {
+    position: sticky;
+    top: 140px; /* Ajusta según la altura de tu header */
+    z-index: 150;
+    margin-bottom: 20px;
+}
