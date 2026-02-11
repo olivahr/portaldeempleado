@@ -1414,3 +1414,32 @@ body::before {
     background-color: transparent !important;
     -webkit-text-fill-color: #ffffff !important;
 }
+
+/* ============================================
+   FIX: ESPACIO PARA SCROLL DE PESTAÑAS
+   ============================================ */
+
+/* Agregar scroll-margin-top a las secciones para compensar el header sticky */
+.content-section {
+    scroll-margin-top: 180px; /* Ajusta según la altura de tu header + tabs */
+}
+
+/* Alternativa: padding superior en las cards para que el contenido no se pegue arriba */
+.content-section.active .card:first-child {
+    margin-top: 20px;
+}
+
+/* Fix más robusto - espacio en el contenedor de contenido */
+.container {
+    padding-top: 40px; /* Espacio adicional arriba */
+}
+
+/* Si prefieres que sea solo en las secciones de contenido */
+.content-section {
+    padding-top: 20px;
+}
+
+/* Asegurar que el header no tape el contenido cuando se hace scroll a anclas */
+html {
+    scroll-padding-top: 200px; /* Altura del header completo */
+}
