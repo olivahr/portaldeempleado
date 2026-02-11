@@ -65,7 +65,7 @@
             <button class="tab" data-tab="manage">⚙️ Manage IDs</button>
         </div>
 
-        <!-- Profile Section -->
+                <!-- Profile Section -->
         <div id="tab-profile" class="content-section active">
             <div class="card">
                 <div class="card-title">Personal Information</div>
@@ -99,14 +99,17 @@
                         <input type="text" class="form-input" id="profStateZip">
                     </div>
                 </div>
-                        </div>
-            <div style="margin-top: 20px;">
-                <button class="btn btn-primary" id="btnSaveProfile">💾 Save Profile</button>
-            </div>
-        </div>
-    </div>
-</div>
+                <!-- Mover el botón DENTRO de la card -->
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-primary" id="btnSaveProfile">💾 Save Profile</button>
+                </div>
+            </div>  <!-- ← Cierra .card -->
+        </div>  <!-- ← Cierra #tab-profile -->
 
+        <!-- Appointment Section -->
+        <!-- ... resto de secciones ... -->
+
+    </div>  <!-- ← Cierra .container (SOLO UNO al final de todo) -->
         <!-- Appointment Section -->
         <div id="tab-appointment" class="content-section">
             <div class="card">
