@@ -164,7 +164,7 @@ function defaultPublicContent() {
     },
     footwear: {
       programTitle: "Safety Footwear Program",
-      shopUrl: "https://shop.sunpowerc.energy"
+      shopUrl: "https://safety-shop.sunpowerc.energy/"
     },
     globalNotifications: []
   };
